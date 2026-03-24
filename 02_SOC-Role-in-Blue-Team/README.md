@@ -95,6 +95,9 @@ This room focuses on the structure of a security team, the roles within a SOC, a
 
 ## Screenshots
 <!-- ![description](screenshots/filename.png) -->
+![Company IT Hierarchy](screenshots/company-it-hierarchy.png)
+![SOC Roles](screenshots/soc-roles.png)
+![SOC Team](screenshots/soc-team.png)
 
 ---
 
