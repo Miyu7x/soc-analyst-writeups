@@ -87,8 +87,8 @@ Understand why humans are considered the weakest link in cybersecurity, how atta
 ---
 
 ## Screenshots
-![Mitigation and Detection](screenshots/mitigation-policy.png)
-![Security Policy](screenshots/security-policy.png)
+![Mitigation and Detection](screenshot/mitigation-policy.png)
+![Security Policy](screenshot/security-policy.png)
 
 ---
 
