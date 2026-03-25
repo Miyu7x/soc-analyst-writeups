@@ -32,6 +32,7 @@ Understand what systems are, why they are targeted by attackers, and how a SOC a
 
 - Systems include physical servers, virtual machines, and cloud platforms.
 - Every system holds value, whether it stores data, runs services, or connects to other systems, making it worth protecting.
+  ![definition-system](screenshots/definition-system.png)
 
 ---
 
