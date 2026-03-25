@@ -101,10 +101,6 @@ Understand what systems are, why they are targeted by attackers, and how a SOC a
 
 ---
 
-### Screenshots
-
----
-
 ### Flags
 
 | Flag | Value |
