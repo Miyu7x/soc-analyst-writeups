@@ -12,7 +12,7 @@ tags:
   - network-diagrams
   - alert-triage
   - enrichment
-status: in-progress
+status: completed
 date: 2026-04-02
 date_completed: 2026-04-02
 ---
