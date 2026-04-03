@@ -70,7 +70,7 @@ In order to properly triage the alert we must know who these users are and wheth
 ### Task Questions
 
 **Q1:** Looking at the identity inventory, what is the role of R.Lund at the company?
-![T2 Identity examples](screenshots/T2_identity_examples.png)
+![T2 Identity examples](screenshots/T2_Identity_Examples.png)
 **A:** US Financial Adviser
 
 **Q2:** Checking the asset inventory, what data does the HQ-FINFS-02 server store?
