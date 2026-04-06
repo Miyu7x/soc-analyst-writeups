@@ -12,7 +12,7 @@ tags:
   - telemetry
   - crowdstrike
   - mitre
-status: in-progress
+status: completed
 date_started: 2026-04-06
 date_completed: 2026-04-06
 ---
