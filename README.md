@@ -6,7 +6,7 @@ TryHackMe SOC Level 1 path write-ups | Blue team labs, log analysis, and forensi
 
 ## Who I Am
 
-I'm Renata — alias **Miyu7** — a final-year cybersecurity student based in Fort Lauderdale, FL, on a mission to land my first SOC Analyst role. This repo is my public accountability log. Every room I complete is documented as a full write-up. No skipping, no faking understanding I don't have.
+I'm Renata, alias **Miyu7** -- a final-year cybersecurity student based in Fort Lauderdale, FL, on a mission to land my first SOC Analyst role. This repo is my public accountability log. Every room I complete is documented as a full write-up. No skipping, no faking understanding I don't have.
 
 ## What's In Here
 
