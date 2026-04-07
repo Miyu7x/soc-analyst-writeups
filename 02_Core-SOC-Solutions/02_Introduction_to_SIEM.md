@@ -20,15 +20,15 @@ room_url: https://tryhackme.com/room/introtosiem
 
 ### Key Concepts
 
-<!-- What is SIEM at a high level? What is its role in a SOC environment? -->
-**SIEM** Security Information and Event Management system
-- Main security solution for SOC analysts
-- Centralized security solution that collects, normalizes and correlates logs
+**SIEM** stands for Security Information and Event Management. It is the core security solution used by SOC analysts inside a security operations center. At its most fundamental level, SIEM is a centralized platform that collects logs from across a network, normalizes them into a consistent format, and correlates them to detect malicious activity.
 
 **Learning Objectives**
-- Different types of logs and where they come from
-- Limitations of only looking at isolated logs
-- Discover various sources that produce logs
+- Understand the different types of log sources and where they originate
+- Identify the limitations of analyzing isolated, decentralized logs
+- Recognize why a centralized solution is necessary
+- Explore the core features a SIEM provides
+- Understand how logs are ingested and how alerting works
+
 ### Task Questions
 
 1. What does SIEM stand for?
@@ -41,41 +41,26 @@ room_url: https://tryhackme.com/room/introtosiem
 
 ### Key Concepts
 
-Imagine your home, your desktop, your laptop, all your devices connect to a router which connects to the internet. These devices continuously generate logs of the activities that happen within them
-- Who logged in
-- What websites were visited
-- Which Apps were used
-- What files were downloaded
+Every device in a network generates logs continuously. Think of any home or enterprise network: laptops, servers, firewalls, routers all running at the same time, each producing a record of every action. That volume alone creates a problem. Now multiply it across an enterprise with hundreds of endpoints, and the challenge becomes clear.
 
-<!-- What are the two main categories of log sources? What distinguishes one from the other? -->
-There are 2 main categories of logs
-- **Host-Centric Log Sources** 
-	- Linux - Windows - Servers
-	- User accessing a file
-	- User attempting to authenticate
-	- Process execution, adding, adding, deleting
-	- PowerShell execution
-- **Network-Centric Log Sources**
-	- SSH connection
-	- FTP file access
-	- Web traffic
-	- A user accessing company's resources through VPN
-	- Network file sharing  activity
+These logs fall into two categories based on where the activity originates.
 
-| Log Source Category | Example Devices                                                     | Example Log Events         |
-| ------------------- | ------------------------------------------------------------------- | -------------------------- |
-| Host-Centric        | Windows laptop                                                      | running the whoami command |
-| Network-Centric     | Using your home laptop to connect thru SSH to your company's laptop |                            |
+| Log Source Category | Example Devices | Example Log Events |
+|---|---|---|
+| Host-Centric | Windows endpoints, Linux servers, workstations | File access, user authentication, process execution, registry edits, PowerShell activity |
+| Network-Centric | Firewalls, IDS/IPS, routers, VPN gateways | SSH connections, FTP file transfers, web traffic, VPN access, network file sharing |
 
-<!-- What are the five challenges of working with raw, decentralized logs? Think about volume, format, context, efficiency, and correlation. -->
+The distinction matters because host-centric logs tell you what happened on a machine, while network-centric logs tell you how machines were communicating. Both are needed to reconstruct an attack.
 
-| Challenge            | Why It Matters to a SOC Analyst                                                                                 |
-| -------------------- | --------------------------------------------------------------------------------------------------------------- |
-| Numerous Log Sources | Logs come from many different sources which are generating hundreds of events per second                        |
-| No Centralization    | Logs reside in the device they are generated in, to access them we may need to connect via RDP, SSH, etc...     |
-| Limited Context      | Attackers use lateral movement, a single log might not reveal the whole story                                   |
-| Limited Analysis     | Numerous logs are generated per second, impossible for humans to analyze them all                               |
-| Format Issues        | Different log sources generate in different formats, knowing how to read all different formats can be difficult |
+**The five core challenges of working with raw, decentralized logs:**
+
+| Challenge | Why It Matters to a SOC Analyst |
+|---|---|
+| Numerous Log Sources | Hundreds of events per second across many devices; manually reviewing all of them is not realistic |
+| No Centralization | Logs live on the device that generated them; accessing them requires connecting to each machine individually via SSH, RDP, etc. |
+| Limited Context | A single log event rarely tells the full story; attackers use lateral movement, so the picture only becomes clear when logs are combined |
+| Limited Analysis | The sheer volume of logs makes it impossible for a human analyst to catch everything manually |
+| Format Issues | Windows logs, Linux logs, and firewall logs all look different; an analyst needs to know every format to work across sources |
 
 ### Task Questions
 
@@ -93,27 +78,21 @@ There are 2 main categories of logs
 
 ### Key Concepts
 
-**SIEM is the solution** for all the different log types and sources from firewalls, endpoints, servers etc. It collects all these different types of logs
-- Standardizes them
-- Correlates them 
-- Detects malicious activities using detection rules
+SIEM is the direct answer to every challenge from Task 2. It collects logs from all sources, standardizes their format, correlates them to surface patterns, and alerts analysts when detection rules are triggered.
 
-![T3 Siem flow](screenshots/T3_siem_flow.png)
+![SIEM data flow diagram](screenshots/T3_siem_flow.png)
 
-<!-- Walk through the correlation example (Haris/VPN/PowerShell/outbound connection). What does each event look like in isolation vs. correlated? What does this tell you about why correlation is the core value of SIEM? -->
+Two terms worth distinguishing: **parsing** is the process of breaking a raw log down into individual fields. **Normalization** is converting all those parsed logs from different sources into one consistent schema. Normalization is what makes correlation possible; you cannot correlate a Windows event log against a firewall log if they are structured completely differently.
 
-<!-- What are the core SIEM features? For each one, write what problem it solves and how a SOC analyst actually uses it. -->
+**The Haris example from the room is worth sitting with.** Taken one at a time, each of these events looks unremarkable: a VPN login from an unfamiliar IP, access to files on a shared drive, a PowerShell script execution, an outbound network connection. Correlated across a five-minute window, that sequence is a textbook data exfiltration pattern. The individual logs were not the signal. The relationship between them was. That is the entire value proposition of correlation.
 
-| SIEM Feature               | Problem It Solves                                                                      |                       How an Analyst Uses It                       |
-| -------------------------- | -------------------------------------------------------------------------------------- | :----------------------------------------------------------------: |
-| Centralized Log Collection | Collects all different types of logs in one place                                      |                                                                    |
-| Normalization              | Logs come in different shapes and sizes, normalization standardizes them into one type |                                                                    |
-| Correlation                | Individual logs are not useful specially when modern attacks involve lateral movement  |                                                                    |
-| Real-time Alerting         | Analysts set rules on the SIEM to broaden their detection scope                        |                                                                    |
-| Dashboards and Reporting   | Provides an in depth dashboard                                                         | - Alert highlights<br>- System Notifications<br>- Health Alert<br> |
-|                            |                                                                                        |                                 -                                  |
-
-<!-- What kinds of information live on a SIEM dashboard? Why would each matter during an investigation? -->
+| SIEM Feature | Problem It Solves | How an Analyst Uses It |
+|---|---|---|
+| Centralized Log Collection | Eliminates the need to SSH or RDP into each machine individually | All logs flow into one platform; analysts work from a single interface |
+| Normalization | Raw logs from different sources use different formats and field names | Parsed and standardized logs allow consistent querying and rule-writing across all sources |
+| Correlation | Individual log events lack context; attacks span multiple systems | SIEM links related events across sources and timeframes to surface attack patterns |
+| Real-time Alerting | Threats need to be caught as they happen, not in a post-mortem | Detection rules fire alerts the moment conditions are met; analysts investigate from inside the SIEM |
+| Dashboards and Reporting | High log volume makes it hard to see what matters | Dashboards surface alert highlights, failed login counts, ingestion health, top domains visited, and rule trigger summaries |
 
 ### Task Questions
 
@@ -127,27 +106,30 @@ There are 2 main categories of logs
 
 ### Key Concepts
 
-<!-- Windows logs: how are they structured? What is the role of Event IDs? Where do analysts view them? -->
+**Windows logs** are viewed through Event Viewer and organized by unique Event IDs. Each ID corresponds to a specific type of activity, which makes writing detection rules against Windows logs precise and repeatable. All Windows endpoint logs are forwarded to the SIEM for centralized monitoring.
 
-<!-- Linux logs: what are the key log file locations and what does each one capture? -->
+**Linux logs** are stored as flat files in `/var/log/`. Each file captures a specific category of activity:
 
-| Linux Log Path    | What It Captures                                            |
-| ----------------- | ----------------------------------------------------------- |
-| /var/log/httpd    | HTTP Requests, Responses and Error logs                     |
-| /var/log/cron     | Scheduled jobs logs Cron Logs (System Updates)              |
-| /var/log/auth.log | Authentication logs, user login and logoffs, MFA challenges |
-| /var/log/secure   |                                                             |
-| /var/log/kern     | boot sequences and driver interactions                      |
+| Linux Log Path | What It Captures |
+|---|---|
+| /var/log/httpd | HTTP requests, responses, and web server errors |
+| /var/log/cron | Scheduled job execution logs |
+| /var/log/auth.log | Authentication events: logins, logoffs, sudo usage |
+| /var/log/secure | Authentication logs on Red Hat/CentOS-based systems |
+| /var/log/kern | Kernel-level events: boot sequences, driver interactions, hardware errors |
 
-| Ingestion Method  | How It Works                                        | When You Would Use It                                 |
-| ----------------- | --------------------------------------------------- | ----------------------------------------------------- |
-| Agent / Forwarder | AGENT (forwader by Splunk) installed on an endpoint | Configured to capture and send important logs to SIEM |
-| Syslog            | Used to collect data from servers and databases     | send real time data to the centralized destination    |
-| Manual Upload     | Ingest offline data for quick analysis              | When you need to quickly analyze data                 |
-| Port-Forwarding   | SIEM solution is configured to listen on a port     | Forwards endpoint data on the port to the SIEM        |
+**Web server logs** (Apache) record every request hitting the server. Each line includes the source IP, timestamp, HTTP method, requested path, status code, response size, and user agent. These are essential for detecting web attacks.
 
-![Different ways to upload logs to the SIEM](screenshots/T4_various_ways_logs.png)
+![Log ingestion methods in Splunk](screenshots/T4_various_ways_logs.png)
 
+**Log ingestion methods** vary by SIEM and deployment context:
+
+| Ingestion Method | How It Works | When You Would Use It |
+|---|---|---|
+| Agent / Forwarder | Lightweight agent installed on the endpoint captures and ships logs to the SIEM | Standard deployment for managed endpoints |
+| Syslog | Industry-wide protocol for forwarding log data from network devices and servers in real time | Devices that support syslog natively: routers, firewalls, switches |
+| Manual Upload | Offline log files are uploaded directly into the SIEM | Quick analysis of logs from an isolated or offline system |
+| Port-Forwarding | SIEM listens on a configured port; endpoints forward data directly to that port | Lightweight integration without an agent install |
 
 ### Task Questions
 
@@ -161,19 +143,19 @@ There are 2 main categories of logs
 
 ### Key Concepts
 
-![How SIEM Rules are Created](screenshots/T5_how_siem_rules.png)
+Detection rules are the engine behind SIEM alerting. A rule is a logical expression: when specific field values appear in ingested logs and a defined condition is met, the SIEM triggers an alert. This is why normalization matters so much. Rules are written against field names and values; if logs are not consistently parsed, rules break or miss events entirely.
 
-| Use Case                   | Threat Behavior                     | Key Log Fields  | Rule Logic |
-| -------------------------- | ----------------------------------- | --------------- | ---------- |
-| Event Log Cleared (ID 104) | User trying to remove or clear logs | WinEventLog 104 |            |
-| whoami Execution (ID 4688) | Attacker uses whoami                | 4688            |            |
+| Use Case | Threat Behavior | Key Log Fields | Rule Logic |
+|---|---|---|---|
+| Event Log Cleared (ID 104) | Attacker clears Windows event logs to remove evidence of their activity | Log source: WinEventLog, EventID: 104 | If Log Source = WinEventLog AND EventID = 104, trigger alert: Event Log Cleared |
+| whoami Execution (ID 4688) | Attacker runs whoami after exploitation to confirm their privilege level | Log source: WinEventLog, EventID: 4688, NewProcessName | If Log Source = WinEventLog AND EventCode = 4688 AND NewProcessName contains whoami, trigger alert: whoami Execution Detected |
 
-Analysts spend most of their time on the SIEM Dashboard
+After an alert fires, analysts work through a standard triage workflow: examine the events tied to the alert, review which rule conditions were met, determine whether the activity is genuine or a false positive, and take action accordingly.
 
-| Alert Outcome  | What It Means                 | Follow-up Actions                 |
-| -------------- | ----------------------------- | --------------------------------- |
-| False Positive | Is it Frequent?               | Rules need Tuning                 |
-| True Positive  | Perform further investigation | isolate host, block suspicious IP |
+| Alert Outcome | What It Means | Follow-up Actions |
+|---|---|---|
+| False Positive | The rule fired, but the activity is benign | Tune the rule to tighten the condition and reduce noise |
+| True Positive | The rule fired and the activity is genuinely malicious | Investigate further, contact the asset owner, isolate the host, block the suspicious IP as needed |
 
 ### Task Questions
 
@@ -191,18 +173,21 @@ Analysts spend most of their time on the SIEM Dashboard
 
 ### Key Concepts
 
-![T6 Shows SIEM Dashboard](screenshots/T6_siem_dashboard.png)
+This task puts everything together in a static SIEM dashboard simulation. The goal is to trigger a suspicious activity event, trace it through the SIEM, identify who did what and from where, evaluate the alert, and take the correct response action.
 
+![SIEM dashboard baseline](screenshots/T6_siem_dashboard.png)
 
 ### Task Questions
 
 1. After clicking on the Start Suspicious Activity button, which process caused the alert?
-![T6 cudominer.exe Alert](screenshots/T6_siem_cudominer.png)
+
+   ![cudominer.exe alert triggered](screenshots/T6_siem_cudominer.png)
 
    **Answer: cudominer.exe**
 
 2. Find the event that caused the alert and identify the user responsible for the process execution.
-![T6 User Chris Alert ](screenshots/T6_chris_cudominer.png)
+
+   ![Event detail showing user Chris](screenshots/T6_chris_cudominer.png)
 
    **Answer: Chris**
 
@@ -211,12 +196,14 @@ Analysts spend most of their time on the SIEM Dashboard
    **Answer: HR_02**
 
 4. Examine the rule and the suspicious process; which term matched the rule that caused the alert?
-![T6 Rule that triggerd Chris ALert](screenshots/T6_chris_rule_alert.png)
+
+   ![Detection rule that matched](screenshots/T6_chris_rule_alert.png)
 
    **Answer: Miner**
 
 5. Which option best represents the event? (False Positive / True Positive)
-![T6 Chris cudominer alert True Positive](screenshots/T6_chris_tp.png)
+
+   ![True Positive classification](screenshots/T6_chris_tp.png)
 
    **Answer: True Positive**
 
@@ -230,12 +217,9 @@ Analysts spend most of their time on the SIEM Dashboard
 
 ### Key Concepts
 
-Upon finishing this lab i truly understand the importance of the **SIEM** up until now i had a vague idea that it was a dashboard that it received alerts, but now i understand as;
-- Centralized security solution
-- Collects all types of logs in one place
-- Standardizes them as different logs come in different formats and sizes
-- Analysts can set rules inside the SIEM to adjust False Positive noise
+Before this room, SIEM was a vague concept: a dashboard somewhere that received alerts. Now it has structure. SIEM is a centralized log collection and analysis platform that makes large-scale security monitoring possible by solving the problems that raw, isolated logs cannot: volume, format inconsistency, lack of context, and the impossibility of manual analysis at scale.
 
+The lab made the abstract concrete. A process ran on an endpoint, a detection rule matched a keyword in the process name, an alert fired, and the correct response action confirmed the activity was malicious. That end-to-end flow is the daily reality of SOC work.
 
 ### Task Questions
 
