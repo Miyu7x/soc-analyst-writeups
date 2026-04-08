@@ -2,7 +2,7 @@
 title: "Splunk: The Basics"
 platform: TryHackMe
 path: SOC Level 1 > Core SOC Solutions
-status: in-progress
+status: completed
 date_started: 04/08/2026
 date_completed: 04/08/2026
 tags: [splunk, siem, log-ingestion, spl, soc-level-1]
