@@ -4,21 +4,21 @@
     "type": "split",
     "children": [
       {
-        "id": "c5d7ae6bd17950d5",
+        "id": "6f30f07f7eeb78c1",
         "type": "tabs",
         "children": [
           {
-            "id": "dc1f7098cfd258d4",
+            "id": "50a215f0dc8f1354",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "02_Core-SOC-Solutions/02_Introduction_to_SIEM.md",
+                "file": "02_Core-SOC-Solutions/03_Splunk_the_Basics.md",
                 "mode": "source",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "02_Introduction_to_SIEM"
+              "title": "03_Splunk_the_Basics"
             }
           }
         ]
@@ -184,26 +184,28 @@
       "bases:Create new base": false
     }
   },
-  "active": "dc1f7098cfd258d4",
+  "active": "50a215f0dc8f1354",
   "lastOpenFiles": [
-    "01_SOC-Team-Internals/04_SOC_Metrics_and_Objectives.md",
+    "02_Core-SOC-Solutions/screenshots/T5_q5_allsource_ip.png",
+    "02_Core-SOC-Solutions/screenshots/T5_Q4_exclude_france.png",
+    "02_Core-SOC-Solutions/screenshots/Pasted image 20260408150534.png",
+    "02_Core-SOC-Solutions/screenshots/T5_q3_smithip.png",
+    "02_Core-SOC-Solutions/screenshots/T2_logs_maleena.png",
+    "02_Core-SOC-Solutions/screenshots/T5_first_splunk_vpnlog.png",
+    "02_Core-SOC-Solutions/screenshots/T5_review_splunk_submit-1.png",
+    "02_Core-SOC-Solutions/screenshots/T5_review_splunk_submit.png",
+    "02_Core-SOC-Solutions/screenshots/Splunk_input_settings.png",
+    "02_Core-SOC-Solutions/screenshots/T5_set_source_type.png",
+    "02_Core-SOC-Solutions/screenshots/T5_upload_json_log.png",
+    "02_Core-SOC-Solutions/03_Splunk_the_Basics.md",
+    "README.md",
     "02_Core-SOC-Solutions/02_Introduction_to_SIEM.md",
-    "02_Core-SOC-Solutions/screenshots/T6_chris_tp.png",
-    "02_Core-SOC-Solutions/screenshots/T6_chris_rule_alert.png",
-    "02_Core-SOC-Solutions/screenshots/T6_chris_cudominer.png",
-    "02_Core-SOC-Solutions/screenshots/T6_siem_cudominer.png",
-    "02_Core-SOC-Solutions/screenshots/T6_siem_dashboard.png",
-    "02_Core-SOC-Solutions/screenshots/T5_how_siem_rules.png",
-    "02_Core-SOC-Solutions/screenshots/Pasted image 20260407180054.png",
-    "02_Core-SOC-Solutions/screenshots/T4_various_ways_logs.png",
-    "02_Core-SOC-Solutions/screenshots/T3_siem_flow.png",
+    "01_SOC-Team-Internals/04_SOC_Metrics_and_Objectives.md",
     "02_Core-SOC-Solutions/01_Introduction_to_EDR.md",
-    "02_Core-SOC-Solutions/screenshots/Pasted image 20260406164323.png",
     "02_Core-SOC-Solutions/screenshots",
     "02_Core-SOC-Solutions",
     "01_SOC-Team-Internals/03_SOC_Workbooks_and_Lookups.md",
     "01_SOC-Team-Internals/02_SOC_L1_Alert_Reporting.md",
-    "01_SOC-Team-Internals/01_SOC-L1-Alert-Triage.md",
-    "README.md"
+    "01_SOC-Team-Internals/01_SOC-L1-Alert-Triage.md"
   ]
 }
