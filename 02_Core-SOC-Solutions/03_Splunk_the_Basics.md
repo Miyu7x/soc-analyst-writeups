@@ -55,7 +55,7 @@ Splunk has 3 mains components:
 	- Stores the results as **events**
 	
 	
-- **Search Head** - SOC's place to search for logs![](T3_splunk_search_head.png)
+- **Search Head** - [SOC's place to search for logs!](screenshots/T3_splunk_search_head.png)
 	- Searches are done using SPL(Search processing Language)
 	- When the user performs a search the request is sent to the **indexer** which then returns the found events as field-value pairs
 	- **Field-value pairs:** when the forwarder sends a log to the indexer it arrives as a raw string 
@@ -136,7 +136,7 @@ The magic of Splunk is that it can ingest virtually any type of data and turn it
 
 | Question                      | SPL Query Used            |
 | ----------------------------- | ------------------------- |
-| Total event count             | <br>index="VPN_Logs<br>   |
+| Total event count             | index="VPN_Logs   |
 | Events by user Maleena        | UserName="Maleena"        |
 | Username for IP 107.14.182.38 | Source_ip="107.14.182.38" |
 | Events excluding France       | Source_Country!="France"  |
@@ -146,7 +146,7 @@ The magic of Splunk is that it can ingest virtually any type of data and turn it
 
 1. Upload the data attached to this task and create an index "VPN_Logs". How many events are present in the log file?
 
-   **Answer:**
+   **Answer: 2,862**
 
 2. How many log events are captured by the user Maleena?
 ![T5 Search for logs by Maleena](screenshots/T2_logs_maleena.png)
@@ -159,7 +159,7 @@ The magic of Splunk is that it can ingest virtually any type of data and turn it
    **Answer: Smith**
 
 4. What is the number of events that originated from all countries except France?
-![T5 Total events minus France](T5_Q4_exclude_france.png)
+![T5 Total events minus France](screenshots/T5_Q4_exclude_france.png)
 
    **Answer: 2,814**
 
