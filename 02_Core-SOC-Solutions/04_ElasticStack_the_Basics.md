@@ -134,7 +134,7 @@ The **Discover Tab** is where SOC analysts spend most of their time. It surfaces
    - **Answer: 172.201.60.191**
 
 6. How many connections were observed from IP 238.163.231.224, excluding the New York state?
-   ![Max SourceIP excluding NY](screenshots/T4_q6_sourceip_minusny.png)
+    ![Max SourceIP excluding NY](T4_q5_sourceip_minusny.png)
    - **Answer: 48**
 
 7. Create a table with the fields IP, UserName, Source_Country and save.
