@@ -138,6 +138,7 @@ The **Discover Tab** is where SOC analysts spend most of their time. It surfaces
    - **Answer: 48**
 
 7. Create a table with the fields IP, UserName, Source_Country and save.
+
    ![Selected fields for the table](screenshots/T4_q7_selected_filters.png)
    - **Answer: UserName, Source_Country, Source_ip**
 
