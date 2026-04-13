@@ -13,7 +13,7 @@ tags:
   - alert-triage
 status: in-progress
 date: 2026-04-13
-date completed:2026-04-13
+date completed: 2026-04-13
 ---
 # Introduction to SOAR
 
@@ -23,14 +23,12 @@ date completed:2026-04-13
 
 ### Key Concepts
 
-An SOC analyst job can be tiring, with loads of manual processing and far too many disconnected tools along with difficulties in communication across teams.
-
-**SOAR** Security Orchestration, Automation, and Response; is the tool SOC analysts use to overcome those challenges.
+A SOC analyst's job can be exhausting - too many manual processes, too many disconnected tools, and constant communication overhead across teams. SOAR (Security Orchestration, Automation, and Response) was built to address exactly those pain points.
 
 ### Task Questions
 
 1. Let's get started!
-   - **Answer: Check**
+   - **Answer:**
 
 ---
 
@@ -38,28 +36,21 @@ An SOC analyst job can be tiring, with loads of manual processing and far too ma
 
 ### Key Concepts
 
-SOC analysts job revolves around monitoring and protecting digital assets. The effectiveness of an SOC team is measured by their ability to continuously monitor, analyze and how they handle security incidents.
+A SOC's effectiveness is measured by its ability to continuously monitor, analyze, and respond to security incidents. That work happens across four core capabilities.
 
-Challenges faced by SOCs
-- Alert Fatigue
-- Too many disconnected tools
-- Manual Processes
-- Talent Shortage
+**Monitoring and Detection** - 24/7 scanning and flagging of suspicious activity within the network. Primary tool: SIEM.
 
-- **Monitoring and Detection** 24/7 around the clock scanning and flagging suspicious activities within a network environment. Tool: SIEM
+**Recovery and Remediation** - When a threat is confirmed, the SOC team acts as first responders. Tools used: EDR, firewalls, IAM. Actions include isolating endpoints, removing malware, shutting down infected systems, and stopping malicious processes.
 
-- **Recovery and Remediation** Once a threat has been discovered the SOC team are the first-responders. Tools: EDRs, firewalls, IAM (Identity and Access management)
-	- isolating environments
-	- shutting down infected endpoints 
-	- removing malware 
-	- stopping malicious processes 
-	
-- **Threat Intelligence** Hackers are alwauys finding new exploiuts and SOC analysts need to keep by studying these new threats. Tools: latest threat data which includes, domains, IP addresses, hashes and others.
+**Threat Intelligence** - Attackers constantly develop new exploits. Analysts maintain awareness through continuous threat feeds covering IP addresses, domains, file hashes, and other indicators.
 
-- **Communication** is vital skill for any SOC analyst to have, as you have to coordinate your work with others as well as IT teams and management effectively.
-	- How to properly communicate an escalated event to your L2
+**Communication** - SOC analysts do not work in isolation. Coordinating with IT teams and management is a core skill, including knowing how to escalate an incident clearly and effectively to a Tier 2 analyst or above.
 
-
+**Challenges faced by SOCs:**
+- Alert fatigue - too many events, many of them false positives
+- Too many disconnected tools - no unified view of the environment
+- Manual processes - undocumented tribal knowledge slows response
+- Talent shortage - growing threat landscape with limited experienced analysts
 
 ### Task Questions
 
@@ -72,35 +63,26 @@ Challenges faced by SOCs
 
 ### Key Concepts
 
-![What SOAR does a table](screenshots/T3_soar_table.png)
+SOAR (Security Orchestration, Automation, and Response) unifies the security tools a SOC uses - SIEM, EDR, firewall, IAM, threat intelligence platforms - into a single interface. Analysts no longer need to switch between tools during an investigation.
 
-**SOAR was designed to combat the issues faced daily by SOC teams**
-- Alert Fatigue
-- Too many disconnected tools
-- Manual Processes
-- Talent Shortage
+The three capabilities that make SOAR work:
 
-**Security Orchestration Automation and Response**
-- **UNIFIES** all the security tools SOC use
-	- This means all the tools in one interface, without having top switch between EDR, SIEM, Firewall and other individual tools
-	- SOAR uses **playbooks** which are predefined steps on how SOAR investigates an alert
+**Orchestration** - Connects all security tools and defines workflows called playbooks. A playbook is a predefined set of steps that tells SOAR how to investigate a specific type of alert. The quality of automation is only as good as the analyst who wrote the playbook.
 
-The playbook may come predefined by the system but the best security is a playbook that's has been crafted based on the company's needs and traffic
-- **Automation** means if SOAR has a predefined playbook on how to handle VPN brute force attacks it follows those steps in remediating the threat
-- **Response** SOAR automatically responds to threat or attack
-	- SOAR receives alert form SIEM
-	- Automatically pulls a search for the users history of logins
-	- Automatically verify the IP legality through the TI platform?
-	- If malicious IP, it **automatically** disables the user  in the Identity and Access Management
-	- Automatically opens a ticket with all the information about the alert and investigation
-	
+**Automation** - SOAR executes the playbook automatically, without manual intervention. Example for a VPN brute force alert:
+- SOAR receives the alert from SIEM
+- Automatically queries login history for the user
+- Automatically checks the IP against threat intelligence platforms
+- If the IP is malicious, automatically disables the user in IAM
+- Automatically opens a ticket with all investigation details
 
-![T3 Before and After SOAR](screenshots/T3_before_after_soar.png)
+**Response** - SOAR takes containment and remediation actions across tools from one interface, automatically and at speed.
 
-**SOAR** is an amazing tool that may seem that it can work byitself. However we sill need SOC analysts inorder to;
-- Make a judgment call on a critical point
-- Understand threats in a business context
-- the SOAR **playbook** is crafted by SOC analysts, so your SOAR automation is only as good as the analyst who crafted it
+![What SOAR does](screenshots/T3_soar_table.png)
+
+![Before and after SOAR](screenshots/T3_before_after_soar.png)
+
+**Do we still need SOC analysts?** Yes - and this is important. SOAR handles the repetitive, documented work. Analysts are still essential for judgment calls at critical decision points, understanding threats in business context, and building and maintaining the playbooks themselves. The automation is only as smart as the person who designed it.
 
 ### Task Questions
 
@@ -116,28 +98,23 @@ The playbook may come predefined by the system but the best security is a playbo
 
 ### Key Concepts
 
-A good playbook is one that works, one of the msot common causes of attacks is due to **PHISHING** so analysts need to craft and update their playbook regularly
+Playbooks are built for recurring, predictable alert categories. The two examples covered here - phishing and CVE patching - both follow branching logic rather than a linear checklist. Each decision point changes the path, which means the playbook can handle variation without requiring a human at every step.
 
-**Phishing Playbook Example**
-![Phshing playbook example](screenshots/T4_phishing_playbook_example.png)
+**Phishing Playbook** - Phishing is one of the most common attack vectors. The playbook starts at "suspicious email received," creates a ticket, then checks whether the email contains a URL or attachment. From there the path branches based on what is found. Most steps are automated; an analyst steps in only when a judgment call is needed.
 
-A **CVE Playbook** involves crafting a playbook for a known vulnerability. If you follow Exploit-DB you will see that new vulnerabilities arise everyday, so it is important that SOC analysts keep these playbooks updated!
+![Phishing playbook](screenshots/T4_phishing_playbook_example.png)
 
-![CVE playbook exanple](screenshots/T4_cve_playbook_example.png)
-<!-- Trace the phishing playbook flow in your own words. What are the decision points - the "if this, then that" branches? Why do branching paths matter more than a linear checklist? -->
+**CVE Patching Playbook** - New CVEs are published constantly. Without automation, the patching backlog grows and environments stay vulnerable. The playbook fetches new CVEs from advisory lists, assesses risk, creates a patching ticket, tests the patch, and pushes to production. If assets remain vulnerable after patching, the SOC develops a mitigation plan. An analyst appears at the points where human verification or decision-making is required.
 
-<!-- What is a CVE and why does patching management become overwhelming without automation? -->
-
-<!-- In the CVE patching playbook, where does a SOC analyst appear? What decision is only a human making there? -->
-
-<!-- Both playbooks are shown as flow diagrams. What does that format tell you about how SOAR thinks about investigations - as structured logic, not open-ended judgment? -->
+![CVE patching playbook](screenshots/T4_cve_playbook_example.png)
 
 ### Phishing Playbook - Key Decision Points
 
 | Step | Condition | Path A | Path B |
 |---|---|---|---|
-| Initial check | Contains URL or attachment? | | |
-| | | | |
+| Initial triage | Contains URL or attachment? | Yes - continue analysis | No - notify user and close |
+| Content check | URL or attachment? | URL - check reputation via TI | Attachment - detonate in sandbox |
+| Verdict | Malicious confirmed? | Remediate and escalate | Mark false positive and close |
 
 ### Task Questions
 
@@ -156,21 +133,24 @@ A **CVE Playbook** involves crafting a playbook for a known vulnerability. If yo
 
 ### Key Concepts
 
-The challenge is to adopt the SOAR tool in our teams investigation. This challenge we set up a SOAR playbook and automation workflow
+The practical puts you in the role of a SOC analyst adopting SOAR for the first time after a slow, manual breach investigation. The task is to build a threat intelligence integration workflow by configuring each component of the automation chain and testing it until the full flow runs cleanly.
 
-![T5 Instructions for first SOAR automation playbook](screenshots/T5_building_first_soar.png)
+Each stage had to be activated in the correct order - case ticket management, threat intel automation, incident data extraction, reputation checks, and course of action. Getting one step wrong breaks the chain downstream, which is a good lesson in how dependent these automated workflows are on correct configuration.
 
-![Settingup automation for SOAR](screenshots/T5_settingup_automation_soar.png)
+![Building the first SOAR workflow](screenshots/T5_building_first_soar.png)
 
-![Correct Case Ticket Management](screenshots/T5_case_management_settings.png)
+![Setting up automation](screenshots/T5_settingup_automation_soar.png)
 
-![Correct Threat Intel Automation](screenshots/T5_threatintell_automation.png)
+![Case ticket management](screenshots/T5_case_management_settings.png)
 
-![Correct incident data extraction automation](screenshots/T5_incidentdata_extraction_automation.png)
+![Threat intel automation](screenshots/T5_threatintell_automation.png)
 
-![Correct Reputation Checks](screenshots/T5_reputation_checks.png)
+![Incident data extraction](screenshots/T5_incidentdata_extraction_automation.png)
 
-![Correct course action automation](screenshots/T5_correct_course_action.png)
+![Reputation checks](screenshots/T5_reputation_checks.png)
+
+![Course of action](screenshots/T5_correct_course_action.png)
+
 ### Task Questions
 
 1. What is the flag received?
@@ -182,13 +162,12 @@ The challenge is to adopt the SOAR tool in our teams investigation. This challen
 
 ### Key Concepts
 
-This room has taught me that SOAR was invented to easy the load on SOC analysts but also how VITAL SOC analysts are to SOAR.
-One does not work without the other its a symbiotic relationship.
+SOAR was built to ease the load on SOC analysts - but it cannot replace them. The relationship is symbiotic. SOAR handles the speed and volume; analysts handle the judgment and context. The playbook is only as effective as the analyst who built it. One does not work without the other.
 
 ### Task Questions
 
 1. Power to Security Orchestration and Automation.
-   - **Answer: Check**
+   - **Answer:**
 
 ---
 
