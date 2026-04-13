@@ -1,5 +1,7 @@
 ---
 title: Introduction to SIEM
+module: SOC Level 1
+platform: TryHackMe
 tags:
   - siem
   - log-analysis
@@ -7,11 +9,9 @@ tags:
   - soc
   - thm
   - soc-level-1
-module: SOC Level 1
 status: in-progress
 date: 2026-04-07
 date completed: 2026-04-07
-platform: TryHackMe
 room_url: https://tryhackme.com/room/introtosiem
 ---
 # Introduction to SIEM

@@ -1,10 +1,7 @@
 ---
 title: "Elastic Stack: The Basics"
 module: Core SOC Solutions
-path: SOC Level 1
 platform: TryHackMe
-status: completed
-date: 2026-04-09
 tags:
   - elk
   - kibana
@@ -14,6 +11,8 @@ tags:
   - kql
   - log-analysis
   - soc
+status: completed
+date: 2026-04-09
 ---
 # Elastic Stack: The Basics
 

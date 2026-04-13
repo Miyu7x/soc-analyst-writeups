@@ -1,11 +1,16 @@
 ---
 title: "Splunk: The Basics"
+module: SOC Level 1 > Core SOC Solutions
 platform: TryHackMe
-path: SOC Level 1 > Core SOC Solutions
+tags:
+  - splunk
+  - siem
+  - log-ingestion
+  - spl
+  - soc-level-1
 status: completed
 date_started: 04/08/2026
 date_completed: 04/08/2026
-tags: [splunk, siem, log-ingestion, spl, soc-level-1]
 ---
 # Splunk: The Basics
 

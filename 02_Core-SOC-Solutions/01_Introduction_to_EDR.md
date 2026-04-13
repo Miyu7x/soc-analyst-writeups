@@ -2,7 +2,6 @@
 title: Introduction to EDR
 module: 02_Core-SOC-Solutions
 platform: TryHackMe
-path: SOC Level 1 > Core SOC Solutions > Introduction to EDR
 tags:
   - soc-level-1
   - edr

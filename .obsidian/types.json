@@ -5,6 +5,7 @@
     "tags": "tags",
     "date_started": "date",
     "date_completed": "date",
-    "date completed": "date"
+    "date completed": "date",
+    "date": "date"
   }
 }

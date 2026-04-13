@@ -4,21 +4,21 @@
     "type": "split",
     "children": [
       {
-        "id": "6f30f07f7eeb78c1",
+        "id": "d5a8573e03c5f32d",
         "type": "tabs",
         "children": [
           {
-            "id": "50a215f0dc8f1354",
+            "id": "526776e0b3e629e3",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "02_Core-SOC-Solutions/03_Splunk_the_Basics.md",
-                "mode": "source",
+                "file": "02_Core-SOC-Solutions/01_Introduction_to_EDR.md",
+                "mode": "preview",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "03_Splunk_the_Basics"
+              "title": "01_Introduction_to_EDR"
             }
           }
         ]
@@ -78,7 +78,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 200
+    "width": 358.5
   },
   "right": {
     "id": "48a54433fc791641",
@@ -184,28 +184,29 @@
       "bases:Create new base": false
     }
   },
-  "active": "50a215f0dc8f1354",
+  "active": "526776e0b3e629e3",
   "lastOpenFiles": [
-    "02_Core-SOC-Solutions/screenshots/T5_q5_allsource_ip.png",
-    "02_Core-SOC-Solutions/screenshots/T5_Q4_exclude_france.png",
-    "02_Core-SOC-Solutions/screenshots/Pasted image 20260408150534.png",
-    "02_Core-SOC-Solutions/screenshots/T5_q3_smithip.png",
-    "02_Core-SOC-Solutions/screenshots/T2_logs_maleena.png",
-    "02_Core-SOC-Solutions/screenshots/T5_first_splunk_vpnlog.png",
-    "02_Core-SOC-Solutions/screenshots/T5_review_splunk_submit-1.png",
-    "02_Core-SOC-Solutions/screenshots/T5_review_splunk_submit.png",
-    "02_Core-SOC-Solutions/screenshots/Splunk_input_settings.png",
-    "02_Core-SOC-Solutions/screenshots/T5_set_source_type.png",
-    "02_Core-SOC-Solutions/screenshots/T5_upload_json_log.png",
-    "02_Core-SOC-Solutions/03_Splunk_the_Basics.md",
-    "README.md",
-    "02_Core-SOC-Solutions/02_Introduction_to_SIEM.md",
     "01_SOC-Team-Internals/04_SOC_Metrics_and_Objectives.md",
-    "02_Core-SOC-Solutions/01_Introduction_to_EDR.md",
-    "02_Core-SOC-Solutions/screenshots",
-    "02_Core-SOC-Solutions",
     "01_SOC-Team-Internals/03_SOC_Workbooks_and_Lookups.md",
     "01_SOC-Team-Internals/02_SOC_L1_Alert_Reporting.md",
-    "01_SOC-Team-Internals/01_SOC-L1-Alert-Triage.md"
+    "01_SOC-Team-Internals/01_SOC-L1-Alert-Triage.md",
+    "02_Core-SOC-Solutions/04_ElasticStack_the_Basics.md",
+    "02_Core-SOC-Solutions/03_Splunk_the_Basics.md",
+    "02_Core-SOC-Solutions/02_Introduction_to_SIEM.md",
+    "02_Core-SOC-Solutions/01_Introduction_to_EDR.md",
+    "02_Core-SOC-Solutions/05_Introduction_to_SOAR.md",
+    "02_Core-SOC-Solutions/screenshots/T5_correct_course_action.png",
+    "02_Core-SOC-Solutions/screenshots/T5_reputation_checks.png",
+    "02_Core-SOC-Solutions/screenshots/T5_case_management_settings.png",
+    "02_Core-SOC-Solutions/screenshots/T5_incidentdata_extraction_automation.png",
+    "02_Core-SOC-Solutions/screenshots/T5_threatintell_automation.png",
+    "02_Core-SOC-Solutions/screenshots/T5_caseticket_automation.png",
+    "02_Core-SOC-Solutions/screenshots/T5_settingup_automation_soar.png",
+    "02_Core-SOC-Solutions/screenshots/T5_building_first_soar.png",
+    "02_Core-SOC-Solutions/screenshots/T4_cve_playbook_example.png",
+    "02_Core-SOC-Solutions/screenshots/T4_phishing_playbook_example.png",
+    "README.md",
+    "02_Core-SOC-Solutions/screenshots",
+    "02_Core-SOC-Solutions"
   ]
 }
