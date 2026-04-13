@@ -11,7 +11,7 @@ tags:
   - response
   - playbooks
   - alert-triage
-status: in-progress
+status: completed
 date: 2026-04-13
 date completed: 2026-04-13
 ---
