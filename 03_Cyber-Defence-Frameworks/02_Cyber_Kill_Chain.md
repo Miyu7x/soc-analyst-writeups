@@ -6,7 +6,7 @@ platform: TryHackMe
 tags: [cyber-kill-chain, reconnaissance, osint, phishing, malware, persistence, c2, exfiltration, threat-intelligence, blue-team, defence-frameworks, mitre-attack]
 status: completed
 date: 2026-04-16
-date_completed:2026-04-16
+date_completed: 2026-04-16
 ---
 
 # Cyber Kill Chain
