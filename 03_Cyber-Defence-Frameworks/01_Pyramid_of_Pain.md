@@ -23,9 +23,9 @@ date_completed: 2026-04-16
 
 ### Key Concepts
 
-**IOCs** or Indicators of Compromise are compilations of threat intelligence collected by SOCs. This threat intelligence is categorized by severity -- high impact at the top, low at the bottom.
+**IOCs** or Indicators of Compromise are compilations of threat intelligence collected by SOCs. This threat intelligence is categorized by severity, high impact at the top, low at the bottom.
 
-When a threat arises, a SOC can determine what to hunt. The goal is big game, not low-hanging fruit like changed hashes and IP addresses -- the real prize is high-impact detections like **Tactics, Techniques, and Procedures**.
+When a threat arises, a SOC can determine what to hunt. The goal is big game, not low-hanging fruit like changed hashes and IP addresses, the real prize is high-impact detections like **Tactics, Techniques, and Procedures**.
 
 Security platforms that have adopted the Pyramid of Pain:
 - Cisco Security
@@ -108,7 +108,7 @@ SOC analysts use hash values to:
 
 **Domain Name System**
 
-Unlike IP addresses, attackers cannot simply change a **domain** name -- they would have to purchase it, which makes it a more difficult and costly move.
+Unlike IP addresses, attackers cannot simply change a **domain** name, they would have to purchase it, which makes it a more difficult and costly move.
 
 ![Jamf and Punycode example](screenshots/T4_jamf_punycode.png)
 
@@ -163,7 +163,7 @@ Attackers love to hide malicious domains under shortened URLs:
 - Indicators of Compromise
 - Files dropped in unexpected locations
 
-If an attacker gets caught at this stage, they have to rebuild their entire toolkit -- it is not as simple as changing a hash or grabbing a new IP address.
+If an attacker gets caught at this stage, they have to rebuild their entire toolkit, it is not as simple as changing a hash or grabbing a new IP address.
 
 ### Task Questions
 
@@ -191,7 +191,7 @@ If an attacker gets caught at this stage, they have to rebuild their entire tool
 
 **C2 communication** or "phone home" is how the attacker communicates with the infected machine.
 
-Because malware often hits specific **URIs** in a predictable pattern -- for example, POSTing to `/api/v1/checkin` every 60 seconds -- that behavior becomes a detectable fingerprint.
+Because malware often hits specific **URIs** in a predictable pattern, for example, POSTing to `/api/v1/checkin` every 60 seconds, that behavior becomes a detectable fingerprint.
 
 ### Task Questions
 
@@ -209,7 +209,7 @@ Because malware often hits specific **URIs** in a predictable pattern -- for exa
 
 ### Key Concepts
 
-If an attacker gets caught here with their tool, it is essentially game over for that tool. They would have to either build a new one or learn a new one entirely -- which is incredibly time-consuming.
+If an attacker gets caught here with their tool, it is essentially game over for that tool. They would have to either build a new one or learn a new one entirely, which is incredibly time-consuming.
 
 **SOC Prime Threat Detection Marketplace** -- A platform where SOC professionals share detection rules for active threats: https://tdm.socprime.com/active-threats/
 
@@ -217,7 +217,7 @@ Resources for malware samples, malicious feeds, and YARA results:
 - **MalwareBazaar** https://bazaar.abuse.ch/
 - **Malshare** https://malshare.com/
 
-**Fuzzy Hashing** performs similarity analysis between files to detect minor differences based on fuzzy hash values -- useful for identifying malware variants that have been slightly modified.
+**Fuzzy Hashing** performs similarity analysis between files to detect minor differences based on fuzzy hash values, useful for identifying malware variants that have been slightly modified.
 
 ### Task Questions
 
@@ -236,12 +236,12 @@ Resources for malware samples, malicious feeds, and YARA results:
 
 **TTPs -- Tactics, Techniques, and Procedures**
 
-TTPs represent the **entire** MITRE ATT&CK Matrix -- every step of an attacker's process from phishing attempts all the way through persistence and data exfiltration.
+TTPs represent the **entire** MITRE ATT&CK Matrix, every step of an attacker's process from phishing attempts all the way through persistence and data exfiltration.
 
 **Example:** Detecting a Pass-the-Hash attack using Windows Event Log Monitoring allows you to locate the compromised host quickly and stop lateral movement before it spreads.
 
 When TTPs are detected, the attacker has two options:
-- Start from scratch -- more research, retraining, and newly configured tools
+- Start from scratch, more research, retraining, and newly configured tools
 - Give up and find another target
 
 ### Task Questions
@@ -274,7 +274,7 @@ Apply each IOC type to its correct tier on the pyramid. Review the logic behind 
 
 ### Key Concepts
 
-The job of stopping an attacker is not easy, but the sooner we catch them the better. Every trace and crumb they leave behind becomes evidence -- and once those fingerprints are burned, they cannot reuse them without being spotted immediately.
+The job of stopping an attacker is not easy, but the sooner we catch them the better. Every trace and crumb they leave behind becomes evidence, and once those fingerprints are burned, they cannot reuse them without being spotted immediately.
 
 Exploring https://tdm.socprime.com/active-threats/ has to be one of the coolest takeaways from a THM room so far. The breadth of shared detection rules in one place is genuinely fascinating.
 
