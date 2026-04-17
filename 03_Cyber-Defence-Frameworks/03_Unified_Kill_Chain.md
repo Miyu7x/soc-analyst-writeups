@@ -23,7 +23,7 @@ date_completed: 2026-04-17
 
 ### Key Concepts
 
-The offense is the best defense -- if we understand what an attacker is doing or planning to do, we can anticipate and block those avenues before they become an incident.
+The offense is the best defense, if we understand what an attacker is doing or planning to do, we can anticipate and block those avenues before they become an incident.
 
 ### Task Questions
 1. Let's proceed!
@@ -35,7 +35,7 @@ The offense is the best defense -- if we understand what an attacker is doing or
 
 ### Key Concepts
 
-A Kill Chain is the full sequence of events an attacker executes from start to finish. Every step is linked -- break one link and the chain fails.
+A Kill Chain is the full sequence of events an attacker executes from start to finish. Every step is linked, break one link and the chain fails.
 
 - Reconnaissance
 - Weaponization
@@ -63,7 +63,7 @@ Four steps:
 3. Create a plan of action to address those vulnerabilities
 4. Put policies in place to prevent recurrence
 
-Threat modelling also produces a high-level overview of an organization's IT assets -- every piece of hardware and software in the environment.
+Threat modelling also produces a high-level overview of an organization's IT assets, every piece of hardware and software in the environment.
 
 **Threat Modelling Frameworks:**
 
@@ -83,7 +83,7 @@ Threat modelling also produces a high-level overview of an organization's IT ass
 
 ### Key Concepts
 
-The **Unified Kill Chain** was published by Paul Pols in 2017 and updated in 2022. It aims to complement -- not compete with -- MITRE ATT&CK and Lockheed Martin's Cyber Kill Chain.
+The **Unified Kill Chain** was published by Paul Pols in 2017 and updated in 2022. It aims to complement, not compete with, MITRE ATT&CK and Lockheed Martin's Cyber Kill Chain.
 
 Key advantages over older frameworks:
 
@@ -149,21 +149,21 @@ The **In** phase is everything the attacker does to gain their initial foothold 
 
 The **Through** phase begins once the attacker has a confirmed foothold. They now work to expand access, gather intelligence, and move deeper into the network.
 
-**Pivoting** is the attacker's first priority -- they establish their compromised machine as a C2 staging point and distribution hub for all further malware and backdoors.
+**Pivoting** is the attacker's first priority, they establish their compromised machine as a C2 staging point and distribution hub for all further malware and backdoors.
 
 **Discovery** pulls a full picture of the environment: active user accounts, permissions, installed software, browser activity, files, network shares, and system configurations.
 
-**Privilege Escalation** is critical -- the attacker leverages discovered misconfigurations and vulnerabilities to elevate access to one of the following levels:
+**Privilege Escalation** is critical, the attacker leverages discovered misconfigurations and vulnerabilities to elevate access to one of the following levels:
 - SYSTEM / ROOT
 - Local Administrator
 - User with admin-like access
 - User with specific privileged access
 
-**Execution** deploys the malicious payload from the pivot machine -- remote trojans, C2 scripts, malicious links, and scheduled tasks to maintain recurring presence.
+**Execution** deploys the malicious payload from the pivot machine, remote trojans, C2 scripts, malicious links, and scheduled tasks to maintain recurring presence.
 
 **Credential Access** works hand in hand with Privilege Escalation. The attacker steals account names and passwords via keylogging and credential dumping, allowing them to blend in using legitimate credentials.
 
-**Lateral Movement** is where the infection spreads -- using elevated privileges and stolen credentials, the attacker moves stealthily through the network to reach their primary target.
+**Lateral Movement** is where the infection spreads, using elevated privileges and stolen credentials, the attacker moves stealthily through the network to reach their primary target.
 
 | Phase | MITRE Tactic | Description |
 |---|---|---|
@@ -175,9 +175,9 @@ The **Through** phase begins once the attacker has a confirmed foothold. They no
 | Lateral Movement | TA0008 | Moving through the network using valid credentials and elevated privileges |
 
 ### Task Questions
-1. Failed logins from an administrator account -- what phase is the attacker seeking to achieve?
+1. Failed logins from an administrator account, what phase is the attacker seeking to achieve?
    - **Answer: Privilege Escalation**
-2. Mimikatz detected attempting to dump OS and user secrets -- which phase does this correspond to?
+2. Mimikatz detected attempting to dump OS and user secrets, which phase does this correspond to?
    - **Answer: Credential Access**
 
 ---
@@ -188,7 +188,7 @@ The **Through** phase begins once the attacker has a confirmed foothold. They no
 
 ### Key Concepts
 
-The **Out** phase is the endgame -- the attacker has critical asset access and executes their final objectives. At this point the CIA triad is at risk across all three pillars.
+The **Out** phase is the endgame, the attacker has critical asset access and executes their final objectives. At this point the CIA triad is at risk across all three pillars.
 
 | Phase | MITRE Tactic | Description |
 |---|---|---|
@@ -227,7 +227,7 @@ Matching attack scenarios to UKC phases:
 
 ### Key Concepts
 
-A solid refresher coming off the Cyber Kill Chain room. Seeing all 18 phases laid out makes clear why the UKC is the more complete picture -- it accounts for the back-and-forth nature of real attacks rather than treating the chain as a straight line. The "Through" phase especially hits different from a SOC perspective; that's where defenders have the most opportunity to catch an attacker before the damage is done.
+A solid refresher coming off the Cyber Kill Chain room. Seeing all 18 phases laid out makes clear why the UKC is the more complete picture, it accounts for the back-and-forth nature of real attacks rather than treating the chain as a straight line. The "Through" phase especially hits different from a SOC perspective; that's where defenders have the most opportunity to catch an attacker before the damage is done.
 
 ### Task Questions
 1. Complete this task to finish the room!
