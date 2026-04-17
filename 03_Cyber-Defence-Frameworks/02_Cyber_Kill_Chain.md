@@ -3,10 +3,22 @@ title: Cyber Kill Chain
 module: Cyber Defence Frameworks
 path: SOC Level 1
 platform: TryHackMe
-tags: [cyber-kill-chain, reconnaissance, osint, phishing, malware, persistence, c2, exfiltration, threat-intelligence, blue-team, defence-frameworks, mitre-attack]
-status:
-date:
-date_completed:
+tags:
+  - cyber-kill-chain
+  - reconnaissance
+  - osint
+  - phishing
+  - malware
+  - persistence
+  - c2
+  - exfiltration
+  - threat-intelligence
+  - blue-team
+  - defence-frameworks
+  - mitre-attack
+status: completed
+date: 2026-04-16
+date_completed: 2026-04-16
 ---
 
 # Cyber Kill Chain
@@ -113,7 +125,7 @@ How does the **attacker deliver** his goods?
 
 ### Key Concepts
 
-![](T5_accessgranted.png)
+![Access Granted](screenshots/T5_accessgranted.png)
 
 This is the hackers **AH-HA** moment, their code has executed in the victims machine
 
@@ -179,7 +191,7 @@ Following persistence the attacker executed the malware now they **FULL CONTROL*
 
 ## Task 8 - Actions on Objectives (Exfiltration)
 
-![Jackpot for the attacker](Miyus_Exfiltration.png)
+![Jackpot for the attacker](screenshots/Miyus_Exfiltration.png)
 
 ### Key Concepts
 
