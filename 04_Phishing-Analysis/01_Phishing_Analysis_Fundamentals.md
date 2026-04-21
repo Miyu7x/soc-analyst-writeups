@@ -5,8 +5,8 @@ path: SOC Level 1
 platform: TryHackMe
 tags: [phishing, email-analysis, social-engineering, email-headers, SMTP, IMAP, POP3, BEC]
 status: complete
-date: 
-date_completed: 
+date: 2026-04-21
+date_completed: 2026-04-21
 ---
  
 *Write-up by [Miyu7x](https://github.com/Miyu7x) | TryHackMe: [Miyu7](https://tryhackme.com/p/Miyu7)*
