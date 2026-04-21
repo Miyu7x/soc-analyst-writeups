@@ -6,7 +6,7 @@ platform: TryHackMe
 tags: [phishing, email-analysis, social-engineering, credential-harvesting, url-obfuscation, tracking-pixels, attachment-analysis]
 status: complete
 date: 2025-04-21
-date_completed: 
+date_completed: 2025-04-21
 ---
 
 *Write-up by [Miyu7x](https://github.com/Miyu7x) | TryHackMe: [Miyu7](https://tryhackme.com/p/Miyu7)*
