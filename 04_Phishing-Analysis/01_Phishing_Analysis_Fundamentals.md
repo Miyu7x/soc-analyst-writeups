@@ -3,8 +3,21 @@ title: Phishing Email Analysis
 module: Phishing Analysis
 path: SOC Level 1
 platform: TryHackMe
+<<<<<<< Updated upstream
 tags: [phishing, email-analysis, social-engineering, email-headers, SMTP, IMAP, POP3, BEC]
 status: complete
+=======
+tags:
+  - phishing
+  - email-analysis
+  - social-engineering
+  - email-headers
+  - SMTP
+  - IMAP
+  - POP3
+  - BEC
+status: in-progress
+>>>>>>> Stashed changes
 date: 2026-04-21
 date_completed: 2026-04-21
 ---
