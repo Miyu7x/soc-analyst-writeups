@@ -12,9 +12,9 @@ tags:
   - VirusTotal
   - blue-team
   - challenge
-status: in-progress
+status: completed
 date: 2026-04-23
-date_completed:
+date_completed: 2026-04-23
 ---
 
 *Write-up by [Miyu7x](https://github.com/Miyu7x) | TryHackMe: [Miyu7](https://tryhackme.com/p/Miyu7)*
