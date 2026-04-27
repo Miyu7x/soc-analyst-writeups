@@ -1,5 +1,5 @@
 ---
-title: Wireshark: The Basics
+title: Wireshark The Basics
 module: Network Traffic Analysis
 path: SOC Level 1
 platform: TryHackMe
