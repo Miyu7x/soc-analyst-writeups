@@ -14,7 +14,7 @@ date_completed: 2026-04-27
 
 ### Key Concepts
 
-Wireshark is an open-source, cross-platform network packet analyser tool capable of sniffing and investigating live traffic and inspecting packet captures (PCAP). It is not an IDS -- it only reads and displays packets, it does not modify them or detect intrusions on its own. Analysis quality depends entirely on the analyst's knowledge.
+Wireshark is an open-source, cross-platform network packet analyser tool capable of sniffing and investigating live traffic and inspecting packet captures (PCAP). It is not an IDS, it only reads and displays packets, it does not modify them or detect intrusions on its own. Analysis quality depends entirely on the analyst's knowledge.
 
 ### Task Questions
 
