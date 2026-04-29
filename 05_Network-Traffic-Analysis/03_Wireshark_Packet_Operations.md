@@ -16,15 +16,71 @@ _Write-up by [Miyu7x](https://github.com/Miyu7x) | TryHackMe: [Miyu7](https://tr
 
 ### Key Concepts
 
-<!-- Overview of room objectives: statistics, protocol details, packet filtering, protocol filters, advanced filtering --> <!-- Note prerequisites: Wireshark: The Basics and Networking Fundamentals -->
-
+Investigate packets and events of interest inside them with Wireshark
+    - apply adavanced filters
+    - view statistics and protocol details
 ---
 
 ## Task 2 - Statistics | Summary
 
 ### Key Concepts
 
-<!-- Explain the purpose of the Statistics menu for building an investigation hypothesis --> <!-- Resolved Addresses: what it shows and why it matters for identifying accessed resources --> <!-- Protocol Hierarchy: tree view of protocols by packet count and percentage; right-click to filter --> <!-- Conversations: traffic between two endpoints; five formats (Ethernet, IPv4, IPv6, TCP, UDP) --> <!-- Endpoints: unique per-field information; Name Resolution button for MAC-to-manufacturer --> <!-- Name resolution for IP and port: must be enabled via Edit > Preferences > Name Resolution --> <!-- GeoIP mapping: requires MaxMind DB files; path set in Edit > Preferences > Name Resolution > MaxMind database directories -->
+Menu offers multiple statistics options for invesyihation
+    - avaliable protocols
+    - endpoints
+    - conversations
+    - some protocol specific details(DHCP, DNS, HTTP)
+
+**Resolved Addresses**
+    - identify IP addresses
+    - DNS names 
+
+![Resolved address example](screenshots/wireshark_resolvedaddresses.png)
+
+**Protocol Hierarchy**
+    - breaks down all avaliable protocols and capture the file anmd helps analusts view the procols ina tree format
+    - packet counters and percentages
+    - overall usage of ports and services and focus on the event of interest
+
+![Protocol hierarchy example](screenshots/wireshark_protocolhierarchy.png)
+
+**Coneverstaions**
+    - represent traffic between two specific endpoints
+    - view them in 5 base formats(ethernet. IPv4, IPv6, TCP and UDP)
+
+![Conversations example](screenshots/wireshark_conversation.png)
+
+**Endpoints**
+    - similar to conversation
+    - this option though provides unique information for a single information field(ethernet. IPv4, IPv6, TCP and UDP)
+    - resoilves known manufacturers MAC address into human readable form
+        - activate this under **name resolution** button on the lower left corner of the endpoints window
+
+![](screenshots/wireshark_endpoints.png)
+
+Name resolutions is not limited to MAC addresses 
+    - provides IP and port name reasolutions
+    - **not** enbaled by default
+    - ** Edit - Preferences - Name Resolution menu**
+        - enable resolve transport names
+        - enable resolve netowrk IP addresses
+
+![Name resolution menu enable IP and transport names](screenshots/wireshark_nameresolutionmenu.png)
+
+Endpoint menu with name resolution
+
+![Endpoint menu view with name resoution](screenshots/wireshark_endpointmenu.png)
+
+Wireshark also provides IP and geolocation mapping that helps analysts identify the maps source and destinatio addresses
+    - not activated by default
+    - needs supplemental data like the GeoIP database 
+    - must download and indicate path 
+
+![](screenshots/wireshark_geoiplocation.png)    
+
+Example of Endpoints and GeoIP view
+
+![](screenshots/wireshark_endpointsgeoip)
 
 ### Task Questions
 
