@@ -1,5 +1,5 @@
 ---
-title: Wireshark Traffic Analysis
+title: Wireshark: Traffic Analysis
 module: Network Traffic Analysis
 path: SOC Level 1
 platform: TryHackMe
@@ -17,9 +17,10 @@ date completed:
 
 ### Key Concepts
 
-<!-- What distinguishes packet-level analysis from big-picture traffic correlation -->
-<!-- Role of analyst knowledge vs tool functionality in anomaly detection -->
-<!-- What kinds of anomalies and malicious activities this room targets -->
+Deep Packet Analysis shows us the Big Picture in network traffic
+  - detecting anomalies
+  - malicious activities
+  - information is spread in packets
 
 ### Task Questions
 
@@ -33,35 +34,98 @@ date completed:
 
 ### Key Concepts
 
-<!-- Three Nmap scan types covered and what makes each distinct at the packet level -->
-<!-- TCP Connect scan: handshake behavior, privilege level, window size indicator -->
-<!-- SYN scan: half-open behavior, privilege level, window size indicator -->
-<!-- UDP scan: no handshake, how closed vs open ports respond differently -->
-<!-- Key Wireshark filters for each scan type and the logic behind them -->
+Nmap network mapper
+  - identify live hosts and dicscover services
+  - network scanner
+  - most common scan types: TCP connect scans, SYN, UDP
+  - TCP scans usually have windows size larger than 1024 bytes 
 
-| Scan Type | Nmap Flag | Handshake | Window Size | Closed Port Response |
-|-----------|-----------|-----------|-------------|----------------------|
-| TCP Connect | -sT | Full | > 1024 | RST, ACK |
-| SYN | -sS | Half-open | <= 1024 | RST, ACK |
-| UDP | -sU | None | N/A | ICMP Type 3 Code 3 |
+| Open TCP Port Example | Open TCP Port |
+|-----------------------|---------------|
+| SYN > | SYN > |
+| < SYN, ACK | < SYN, ACK |
+| ACK > | ACK >|
+|       | RST, ACK > |
+![](screenshots/wireshark_opentcpport.png)
+
+| Closed TCP Port Example |
+|-------------------------|
+|SYN > |
+|< RST, ACK |
+![](screenshots/wireshark_closedtcpport.png)
+
+SYN Scans
+   - "stealthy" scans
+   - window size < 1024 bytes because it dosent have to finsih the 3 handshake size is smaller
+
+Open TCP SYN scan example
+![](screenshots/wireshark_opensynscan.png)
+
+Closed port TCP SYN scan example
+![](screenshots/wireshark_closedsynscan.png)
+
+UDP Scans
+  - no handshake process
+  - no prompt for open ports
+  - ICMP error message for closed ports
+  - check packets for encapsulated data on ICMP errors
+
+![](screenshots/wireshark_opencloseudp.png)
+
+Closed UDP port 69 and open port 68 example
+
+### TCP Flag Filters
+
+| Flag Combination | Filter (Exact) | Filter (Flexible) |
+|------------------|---------------|-------------------|
+| SYN only | tcp.flags == 2 | tcp.flags.syn == 1 |
+| ACK only | tcp.flags == 16 | tcp.flags.ack == 1 |
+| SYN + ACK | tcp.flags == 18 | (tcp.flags.syn == 1) and (tcp.flags.ack == 1) |
+| RST only | tcp.flags == 4 | tcp.flags.reset == 1 |
+| RST + ACK | tcp.flags == 20 | (tcp.flags.reset == 1) and (tcp.flags.ack == 1) |
+| FIN only | tcp.flags == 1 | tcp.flags.fin == 1 |
+
+### Scan Type Comparison
+
+| Scan Type | Nmap Command | Privilege | Handshake | Window Size | Open Port Response | Closed Port Response |
+|-----------|-------------|-----------|-----------|-------------|-------------------|----------------------|
+| TCP Connect | -sT | Non-root | Full 3-way | > 1024 | SYN > SYN-ACK > ACK | SYN > SYN-ACK > ACK > RST-ACK |
+| SYN | -sS | Root | Half-open | <= 1024 | SYN > SYN-ACK > RST | SYN > RST-ACK |
+| UDP | -sU | Root | None | N/A | No response | ICMP Type 3 Code 3 |
+
+### Scan Detection Filters
+
+| Scan Type | Wireshark Filter |
+|-----------|-----------------|
+| TCP Connect scan pattern | tcp.flags.syn==1 and tcp.flags.ack==0 and tcp.window_size > 1024 |
+| SYN scan pattern | tcp.flags.syn==1 and tcp.flags.ack==0 and tcp.window_size <= 1024 |
+| UDP closed port pattern | icmp.type==3 and icmp.code==3 |
+| All TCP | tcp |
+| All UDP | udp |
 
 ### Task Questions
 
 **1. What is the total number of the "TCP Connect" scans?**
 
-- **Answer:**
+![](screenshots/wireshark_totaltcpscan.png)
+*tcp.flags.syn==1 and tcp.flags.ack==0 and tcp.window_size > 1024*
+- **Answer: 1000**
 
 **2. Which scan type is used to scan the TCP port 80?**
 
-- **Answer:**
+- **Answer: TCP Connect**
 
 **3. How many "UDP close port" messages are there?**
 
-- **Answer:**
+![](screenshots/wireshark_udpclosedports.png)
+*icmp.type==3 and icmp.code==3*
+- **Answer: 1083**
 
 **4. Which UDP port in the 55-70 port range is open?**
 
-- **Answer:**
+![](screenshots_wireshark_udpport68.png)
+*udp.port >=55 and udp.port <=70*
+- **Answer: 68**
 
 ---
 
@@ -69,17 +133,53 @@ date completed:
 
 ### Key Concepts
 
-<!-- What ARP does and why its lack of authentication makes it exploitable -->
-<!-- Difference between a legitimate ARP exchange and a spoofed one -->
-<!-- How duplicate ARP responses signal a conflict and what Wireshark shows -->
-<!-- Three-phase attacker pattern: announce own IP, claim gateway IP, flood requests -->
-<!-- How to correlate ARP anomalies with HTTP traffic using MAC address columns -->
+ARP Address Resolution Protocol
+  - techonology that allows devices to identify themselves on a network
+  - easy to detect ARP attacks
+  - not a secure protocol
+  - not a routable protocol
+  - no authentication function
+
+Normal ARP Request Example
+![](screenshots/wireshark_normalarprequest.png)
+
+ARP reply
+![](screenshots/wireshark_arpreply.png)
+
+Suspicious ARP response shows conflict in IPs
+  - warns analysts of duplicate IPs
+![](screenshots/wireshark_conflictingarp.png)
+
+Different IP addresses with the same MAC address is a RED FLAG
+  - potential of MITM attack
+
+### ARP Filters
+
+| Purpose | Wireshark Filter |
+|---------|-----------------|
+| Global ARP search | arp |
+| ARP requests (opcode 1) | arp.opcode == 1 |
+| ARP responses (opcode 2) | arp.opcode == 2 |
+| ARP scanning detection | arp.dst.hw_mac==00:00:00:00:00:00 |
+| Duplicate address / poisoning | arp.duplicate-address-detected or arp.duplicate-address-frame |
+| ARP flooding from specific MAC | ((arp) && (arp.opcode == 1)) && (arp.src.hw_mac == target-mac-address) |
+
+### IP to MAC Mapping Table (fill during investigation)
 
 | Role | MAC Address | IP Address |
 |------|-------------|------------|
 | Attacker | | |
 | Gateway | | |
 | Victim | | |
+
+### Detection Notes Template
+
+| Finding | Detection Note | Details |
+|---------|---------------|---------|
+| Possible IP address match | 1 IP address announced from a MAC | |
+| Possible ARP spoofing | 2 MACs claimed the same IP | |
+| Possible ARP flooding | MAC crafted multiple ARP requests across IP range | |
+| MITM confirmed | All HTTP traffic routed to attacker MAC | |
 
 ### Task Questions
 
@@ -115,11 +215,55 @@ date completed:
 <!-- NBNS: what it does and how to search by name -->
 <!-- Kerberos: CNameString field, how to filter out hostnames vs usernames using $ -->
 
-| Protocol | Key Filter | Low-Hanging Fruit |
-|----------|------------|-------------------|
-| DHCP | dhcp.option.dhcp == 3 | Option 12 hostname, Option 61 MAC |
-| NBNS | nbns.name contains "keyword" | Query name, TTL, IP |
-| Kerberos | kerberos.CNameString | CNameString, realm, sname |
+### DHCP Filters
+
+| Purpose | Wireshark Filter |
+|---------|-----------------|
+| Global DHCP search | dhcp or bootp |
+| DHCP Request packets | dhcp.option.dhcp == 3 |
+| DHCP ACK packets | dhcp.option.dhcp == 5 |
+| DHCP NAK packets | dhcp.option.dhcp == 6 |
+| Search by hostname | dhcp.option.hostname contains "keyword" |
+| Search by domain name | dhcp.option.domain_name contains "keyword" |
+
+### DHCP Options Reference
+
+| Option | Packet Type | Contains |
+|--------|------------|---------|
+| 12 | Request | Hostname |
+| 50 | Request | Requested IP address |
+| 51 | Request / ACK | IP lease time |
+| 61 | Request | Client MAC address |
+| 15 | ACK | Domain name |
+| 56 | NAK | Rejection reason message |
+
+### NBNS Filters
+
+| Purpose | Wireshark Filter |
+|---------|-----------------|
+| Global NBNS search | nbns |
+| Search by name | nbns.name contains "keyword" |
+
+### Kerberos Filters
+
+| Purpose | Wireshark Filter |
+|---------|-----------------|
+| Global Kerberos search | kerberos |
+| Search by username | kerberos.CNameString contains "keyword" |
+| Usernames only (exclude hostnames) | kerberos.CNameString and !(kerberos.CNameString contains "$") |
+| Protocol version | kerberos.pvno == 5 |
+| Domain/realm search | kerberos.realm contains ".org" |
+| Service name | kerberos.SNameString == "krbtgt" |
+
+### Kerberos Fields Reference
+
+| Field | Contains |
+|-------|---------|
+| CNameString | Username or hostname (hostnames end with $) |
+| pvno | Protocol version |
+| realm | Domain name for the generated ticket |
+| sname | Service and domain name for the generated ticket |
+| addresses | Client IP and NetBIOS name (request packets only) |
 
 ### Task Questions
 
@@ -155,10 +299,34 @@ date completed:
 <!-- DNS tunnelling: encoded subdomain pattern, how C2 commands are routed -->
 <!-- Key filters and what makes a DNS query length suspicious -->
 
-| Protocol | Normal Behavior | Tunnelling Indicator |
-|----------|----------------|----------------------|
-| ICMP | 64-byte payload | data.len > 64, encoded payload |
-| DNS | Short standard queries | Long subdomains, encoded strings, high query volume |
+### ICMP Filters
+
+| Purpose | Wireshark Filter |
+|---------|-----------------|
+| Global ICMP search | icmp |
+| Oversized ICMP packets (tunnelling indicator) | data.len > 64 and icmp |
+| ICMP destination unreachable | icmp.type == 3 |
+| ICMP port unreachable (UDP closed) | icmp.type==3 and icmp.code==3 |
+| ICMP echo request | icmp.type == 8 |
+| ICMP echo reply | icmp.type == 0 |
+
+### DNS Filters
+
+| Purpose | Wireshark Filter |
+|---------|-----------------|
+| Global DNS search | dns |
+| Known dnscat tunnelling tool | dns contains "dnscat" |
+| Long query names (subdomain encoding) | dns.qry.name.len > 15 and !mdns |
+| Exclude local link device queries | !mdns |
+| DNS query type A | dns.qry.type == 1 |
+| DNS response | dns.flags.response == 1 |
+
+### Tunnelling Comparison
+
+| Protocol | Normal Behavior | Tunnelling Indicator | Common Use |
+|----------|----------------|----------------------|------------|
+| ICMP | 64-byte payload, echo request/reply | data.len > 64, encoded payload in data field | Data exfil, C2 |
+| DNS | Short queries, standard domain format | Long subdomains, encoded strings, high query volume to single domain | Data exfil, C2 |
 
 ### Task Questions
 
@@ -182,12 +350,42 @@ date completed:
 <!-- How to identify brute-force vs password spray from FTP filter combinations -->
 <!-- Key FTP commands: USER, PASS, CWD, LIST and their filter syntax -->
 
-| Code | Meaning | Detection Use |
-|------|---------|---------------|
-| 230 | Successful login | Confirmed access |
-| 331 | Valid username | Username enumeration |
-| 430 | Invalid user or password | Failed attempt |
-| 530 | No login, invalid password | Brute-force signal |
+### FTP Response Code Reference
+
+| Code | Series | Meaning | Detection Use |
+|------|--------|---------|---------------|
+| 211 | x1x | System status | Info gathering |
+| 212 | x1x | Directory status | Info gathering |
+| 213 | x1x | File status | File recon |
+| 220 | x2x | Service ready | Connection established |
+| 227 | x2x | Entering passive mode | Data transfer setup |
+| 228 | x2x | Long passive mode | Data transfer setup |
+| 229 | x2x | Extended passive mode | Data transfer setup |
+| 230 | x3x | User login successful | Confirmed access |
+| 231 | x3x | User logout | Session end |
+| 331 | x3x | Valid username, need password | Username enumeration |
+| 430 | x3x | Invalid username or password | Failed attempt |
+| 530 | x3x | No login, invalid password | Brute-force signal |
+
+### FTP Filters
+
+| Purpose | Wireshark Filter |
+|---------|-----------------|
+| Global FTP search | ftp |
+| Successful logins | ftp.response.code == 230 |
+| Valid username responses | ftp.response.code == 331 |
+| Failed login attempts | ftp.response.code == 530 |
+| Invalid user or pass | ftp.response.code == 430 |
+| System status | ftp.response.code == 211 |
+| Passive mode | ftp.response.code == 227 |
+| Filter by username | ftp.request.command == "USER" |
+| Filter by password | ftp.request.command == "PASS" |
+| Filter by specific password arg | ftp.request.arg == "password" |
+| Current working directory | ftp.request.command == "CWD" |
+| List directory | ftp.request.command == "LIST" |
+| Brute-force signal | ftp.response.code == 530 |
+| Brute-force with username target | (ftp.response.code == 530) and (ftp.response.arg contains "username") |
+| Password spray signal | (ftp.request.command == "PASS") and (ftp.request.arg == "password") |
 
 ### Task Questions
 
@@ -219,123 +417,49 @@ date completed:
 <!-- Log4j attack pattern: POST request, jndi:ldap string, Exploit.class, base64 in user-agent -->
 <!-- Why HTTP2 matters and how it differs from HTTP -->
 
-| Anomaly Type | Wireshark Filter |
-|--------------|-----------------|
-| Nmap/scanner user agents | http.user_agent contains "Nmap" |
+### HTTP Request and Response Filters
+
+| Purpose | Wireshark Filter |
+|---------|-----------------|
+| Global HTTP search | http |
+| HTTP2 search | http2 |
+| All requests | http.request |
+| GET requests | http.request.method == "GET" |
+| POST requests | http.request.method == "POST" |
+| Response 200 OK | http.response.code == 200 |
+| Response 301 Moved Permanently | http.response.code == 301 |
+| Response 302 Moved Temporarily | http.response.code == 302 |
+| Response 400 Bad Request | http.response.code == 400 |
+| Response 401 Unauthorised | http.response.code == 401 |
+| Response 403 Forbidden | http.response.code == 403 |
+| Response 404 Not Found | http.response.code == 404 |
+| Response 405 Method Not Allowed | http.response.code == 405 |
+| Response 408 Request Timeout | http.response.code == 408 |
+| Response 500 Internal Server Error | http.response.code == 500 |
+| Response 503 Service Unavailable | http.response.code == 503 |
+
+### HTTP Parameter Filters
+
+| Purpose | Wireshark Filter |
+|---------|-----------------|
+| User agent field | http.user_agent |
+| Nmap in user agent | http.user_agent contains "nmap" |
+| SQLmap in user agent | http.user_agent contains "sqlmap" |
+| Wfuzz in user agent | http.user_agent contains "Wfuzz" |
+| Nikto in user agent | http.user_agent contains "Nikto" |
+| All scanner tools combined | (http.user_agent contains "sqlmap") or (http.user_agent contains "Nmap") or (http.user_agent contains "Wfuzz") or (http.user_agent contains "Nikto") |
+| Request URI contains admin | http.request.uri contains "admin" |
+| Full URI contains admin | http.request.full_uri contains "admin" |
+| Server type | http.server contains "apache" |
+| Host search | http.host contains "keyword" |
+| Exact host match | http.host == "keyword" |
+| Keep-alive connections | http.connection == "Keep-Alive" |
+| Cleartext data from server | data-text-lines contains "keyword" |
+
+### Log4j Detection Filters
+
+| Purpose | Wireshark Filter |
+|---------|-----------------|
 | Log4j initial POST | http.request.method == "POST" |
-| Log4j payload | frame contains "jndi" |
-| Encoded user agent | http.user_agent contains "$" |
-
-### Task Questions
-
-**1. Investigate the user agents. What is the number of anomalous "user-agent" types?**
-
-- **Answer:**
-
-**2. What is the packet number with a subtle spelling difference in the user agent field?**
-
-- **Answer:**
-
-**3. Locate the "Log4j" attack starting phase. What is the packet number?**
-
-- **Answer:**
-
-**4. Locate the "Log4j" attack starting phase and decode the base64 command. What is the IP address contacted by the adversary? (Enter the address in defanged format and exclude "{}")**
-
-- **Answer:**
-
----
-
-## Task 8 – Encrypted Protocol Analysis: Decrypting HTTPS
-
-### Key Concepts
-
-<!-- Why HTTPS obscures traffic and what TLS handshake steps look like in Wireshark -->
-<!-- Client Hello vs Server Hello filters and what they reveal about TLS sessions -->
-<!-- What a key log file is, how it is generated, and how to load it in Wireshark -->
-<!-- What becomes visible post-decryption: HTTP2 packets, decompressed headers, flags -->
-<!-- SSDP and why it is excluded from TLS hello filters -->
-
-### Task Questions
-
-**1. What is the frame number of the "Client Hello" message sent to "accounts.google.com"?**
-
-- **Answer:**
-
-**2. Decrypt the traffic with the "KeysLogFile.txt" file. What is the number of HTTP2 packets?**
-
-- **Answer:**
-
-**3. Go to Frame 322. What is the authority header of the HTTP2 packet? (Enter the address in defanged format.)**
-
-- **Answer:**
-
-**4. Investigate the decrypted packets and find the flag! What is the flag?**
-
-- **Answer:**
-
----
-
-## Task 9 – Bonus: Hunt Cleartext Credentials
-
-### Key Concepts
-
-<!-- Why spotting multiple credential entries at packet level is difficult manually -->
-<!-- Which Wireshark dissectors support the Credentials feature: FTP, HTTP, IMAP, POP, SMTP -->
-<!-- Minimum Wireshark version required and why manual checks still matter -->
-<!-- What the Credentials window shows and how clicking fields navigates to packets -->
-
-### Task Questions
-
-**1. Use the "Desktop/exercise-pcaps/bonus/Bonus-exercise.pcap" file. What is the packet number of the credentials using "HTTP Basic Auth"?**
-
-- **Answer:**
-
-**2. What is the packet number where "empty password" was submitted?**
-
-- **Answer:**
-
----
-
-## Task 10 – Bonus: Actionable Results
-
-### Key Concepts
-
-<!-- What the Firewall ACL Rules feature does and where to access it -->
-<!-- Which firewall platforms Wireshark can generate rules for -->
-<!-- Rule scope: IP, port, MAC address combinations, outside interface targeting -->
-
-### Task Questions
-
-**1. Use the "Desktop/exercise-pcaps/bonus/Bonus-exercise.pcap" file. Select packet number 99. Create a rule for "IPFirewall (ipfw)". What is the rule for "denying source IPv4 address"?**
-
-- **Answer:**
-
-**2. Select packet number 231. Create "IPFirewall" rules. What is the rule for "allowing destination MAC address"?**
-
-- **Answer:**
-
----
-
-## Task 11 – Conclusion
-
-### Key Concepts
-
-<!-- Why Wireshark alone is not sufficient and what IDS/IPS adds to the workflow -->
-<!-- Next rooms in the network traffic analysis progression -->
-
-### Task Questions
-
-**1. Read the task above.**
-
-- **Answer:**
-
----
-
-## References
-
-<!-- Wireshark filter cheat sheet built during this room -->
-<!-- ICMP and DNS tunnelling indicators -->
-<!-- Log4j detection patterns -->
-<!-- FTP response code reference -->
-<!-- TLS handshake filter syntax -->
+| jndi string in IP layer | ip contains "jndi" |
+| Explo
