@@ -1,5 +1,5 @@
 ---
-title: Wireshark: Traffic Analysis
+title: Wireshark Traffic Analysis
 module: Network Traffic Analysis
 path: SOC Level 1
 platform: TryHackMe
