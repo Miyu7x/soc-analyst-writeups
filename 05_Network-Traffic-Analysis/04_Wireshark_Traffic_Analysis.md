@@ -1,5 +1,5 @@
 ---
-title: Wireshark Traffic Analysis
+title: Wireshark: Traffic Analysis
 module: Network Traffic Analysis
 path: SOC Level 1
 platform: TryHackMe
@@ -99,6 +99,7 @@ Nmap is a network mapper used to identify live hosts and discover services. The 
 **1. What is the total number of the "TCP Connect" scans?**
 
 ![TCP Connect scan filter results](screenshots/wireshark_totaltcpscan.png)
+*tcp.flags.syn==1 and tcp.flags.ack==0 and tcp.window_size > 1024*
 
 - **Answer: 1000**
 
@@ -109,12 +110,14 @@ Nmap is a network mapper used to identify live hosts and discover services. The 
 **3. How many "UDP close port" messages are there?**
 
 ![UDP closed port filter results](screenshots/wireshark_udpclosedports.png)
+*icmp.type==3 and icmp.code==3*
 
 - **Answer: 1083**
 
 **4. Which UDP port in the 55-70 port range is open?**
 
 ![UDP port range filter](screenshots/wireshark_udpport68.png)
+*udp.port >=55 and udp.port <=70*
 
 - **Answer: 68**
 
@@ -174,30 +177,38 @@ ARP (Address Resolution Protocol) lets devices identify themselves on a network 
 **1. What is the number of ARP requests crafted by the attacker?**
 
 ![ARP requests from attacker IP](screenshots/wireshark_arpip.png)
+*First I looked for ARP requests arp.opcode == 1 and found many requests by the IP 192.168.1.25 so then I searched Google for ARP query filters and found that I could search for an IP source so I used the one IP that was making many ARP requests*
+*arp.src.proto_ipv4 == 192.168.1.25*
 
 - **Answer: 284**
 
 **2. What is the number of HTTP packets received by the attacker?**
 
 ![HTTP filter by attacker IP](screenshots/wireshark_httpspecificip.png)
+*For this one I filtered by http first, saw the matching src IP 192.168.1.12 sending the requests to IP 44.228.249.3 so then I filtered by HTTP from specific IP*
+*ip.addr == 44.228.249.3 && http*
 
 - **Answer: 90**
 
 **3. What is the number of sniffed username & password entries?**
 
 ![POST request filter showing 6 entries](screenshots/wireshark_6passwords.png)
+*Filtered by POST request and manually checked and counted the info inside each packet*
+*http.request.method == "POST"*
 
 - **Answer: 6**
 
 **4. What is the password of the "Client986"?**
 
 ![Client986 POST packet](screenshots/wireshark_client986.png)
+*Still on POST requests*
 
 - **Answer: clientnothere!**
 
 **5. What is the comment provided by the "Client354"?**
 
-![Client354 POST packet](screenshots/wirehsark_nicework.png)
+![Client354 POST packet](screenshots/wireshark_nicework.png)
+*Still on POST requests*
 
 - **Answer: Nice Work!**
 
@@ -281,30 +292,41 @@ Identifying hosts is the starting point of any network investigation. Three prot
 **1. What is the MAC address of the host "Galaxy A30"?**
 
 ![DHCP hostname filter for Galaxy A30](screenshots/wireshark_galaxya30.png)
+*Filtered out by DHCP hostname*
+*dhcp.option.hostname contains "Galaxy"*
 
 - **Answer: 9a:81:41:cb:96:6c**
 
 **2. How many NetBIOS registration requests does the "LIVALJM" workstation have?**
 
 ![NBNS filter for LIVALJM](screenshots/wireshark_livaljm.png)
+*Performed a full search of NetBIOS results that contained LIVALJM and manually counted how many were registrations*
+*nbns.name contains "LIVALJM"*
 
 - **Answer: 16**
 
 **3. Which host requested the IP address "172.16.13.85"?**
 
 ![DHCP requested IP filter](screenshots/wireshark_galaxya12.png)
+*This one was a bit more difficult, I had to ask for help with the filter as nothing in the THM instructions pointed in any direction*
+*dhcp.option.requested_ip_address == 172.16.13.85*
 
 - **Answer: Galaxy-A12**
 
 **4. What is the IP address of the user "u5"? (Enter the address in defanged format.)**
 
 ![Kerberos CNameString filter for u5](screenshots/wireshark_kerberosu5.png)
+*Used CNameString to filter the username u5*
+*kerberos.CNameString == "u5"*
 
 - **Answer: 10[.]1[.]12[.]2**
 
 **5. What is the hostname of the available host in the Kerberos packets?**
 
 ![Kerberos hostname filter using $](screenshots/wireshark_kerberosname.png)
+*I was looking for !$ and all I had to do was search for "$" instead*
+*Note: Some packets could provide hostname information in this field. To avoid this confusion, filter the "$" value. The values ending with "$" are hostnames, and the ones without it are usernames.*
+*kerberos.CNameString and (kerberos.CNameString contains "$")*
 
 - **Answer: xp1$**
 
@@ -364,12 +386,14 @@ Identifying hosts is the starting point of any network investigation. Three prot
 **1. Use the "Desktop/exercise-pcaps/dns-icmp/icmp-tunnel.pcap" file. Investigate the anomalous packets. Which protocol is used in ICMP tunnelling?**
 
 ![SSH inside ICMP packets](screenshots/wireshark_sshicmp.png)
+*This was a harder one. I missed the mention of the extra protocols that could be hiding in the packets such as SSH, TCP, DNS, FTP so my logic was off and I had to look this one up*
 
 - **Answer: SSH**
 
 **2. Use the "Desktop/exercise-pcaps/dns-icmp/dns.pcap" file. Investigate the anomalous packets. What is the suspicious main domain address that receives anomalous DNS queries? (Enter the address in defanged format.)**
 
 ![DNS data exfiltration domain](screenshots/wireshark_dnsdataexfil.png)
+*As I was inspecting the packets I saw Name Truncated and due to the above question I figured it might follow the same format so I looked in the Bytes Panel*
 
 - **Answer: dataexfil[.]com**
 
@@ -430,12 +454,16 @@ Code 530 (no login, invalid password) is the key brute-force signal. A high coun
 **1. How many incorrect login attempts are there?**
 
 ![FTP 530 response code filter](screenshots/wireshark_ftp530.png)
+*Searched for code 530 no login, invalid password*
+*ftp.response.code == 530*
 
 - **Answer: 737**
 
 **2. What is the size of the file accessed by the "ftp" account?**
 
 ![FTP 213 file status response](screenshots/wireshark_ftpfilesize.png)
+*Searched for FTP Response Code 213 = File Status*
+*ftp.response.code==213*
 
 - **Answer: 39424**
 
@@ -448,6 +476,8 @@ Code 530 (no login, invalid password) is the key brute-force signal. A high coun
 **4. The adversary tried to assign special flags to change the executing permissions of the uploaded file. What is the command used by the adversary?**
 
 ![CHMOD command in FTP traffic](screenshots/wireshark_chmod.png)
+*CHMOD is a terminal command used for modifying file permissions using numeric or symbolic representation*
+*ftp contains "CHMOD"*
 
 - **Answer: CHMOD 777**
 
@@ -528,24 +558,28 @@ HTTP (Hypertext Transfer Protocol) is the backbone of web traffic. It is unencry
 **1. Investigate the user agents. What is the number of anomalous "user-agent" types?**
 
 ![User agent analysis](screenshots/wireshark_useragents.png)
+*Examined the User-Agents and counted 6 different ones*
 
 - **Answer: 6**
 
 **2. What is the packet number with a subtle spelling difference in the user agent field?**
 
 ![Mozlila misspelling in user agent](screenshots/wireshark_mozlila.png)
+*As I was examining the packets for the previous question I noted the misspelling for Mozilla: Mozlila, and marked the packet*
 
 - **Answer: 52**
 
 **3. Locate the "Log4j" attack starting phase. What is the packet number?**
 
 ![Log4j jndi/Exploit filter results](screenshots/wireshark_jndiexploit.png)
+*(ip contains "jndi") or (ip contains "Exploit")*
 
 - **Answer: 444**
 
 **4. Locate the "Log4j" attack starting phase and decode the base64 command. What is the IP address contacted by the adversary? (Enter the address in defanged format and exclude "{}")**
 
 ![Packet 444 User-Agent payload](screenshots/wireshark_packet444.png)
+*Used the starting attack packet and copied the entire User-Agent line and decoded with CyberChef*
 
 ![CyberChef base64 decode result](screenshots/wireshark_cyberchef444.png)
 
@@ -622,6 +656,7 @@ Client Hello packets reveal the destination server via the SNI (Server Name Indi
 **4. Investigate the decrypted packets and find the flag! What is the flag?**
 
 ![Flag found in decrypted packets](screenshots/wireshark_packetmaster.png)
+*File > Export Objects > HTTP shows us transferred files over HTTP in your capture file*
 
 - **Answer: FLAG{THM-PACKETMASTER}**
 
@@ -657,6 +692,7 @@ The feature parses the capture and surfaces credentials without requiring manual
 **2. What is the packet number where "empty password" was submitted?**
 
 ![Empty password packet](screenshots/wireshark_emptypass.png)
+*Examining the packets, packet 170 had a Request Command but nothing entered*
 
 - **Answer: 170**
 
