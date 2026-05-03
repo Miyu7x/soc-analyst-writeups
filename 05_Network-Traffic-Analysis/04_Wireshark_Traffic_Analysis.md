@@ -185,23 +185,36 @@ Different IP addresses with the same MAC address is a RED FLAG
 
 **1. What is the number of ARP requests crafted by the attacker?**
 
-- **Answer:**
+![](screenshots/wireshark_arpip.png)
+*First I looked for ARP requests arp.opcode == 1 and found many reuqests by the IP 192.168.1.25 so then I searched Google for ARP query filters and found that ic ould search for an IP source so I used the one IP that was making many ARP reuqests*
+**arp.src.proto_ipv4 == 192.168.1.25**
+- **Answer: 284**
 
 **2. What is the number of HTTP packets received by the attacker?**
 
-- **Answer:**
+![](screenshots/wireshark_httpspecificip.png)
+*For this one i filtered by http first saw the matching src IP 192.168.1.12 snedning the requests to IP 44.228.249.3 so now i filtered by **HTTP from specific IP**
+**ip.addr == 44.228.249.3 && http**
+- **Answer: 90**
 
 **3. What is the number of sniffed username & password entries?**
 
-- **Answer:**
+![](screenshots/wireshark_6passwords.png)
+*Filtered by POST reuqest and manually checked and counted the info inside each packet*
+**http.request.nethod == "POST"**
+- **Answer: 6**
 
 **4. What is the password of the "Client986"?**
 
-- **Answer:**
+![](screenshots/wireshark_client986.png)
+*Still on POST requests*
+- **Answer: clientnothere!**
 
 **5. What is the comment provided by the "Client354"?**
 
-- **Answer:**
+![](screenshots/wirehsark_nicework.png)
+*Still on POST reuquests*
+- **Answer: Nice Work!**
 
 ---
 
@@ -209,11 +222,14 @@ Different IP addresses with the same MAC address is a RED FLAG
 
 ### Key Concepts
 
-<!-- Why host and user identification matters at the start of an investigation -->
-<!-- DHCP: which packet types carry hostname vs domain vs MAC vs IP info -->
-<!-- DHCP option numbers worth memorizing and what each contains -->
-<!-- NBNS: what it does and how to search by name -->
-<!-- Kerberos: CNameString field, how to filter out hostnames vs usernames using $ -->
+Identifying Hosts is crucial for any analysis
+  - provides investigation starting point
+  - lists hosts and users associated with any traffic activity
+
+Protocols used for Host and User Identification
+  - DHCP Dynamic Host Configuration Protocol (network managements protocol, automatically assigns IP address to devices on a network)
+  - NetBIOS Network Basic Input/Output System (allows apps on seperate comp[uters to communicate over LAN)
+  - Kerberos Computer Authetication Protocol (based on tickets, allows nodes to securely prove their identity to one another over a non secure network)
 
 ### DHCP Filters
 
@@ -269,23 +285,39 @@ Different IP addresses with the same MAC address is a RED FLAG
 
 **1. What is the MAC address of the host "Galaxy A30"?**
 
-- **Answer:**
+![](screenshots/wireshark_galaxya30.png)
+*FIltered out by DHCP hostname*
+**dhcp.option.hostname contains "Galaxy"**
+- **Answer: 9a:81:41:cb:96:6c**
 
 **2. How many NetBIOS registration requests does the "LIVALJM" workstation have?**
 
-- **Answer:**
+![](screenshots/wireshark_livaljm.png)
+*Performed a full search of NetBIOS results that conatined LIVALJM and manually counted how many were registartions*
+**nbns.name contains "LIVALJM"**
+- **Answer: 16**
 
 **3. Which host requested the IP address "172.16.13.85"?**
 
-- **Answer:**
+![](screenshots/wireshark_galaxya12.png)
+*This one was a big more difficult I had ask for help with the Filter as nothing in the THM instructions pointed in any direction*
+**dhcp.option.requested_ip_address == 172.16.13.85**
+- **Answer: Galaxy-A12**
 
 **4. What is the IP address of the user "u5"? (Enter the address in defanged format.)**
 
-- **Answer:**
+![](screenshots/wireshark_kerberosu5.png)
+*Used CNameString to filter the username u5*
+**kerberos.CNameString == "u5"**
+- **Answer: 10[.]1[.]12[.]2**
 
 **5. What is the hostname of the available host in the Kerberos packets?**
 
-- **Answer:**
+![](screenshots/wireshark_kerberosname.png)
+*I was looking for !$ and all i ahd to do was search for "$" instead*
+Note: Some packets could provide hostname information in this field. To avoid this confusion, filter the "$"value. The values end with"$"are hostnames, and the ones without it are user names.
+**kerberos.CNameString and (kerberos.CNameString contains "$")**
+- **Answer: xp1$**
 
 ---
 
@@ -293,11 +325,30 @@ Different IP addresses with the same MAC address is a RED FLAG
 
 ### Key Concepts
 
-<!-- What traffic tunnelling is and why both defenders and attackers use it -->
-<!-- ICMP tunnelling: how extra payload is used for exfil and C2, detection indicators -->
-<!-- Normal ICMP packet size baseline and why that matters for anomaly detection -->
-<!-- DNS tunnelling: encoded subdomain pattern, how C2 commands are routed -->
-<!-- Key filters and what makes a DNS query length suspicious -->
+ICMP Internet Control Message Protocol
+  - Port Forwarding
+  - transfers data resources in a secure method to network segments and zones
+  - internet to private networks or private networks to internet directions
+  - hides data by encapsulating it
+  - tunneling provides anonimity and traffic security
+  - offers significant level of data encryption(why attackers use to bypass seucrity perimeters)
+  - designed for diagnosing and repoting network communication issues(highly used in error reporting)
+  - since its a trusted network layer protocol can be used for DoS attacks, data exfiltration and C2 tunneling activities
+  - large volume of ICMP traffic and anomalous packet sizes are indicators of ICMP tunneling (hackers can change packet size)
+
+**Common Exfiltration Protocols**
+  - SSH
+  - FTP
+  - TCP
+  - HTTP
+  - DNS
+
+DNS Domain Name System
+  - attackers can hide C2 commands in subdomain addresses
+    **encoded-commands.maliciousdomain.com**
+    -converts IP domain addresses to IP addresses
+    - phonebook of the internet
+    - popular for data exfiltration and C2 
 
 ### ICMP Filters
 
@@ -332,11 +383,15 @@ Different IP addresses with the same MAC address is a RED FLAG
 
 **1. Use the "Desktop/exercise-pcaps/dns-icmp/icmp-tunnel.pcap" file. Investigate the anomalous packets. Which protocol is used in ICMP tunnelling?**
 
-- **Answer:**
+![](screenshots/wireshark_sshicmp.png)
+*This was a harder one, I missed the mention of the extra protocols that could be hiding in the packets such as ssh, tcp, dns, ftp so my logic was off and I had to look this opne up*
+- **Answer: SSH**
 
 **2. Use the "Desktop/exercise-pcaps/dns-icmp/dns.pcap" file. Investigate the anomalous packets. What is the suspicious main domain address that receives anomalous DNS queries? (Enter the address in defanged format.)**
 
-- **Answer:**
+![](screenshots/wireshark_dnsdataexfil.png)
+*As i was inspecting the packets i saw Name Truncated and due to the above question I figured it might follow the same format so I looked in the Bytes Panel!"
+- **Answer: dataexfil[.]com**
 
 ---
 
@@ -344,11 +399,7 @@ Different IP addresses with the same MAC address is a RED FLAG
 
 ### Key Concepts
 
-<!-- Why FTP is a cleartext risk and what attack types it enables -->
-<!-- FTP response code series: x1x, x2x, x3x and what each category covers -->
-<!-- Key response codes for authentication events: 230, 331, 430, 530 -->
-<!-- How to identify brute-force vs password spray from FTP filter combinations -->
-<!-- Key FTP commands: USER, PASS, CWD, LIST and their filter syntax -->
+FTP File Transfer Protocol 
 
 ### FTP Response Code Reference
 
@@ -391,19 +442,29 @@ Different IP addresses with the same MAC address is a RED FLAG
 
 **1. How many incorrect login attempts are there?**
 
-- **Answer:**
+![](screenshots/wireshark_ftp530.png)
+*Searched for code 530 no login, invalid password*
+**ftp.response.code == 530**
+- **Answer: 737**
 
 **2. What is the size of the file accessed by the "ftp" account?**
 
-- **Answer:**
+![](screenshots/wireshark_ftpfilesize.png)
+*Searched for FTP Response Code 213 = File Status*
+**ftp.response.code==213**
+- **Answer: 39424**
 
 **3. The adversary uploaded a document to the FTP server. What is the filename?**
 
-- **Answer:**
+![](screenshots/wireshark_uploadeddoc.png)
+- **Answer: resume.doc**
 
 **4. The adversary tried to assign special flags to change the executing permissions of the uploaded file. What is the command used by the adversary?**
 
-- **Answer:**
+![](screenshots/wireshark_chmod.png)
+*CHMOD is a terminal command used for modifying file permissions using numeric or symbolic representation*
+**ftp contains "CHMOD"**
+- **Answer: CHMOD 777**
 
 ---
 
