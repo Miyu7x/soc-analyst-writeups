@@ -17,15 +17,20 @@ date completed:
 
 ### Key Concepts
 
-<!-- NetworkMiner is an open-source NFAT developed by Netresec -->
-<!-- Two operating modes: passive sniffer and PCAP parser -->
-<!-- Runs on Windows, Linux, macOS, FreeBSD -->
-<!-- This room focuses on offline PCAP analysis, not live sniffing -->
-
+NetworkMiner is open soruce Network Forensics Analysis Tool (NAFT)
+  - Windows, Linux, macOS, FREEBSD
+  - 2 ways to use it: passive sniffer that fingerprints hots, sessions and open ports without sending any traffic or: PCAP pareser that reassembles files and ceritficates captured from traffic 
+  - supported data types: live traffic, traffic captures, log files
 ---
 
 ## Task 2 - NetworkMiner in Forensics
 
+**NetworkMiner** is a great tool to provide quick and useful hints on where to start your inverstigation
+  - context of captured hosts: IP and MAC addresses, hostnames and OS information
+  - list of potential attack indicators: traffic spikes or port scans
+  - tools and toolkits used to perform potential attacks
+
+    
 ### Key Concepts
 
 <!-- Three main data types in network forensics: live traffic, traffic captures, log files -->
@@ -39,10 +44,20 @@ date completed:
 
 ### Key Concepts
 
-<!-- Core capabilities: traffic sniffing, PCAP parsing, protocol analysis, OS fingerprinting, file extraction, credential grabbing, cleartext keyword parsing -->
-<!-- OS fingerprinting relies on Satori and p0f -->
-<!-- Sniffer mode is Windows-only and not recommended as primary sniffer -->
-<!-- Best practice: quick overview in NetworkMiner, deep dive in Wireshark -->
+Pros and Cons of NetworkMiner
+
+**Pros:** 
+OS fingerprinting
+Easy file extraction
+Credential grabbing
+Clear text keyword parsing
+Overall overview
+
+**Cons:**
+Not useful in active sniffing
+Not useful for large pcap investigation
+Limited filtering
+Not built for manual traffic investigation
 
 ### Feature Comparison
 
@@ -63,14 +78,12 @@ date completed:
 
 ### Key Concepts
 
-<!-- Tabs covered: Landing Page, File Menu, Tools Menu, Help Menu, Case Panel, Hosts, Sessions, DNS, Credentials -->
-<!-- Hosts tab: IP, MAC, OS type, open ports, sent/received packets, sessions, host details -->
-<!-- OS fingerprinting via Satori GitHub repo and p0f; MAC database via mac-ages GitHub repo -->
-<!-- Sessions tab: frame number, client/server address, src/dst port, protocol, start time -->
-<!-- Session filter accepts: ExactPhrase, AllWords, AnyWord, RegExe -->
-<!-- DNS tab: frame number, timestamp, client/server, ports, IP TTL, DNS time, transaction ID/type, query/answer -->
-<!-- Credentials tab: Kerberos hashes, NTLM hashes, RDP cookies, HTTP cookies, HTTP requests, IMAP, FTP, SMTP, MS SQL -->
-<!-- OSINT and Alexa Top 1M features are premium only -->
+NetworkMiner is considered and initial investigation tool for gravving low hanging fruit and traffic overview
+  - right click on case panel to view metadata
+
+**Credentials Menu**
+
+
 
 ### Task Questions - mx-3.pcap
 
