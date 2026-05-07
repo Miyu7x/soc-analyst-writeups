@@ -5,8 +5,8 @@ path: SOC Level 1
 platform: TryHackMe
 tags: [network-forensics, pcap, NFAT, traffic-analysis, credential-extraction, OS-fingerprinting]
 status: completed
-date: 
-date_completed: 
+date: 2026-05-06
+date_completed: 2026-05-07
 ---
 
 *Write-up by [Miyu7x](https://github.com/Miyu7x) | TryHackMe: [Miyu7](https://tryhackme.com/p/Miyu7)*
@@ -49,7 +49,7 @@ NetworkMiner has a sniffing feature but it is not intended to be used as a sniff
 - Not as reliable as other features
 - Not a dedicated sniffer tool like Wireshark or tcpdump
 
-NetworkMiner is best used for quick packet parsing and processing -- grabbing the low-hanging fruit before a deep dive.
+NetworkMiner is best used for quick packet parsing and processing, grabbing the low-hanging fruit before a deep dive.
 
 **Suggested Workflow**
 
