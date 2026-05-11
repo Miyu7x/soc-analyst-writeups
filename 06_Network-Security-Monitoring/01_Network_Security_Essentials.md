@@ -30,7 +30,7 @@ Key components covered in this room:
 
 **1. Complete the task.**
 
-- **Answer:**
+- **Answer: N/A**
 
 ---
 
@@ -44,7 +44,7 @@ Start the attached machine to begin the lab environment.
 
 **1. Start the machine.**
 
-- **Answer:**
+- **Answer: N/A**
 
 ---
 
@@ -125,7 +125,7 @@ A computer network is an organized structure where network assets connect and co
 
 **1. Continue to the next task.**
 
-- **Answer:**
+- **Answer: N/A**
 
 ---
 
@@ -176,7 +176,7 @@ A computer network is an organized structure where network assets connect and co
 
 **1. Continue to the next task.**
 
-- **Answer:**
+- **Answer: N/A**
 
 ---
 
@@ -219,7 +219,7 @@ A computer network is an organized structure where network assets connect and co
 
 **1. Continue to the next task.**
 
-- **Answer:**
+- **Answer: N/A**
 
 ---
 
