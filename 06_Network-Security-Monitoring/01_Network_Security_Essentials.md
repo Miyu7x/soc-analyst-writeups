@@ -24,7 +24,7 @@ Key components covered in this room:
 - Perimeter threats
 - Firewall log analysis
 
-<img src="screenshots/whatsisanetwork.png" width="600"/>
+<img src="screenshots/whatsisanetwork.png" width="200"/>
 
 ### Task Questions
 
