@@ -42,23 +42,21 @@ date_completed:
       - version of these services and does any have a vulnerability?
 
 *Attackers look for an opening anywhere they can*
+
 <img src="screenshots/attackerscanningports.png" width="400">
 
 **Defenders and Network Discovery**
   - defenders might run network discovery software when doing inventory on assets
   - check for IP, ports or services that are open and have no reason to be open
   - confirming that vulnerabilities are patched
-  - low severity
+
+
 
 **Challanges in Detecting Network Discovery**
   - both attackers and defenders must perform network discovery
   - SOC teams must know how to to differentiate between good and bad discovery, SOCs will implement techniques to achieve this
       - allowlist for known internal and benign external scanner, ensuring no flase positives happen
       - use threat intelligence to alert on malicious activities from known surpicious or suspicious sources
-  - this type of scan is high severity since the attacker is now within the system
-      - SOCs now escalate the alert to initiate the **Incident Response** proccess
-   
-  <img src="screenshots/mitrediscoverphase.png" width="400">
 
 ---
 
@@ -83,10 +81,16 @@ Attackers when they are planning an attack they do whats called "mapping hosts" 
 SOCs in this phase can block the malicious IP
   - attackers can get new IPs
 
+<img src=screenshots/mitreworkflowdiagram.png width="600">
+
 **Internal Scanning Activity**
   - SOCs will note that the source IP and destination IP addresses are now private inside the organisations network
   - this scan is starting and scanning assets from the same network
   - this attack has now progressed into the **Discovery** phase of the **MITRE ATT&CK**
+  - this type of scan is high severity since the attacker is now within the system
+      - SOCs now escalate the alert to initiate the **Incident Response** proccess
+   
+  <img src="screenshots/mitrediscoverphase.png" width="400">
 
 ---
 
@@ -119,7 +123,7 @@ From here we count by commans since timestamp has 2 commnas that mean row for so
 
 **2. How many log entries are present for the internal IP performing internal scanning activity?**
 
-<img src=screenshots/logentriesinternal.png width="600">
+<img src=screenshots/Slogentriesinternal.png width="600">
 - **Answer: 2275**
 
 ---
