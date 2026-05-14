@@ -12,9 +12,9 @@ tags:
   - network-analysis
   - blue-team
   - soc-level-1
-status: in-progress
+status: completed
 date: 2026-05-14
-date_completed:
+date_completed: 2026-05-14
 ---
 
 *Write-up by [Miyu7x](https://github.com/Miyu7x) | TryHackMe: [Miyu7](https://tryhackme.com/p/Miyu7)*
@@ -25,9 +25,20 @@ date_completed:
 
 ### Key Concepts
 
+**Man-in-the-Middle**
+
+<img src=screenshots/mitmintro.png width="600">
+
 <!-- Q: What is a Man-in-the-Middle attack and what position does the attacker occupy in the communication flow? -->
 
+**MITM Attacks:** Attackers put themselves in the middle of your endpoints, intercepting, modifying, and redirecting traffic.
+
 <!-- Q: What two-layer approach does blue team detection of MITM require? -->
+
+**SOC Detection** requires a multi-layered approach:
+- Network monitoring
+- Certificate validation
+- Behavioral analysis
 
 <!-- Q: What are the three MITM techniques chained together in this room's scenario? -->
 
@@ -41,7 +52,7 @@ date_completed:
 
 **1. Continue to the next task.**
 
-Answer: N/A
+**Answer:** N/A
 
 ---
 
@@ -51,13 +62,20 @@ Answer: N/A
 
 <!-- Q: What three chained MITM techniques are investigated in this scenario? -->
 
+**Attack Scenario:** As a SOC analyst, we investigate a MITM attack inside the corporate LAN where an attacker quietly intercepted communications, redirected connections, and captured user credentials.
+
 <!-- Q: What are the three analysis paths available to investigate this room (pcap, log file, Splunk)? -->
+
+**Three chained MITM techniques investigated:**
+- ARP spoofing: network interception
+- DNS spoofing: redirection
+- SSL stripping: credential capture
 
 ### Task Questions
 
 **1. Connect with the Lab.**
 
-Answer: N/A
+**Answer:** N/A
 
 ---
 
@@ -65,13 +83,39 @@ Answer: N/A
 
 ### Key Concepts
 
+**MITM Overview**
+
+<img src=screenshots/mitmuserattacker.png width="400">
+
 <!-- Q: What are the two main steps that MITM attacks generally involve? -->
+
+**How MITM Works** involves two main steps:
+- **Interception:** Attackers insert themselves into the communication stream by exploiting weaknesses in network protocols such as ARP, DNS, or IP spoofing.
+- **Manipulation/Decryption:** The attacker accesses or modifies the communication by decrypting encoded data or injecting harmful content such as altered website responses or fake login forms.
 
 <!-- Q: What is SSL stripping and how does it differ from DNS spoofing as an attack technique? -->
 
+**SSL Stripping vs. DNS Spoofing:**
+- SSL stripping: removes the secure connection to steal or alter transferred data
+- DNS spoofing: redirects legitimate traffic to a malicious domain
+
 <!-- Q: Where does MITM fit within the Cyber Kill Chain, and why can it appear in more than one phase? -->
 
+**Cyber Kill Chain** is a framework based on military knowledge of how an intruder performs their attack from beginning to end, mapping every step through TTPs (Tactics, Techniques, and Procedures):
+
+| Phase | Description |
+|---|---|
+| Reconnaissance | Attacker gathers intel on the target to find vulnerabilities |
+| Weaponization | Attacker prepares an exploit with a malicious payload into a deliverable package |
+| Delivery | Attacker transmits the malicious package to the target system |
+| Exploitation | Attacker's code activates, gaining control via software, hardware, or human vulnerability |
+| Installation | Attacker installs malware or establishes a persistent backdoor on the compromised asset |
+| Command and Control | Attacker establishes a channel to communicate with and control the compromised target |
+| Actions on Objectives | Attacker accomplishes their goals: data exfiltration, destruction, lateral movement |
+
 <!-- Q: What makes detecting an active MITM a critical finding from a SOC perspective? -->
+
+**MITM signals that an adversary is in the middle stage of an intrusion**, presenting a crucial opportunity for the SOC to intervene and stop the attack before the attacker achieves their final objective.
 
 | MITM Type | Mechanism | Primary Target |
 |---|---|---|
@@ -91,7 +135,7 @@ Answer: N/A
 
 **1. Continue to the next task.**
 
-Answer: N/A
+**Answer:** N/A
 
 ---
 
@@ -101,7 +145,19 @@ Answer: N/A
 
 <!-- Q: What does ARP do and why does it have no authentication mechanism? -->
 
+**ARP maps IP addresses to MAC addresses in the LAN.** When a device wants to send data to another IP, it asks "Who has this IP?" and the correct device replies with its MAC address.
+
 <!-- Q: What is a gratuitous ARP reply and why is it a strong indicator of ARP spoofing? -->
+
+**ARP has no authentication**, so any device can send an unsolicited `is-at` message. Attackers exploit this by sending fake ARP replies to victims and gateways, essentially saying "Hey, I have that MAC address you asked for" when nobody asked. That is what makes it so dangerous.
+
+**Indicators of ARP Spoofing:**
+- **Duplicate MAC-to-IP mapping:** Multiple MAC addresses claiming the same IP address
+- **Unsolicited ARP replies:** High number of ARP replies without matching requests (gratuitous ARP)
+- **Abnormal ARP traffic volume:** Large number of ARP packets in short intervals
+- **Unusual traffic routing:** Traffic rerouted through the attacker's MAC
+- **Gateway redirection patterns:** Multiple destination MACs for the same gateway IP
+- **ARP probe/reply loops:** Many ARP requests with "Who has 192.168.1.x? Tell 192.168.1.y" patterns
 
 <!-- Q: What Wireshark filter isolates gratuitous ARP packets? -->
 
@@ -115,39 +171,64 @@ Answer: N/A
 | `arp.isgratuitous` | Show gratuitous (unsolicited) ARP replies |
 | `arp && arp.src.proto_ipv4 == 192.168.10.1 && eth.src == <gateway_mac>` | ARP traffic from legitimate gateway |
 | `arp.opcode == 2 && arp.src.proto_ipv4 == 192.168.10.1` | All replies claiming gateway IP |
-| `arp.opcode == 2 && _ws.col.info contains "192.168.10.1 is at"` | Responses mapping gateway IP to a MAC |
+| `arp.opcode == 2 && _ws.col.info contains "192.168.10.1 is at"` | Responses mapping gateway IP to a MAC; also shows INFO column |
 | `arp.duplicate-address-detected \|\| arp.duplicate-address-frame` | Duplicate IP-to-MAC mappings |
 
 **Network Info:**
 
 | Role | IP | MAC | Notes |
 |---|---|---|---|
-| Gateway | 192.168.10.1 | | Legit router |
-| Attacker | | | |
-| Victim | | | |
+| Gateway | 192.168.10.1 | 02:aa:bb:cc:00:01 | Legit router |
+| Attacker | 192.168.10.55 | 02:fe:fe:fe:55:55 | |
+| Victim | 192.168.10.10 | | |
 | Domain | corp-login.acme-corp.local | | |
 
 ### Task Questions
 
 **1. How many ARP packets from the gateway MAC Address were observed?**
 
-Answer:
+<img src=screenshots/gatewaymac.png width="400">
+<img src=screenshots/gatewayfirst.png width="400">
+
+*Filter by the gateway IP `arp.src.proto_ipv4 == 192.168.10.1` to observe two MAC addresses. Then filter by the legitimate gateway MAC `arp && eth.src == 02:aa:bb:cc:00:01` to isolate packets from the real gateway.*
+
+**Answer:** 10
+
+---
 
 **2. What MAC address was used by the attacker to impersonate the gateway?**
 
-Answer:
+<img src=screenshots/attackersmac.png width="400">
+
+**Answer:** 02:fe:fe:fe:55:55
+
+---
 
 **3. How many Gratuitous ARP replies were observed for 192.168.10.1?**
 
-Answer:
+<img src=screenshots/gratuitousipv4.png width="400">
+
+**Answer:** 2
+
+---
 
 **4. How many unique MAC addresses claimed the same IP (192.168.10.1)?**
 
-Answer:
+<img src=screenshots/sameipmac.png width="400">
+
+*Filtered by the gateway IP `arp.src.proto_ipv4 == 192.168.10.1`.*
+
+**Answer:** 2
+
+---
 
 **5. How many ARP spoofing packets were observed in total from the attacker?**
 
-Answer:
+<img src=screenshots/totalspoofingpackets.png width="400">
+
+*Filter by ARP responses containing the gateway IP mapped to the spoofed MAC: `arp.opcode == 2 && _ws.col.info contains "192.168.10.1 is at 02:fe:fe:fe:55:55"`.*
+
+**Answer:** 14
 
 ---
 
@@ -155,9 +236,21 @@ Answer:
 
 ### Key Concepts
 
+**DNS Spoofing**
+
+<img src=screenshots/dnsthmspoofing.png width="400">
+
 <!-- Q: What is DNS spoofing (cache poisoning) and how does it extend an ARP spoofing attack into a full MITM? -->
 
+**DNS translates domain names like google.com into their numbered IP addresses.** DNS poisoning is when an attacker gives your computer the wrong IP for a domain name, pointing it to their malicious server instead.
+
 <!-- Q: What is the single most reliable indicator of DNS spoofing in packet capture? -->
+
+**Indicators of DNS Spoofing:**
+- Multiple DNS responses for the same query
+- DNS responses from an unexpected source
+- Suspiciously short TTL values (attackers use 1-30 seconds)
+- Unsolicited DNS responses
 
 <!-- Q: Why do attackers use suspiciously short TTL values in forged DNS responses? -->
 
@@ -182,15 +275,31 @@ Answer:
 
 **1. How many DNS responses were observed for the domain corp-login.acme-corp.local?**
 
-Answer:
+<img src=screenshots/dnscorpacme.png width="400">
+
+*Filtered by the domain: `dns.qry.name == "corp-login.acme-corp.local"`.*
+
+**Answer:** 211
+
+---
 
 **2. How many DNS requests were observed from IPs other than 8.8.8.8?**
 
-Answer:
+<img src=screenshots/otheripdns.png width="400">
+
+*Filter by domain query name excluding the legitimate DNS server: `dns.flags.response == 1 && dns.qry.name == "corp-login.acme-corp.local" && ip.src != 8.8.8.8`.*
+
+**Answer:** 2
+
+---
 
 **3. What IP did the attacker's forged DNS response return for the domain?**
 
-Answer:
+<img src=screenshots/forgedattackerip.png width="400">
+
+*The packet details show `[Unsolicited: True]` confirming a forged reply. The answer IP is visible in the Answers section of the DNS packet.*
+
+**Answer:** 192.168.10.55
 
 ---
 
@@ -198,9 +307,18 @@ Answer:
 
 ### Key Concepts
 
+<img src=screenshots/httpstohttp.png width="400">
+
 <!-- Q: What is SSL stripping and what does the victim's traffic look like after the attacker performs it? -->
 
+**SSL Stripping** removes the security layer of HTTPS, downgrading it to plain HTTP. The attacker maintains a secure HTTPS session with the real server while relaying unencrypted HTTP to the victim, exposing everything in plaintext.
+
 <!-- Q: What is the relationship between DNS spoofing and SSL stripping in a chained MITM attack? -->
+
+**Indicators of SSL Stripping:**
+- User requests HTTPS (port 443) but subsequent packets shift to HTTP (port 80) for the same domain
+- Redirects and link rewriting from HTTPS to HTTP
+- TLS/SSL handshake fails, shows errors, or presents a self-signed certificate
 
 <!-- Q: What HTTP filter confirms the victim communicated with the attacker in plaintext after SSL stripping? -->
 
@@ -232,11 +350,19 @@ Answer:
 
 **1. How many POST requests were observed for our domain corp-login.acme-corp.local?**
 
-Answer:
+<img src=screenshots/requestmethodpost.png width="400">
+
+*Filtered by HTTP request method: `http.request.method == "POST"`.*
+
+**Answer:** 1
+
+---
 
 **2. What is the password of the victim found in the plaintext after the successful SSL stripping attack?**
 
-Answer:
+<img src=screenshots/strippedpass.png width="400">
+
+**Answer:** Secret123!
 
 ---
 
@@ -245,6 +371,14 @@ Answer:
 ### Key Concepts
 
 <!-- Q: What are the three detection methods for each MITM technique covered in this room (ARP, DNS, SSL)? -->
+
+**SOC Investigation Summary:**
+
+**ARP Spoofing** (cache poisoning): Attacker sends unsolicited ARP `is-at` messages to claim the gateway IP, poisoning the victim's ARP cache.
+
+**DNS Spoofing** (forged DNS responses): Victim's DNS query for corp-login.acme-corp.local is intercepted and a forged response redirects traffic to the attacker's IP 192.168.10.55.
+
+**SSL Stripping** (TLS downgrade and credential capture): Victim initiates a connection to the resolved IP over HTTP; credential POST captured in cleartext.
 
 <!-- Q: What Splunk index were the logs pre-ingested into, and what is the log file name for offline review? -->
 
@@ -258,4 +392,4 @@ Answer:
 
 **1. Continue to complete the room.**
 
-Answer: N/A
+**Answer:** N/A
