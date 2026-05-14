@@ -17,9 +17,16 @@ date_completed:
 
 ### Key Concepts
 
-<!-- Data exfiltration defined: unauthorized transfer of sensitive data out of a network, primary attacker objective post-breach -->
-<!-- SOC analyst role: detect and stop exfiltration before data leaves the environment -->
-<!-- Room scope: common exfil techniques, network traffic analysis, endpoint indicators, SIEM log correlation -->
+<!-- Q: What is data exfiltration and why is it a primary objective for attackers who have already breached a network? -->
+**Data Exfiltration** the act of stealing sensitive data from a network
+  - reasons for attackers vary: monitary, political, service disruption, recon...
+
+<!-- Q: What are the four things this room will teach you to do as a SOC analyst? -->
+**SOC** analysts are responsible for detecting and stopping attackers before they break in and take off with valuable data
+  - understand common methods of data exfil
+  - how to detect exfil attempts while perfoming network analysis
+  - spot signs of exfil on endpoint devices
+  - perform investigations utilizing SIEM to detect exfil channnels
 
 **1. Continue to the next task.**
 
@@ -31,10 +38,15 @@ Answer: N/A
 
 ### Key Concepts
 
-<!-- Lab setup: all files in data_exfil folder on Desktop; Splunk pre-ingested at MACHINE_IP:8000 -->
-<!-- Three investigation approaches: pcap analysis, raw log file review, Splunk queries -->
-<!-- Always set Time Range to All Time; base index = index=data_exfil -->
-
+<!-- Q: Where are all the lab files located on the Desktop, and how do you access the Splunk instance? -->
+The **Security Information Event Management** we will be using today is SPLUNK
+  - to access the exfil logs in the SIEM we can use **index=data_exfil**
+<!-- Q: What are the three ways to approach the investigation in this room? -->
+**SOCs** should start their investigation looking for:
+  - sysmon_logs
+  - http_logs
+  - dns_logs
+    
 **1. Connect with the lab.**
 
 Answer: N/A
@@ -45,10 +57,26 @@ Answer: N/A
 
 ### Key Concepts
 
-<!-- Five adversary motivations: financial gain, espionage, ransomware/extortion, disruption/sabotage, persistence/recon -->
-<!-- Four common exfil phases: Discovery/Collection > Staging/Compression > Exfiltration Transport > C2 Coordination -->
-<!-- Detection requires cross-source correlation: host + network + cloud telemetry, not single-point alerts -->
-<!-- SOC L1 triage anchors: source host/user, destination, volume transferred, process identity/command-line, corroborating logs -->
+<!-- Q: What are the five reasons adversaries perform data exfiltration? -->
+Threat actors will try to extract data for various reasons"
+  - financial gain
+  - espionage
+  - ransomware
+  - disruption
+  - persistance and recon
+<!-- Q: What are the four phases an attacker moves through before data leaves the network? -->
+Attackers have to get through several steps before they can access the dataand then try to exfil
+  1. Discover phase, find the files
+  2. stage and compress the files
+  3. exfil the data
+  4. C2 to transfer and confirm success
+<!-- Q: Which threat actor used cloud APIs to exfiltrate from managed service providers, and what is that campaign called? -->
+This info is on the table
+<!-- Q: What log sources would you check for host-based exfiltration indicators, and which Sysmon event IDs are relevant? -->
+Host-Based exfilitration would be seen in the sysmon_logs
+Network-Based exfil in the http_logs
+<!-- Q: Why is single-point detection not enough, and what does cross-source correlation actually mean in practice? -->
+Since attackers start their activties earlier than exfil SOCs should be looking not just at endpoints where the data leaves but detective work accross the network
 
 ### Threat Actor Reference
 
@@ -72,18 +100,36 @@ Answer: N/A
 
 **1. Exfiltrating the data through HTTP comes under which technique?**
 
-Answer:
-
+**Answer: Network Based**
 ---
 
 ## Task 4 - Detection: Data Exfil through DNS Tunneling
 
 ### Key Concepts
 
-<!-- DNS tunneling: encodes data inside DNS query/response; abuses the fact that DNS is almost always allowed outbound -->
-<!-- DNS uses UDP port 53 for queries; TCP port 53 for zone transfers or large responses -->
-<!-- Two confirmed lab indicators: large number of DNS requests with no response + abnormally large query length -->
-<!-- Multiple internal hosts can be compromised simultaneously; all tunnel to one external domain -->
+<!-- Q: Why is DNS an attractive protocol for data exfiltration, and what ports does it use for different traffic types? -->
+**DNS is a prime target for attackers**
+  - DNS is typically allowed freely through networks, its an **Always-on** service
+  - attackers sumggle bytes inside DNS quesries/responses
+  - firewalls and web proxies can miss this
+<!-- Q: What six indicators in DNS traffic should make you suspicious of tunneling activity? -->
+**Possible Indicators of a DNS Attack**
+  - high number of DNS queries sent to a single external domain
+  - long subdomains labels or unusual full query names
+  - Base32/Base64 patterns in the query name
+  - rare record types, large TXT reponses and NULL
+  - queries at regular interval, beaconing
+<!-- Q: What two confirmed indicators did this lab use to identify the DNS tunneling attempt? -->
+<!-- Q: Walk through the Wireshark filter progression used in this task. What does each filter narrow down? -->
+**Detecting with Wireshark**
+  - **index=data_exfil sourcetype=DNS_logs**
+  - wireshark DNS queries with no response **dns.flags.repsonse == 0**
+  - wireshark filter for long DNS queries **dns && frame.len > 70**
+  - wireshark filter by the name of the suspicious domain **dns && dns.qry.name contains *domainname***
+  - SPLUNK filter stats of DNS quesries by source IP **stats count by src_ip**
+  - SPLUNK filter by suspicious domains **stats count by query | sort -count**
+  - SPLUNK  |filter by subdomain encoding **where len(query) > 30**
+<!-- Q: Which Splunk query actually surfaces the suspicious queries, and why does query length matter? -->
 
 ### DNS Tunneling IoAs
 
@@ -127,33 +173,60 @@ index="data_exfil" sourcetype="dns_logs" | stats count by query | sort -count
 # Filter on long query names (> 30 chars)
 index="data_exfil" sourcetype="DNS_logs" | where len(query) > 30
 ```
+**IMPORTANT Note: Suspicious traffic will look like Tunneling so we would filter by query len**
 
 **1. What is the suspicious domain receiving the DNS traffic?**
 
-Answer:
+<img src=screenshots/dnsexfilexample.png width"600">
+*The question mentions a domain, I used SPLUNK and applied the filter to sort by query and count the requests*
+**stats count by query | sort -count**
 
+**Answer: tunnelcorp.net**
 ---
 
 **2. How many suspicious traffic/logs related to DNS tunneling were observed?**
 
-Answer:
+<img src=screenshots/wiresharktunnelcorp.png width"600">
+*In this question I tried the filter contain tunnelcorp and wasnt getting a result, I figured I was using the wrong tool, so i examined the dns log on wireshark instead*
+**dns && dns.qry.name contains tunnelcorp**
 
+**Answer: 315**
 ---
 
 **3. Which local IP sent the maximum number of suspicious requests?**
 
-Answer:
+<img src=screenshots/tunnelcorplen.png width"600">
+*Here they are looking specifically for suspicious traggic only*
+**where len (query) > 30**
 
+**Answer: 192.168.1.103**
 ---
 
 ## Task 5 - Detection: Data Exfil through FTP
 
 ### Key Concepts
 
-<!-- FTP: plaintext protocol; attackers abuse via compromised creds, misconfigured servers, ephemeral accounts -->
-<!-- Credentials transmitted in cleartext; USER and PASS visible directly in TCP stream -->
-<!-- STOR = upload (attacker sending data out), RETR = download from server -->
-<!-- Non-standard ports and tunneling used to blend FTP with other traffic -->
+<!-- Q: Why is FTP particularly dangerous from a credentials standpoint, and what makes it useful to attackers? -->
+FTP is often used by attacker for Exfil because its a  transferring of files between a client and server over TCP/IP network
+  - they use compromised credentials, service accounts and user creds
+  - non standard ports or tunneling
+  - detected via packet inspections, server logs and SSH metadata and network flow/size/pattern analysis
+<!-- Q: What do the FTP commands STOR and RETR each tell you about what the attacker was doing? -->
+**Indicators of Attack**
+   - USER and PASS commands
+   - STOR for uploading amd RETR for downloads
+   - repeated or large transfers
+   - data channel openings on PASV ports along with large payloads
+<!-- Q: What filter progression did this task use in Wireshark, and what did each step reveal? -->
+**Wireshark FTP filters**
+**ftp || ftp data**
+  - filter login attempts with USER/PASS **ftp.request.command == "USER" || ftp.request.command == "PASS"**
+  - filter by filenames or credentials **ftp contains "STOR"
+      - right click to follow TCP stream
+  - filter out by file extensions PDF, csv, TXT... **ftp contains "csv"**
+  - filter out by traffic with large pauload size **ftp && frame.len > 90**
+      - follow stream
+<!-- Q: What made the guest account activity suspicious in this lab specifically? -->
 
 ### FTP IoAs
 
@@ -188,36 +261,63 @@ ftp && frame.len > 90
 
 **1. How many connections were observed from the guest account?**
 
-Answer:
+<img src=screenshots/wiresharkftpguest.png width="600">
+*Filtered by ftp contains "guest"*
 
+**Answer: 5**
 ---
 
 **2. Apply the filter; what is the name of the customer-related file exfiltrated from the root account?**
 
-Answer:
+<img src=screenshots/filterbyroot.png width="600">
+*I orginally thought about filtering for files, but you would need to know the exact file type, so I filtered by root instead and inspected the packets*
 
+**Answer: customer_data.xlsx**
 ---
 
 **3. Which internal IP was found to be sending the largest payload to an external IP?**
 
-Answer:
+<img src=screenshots/largeguestpayload.png width="600">
+*Filtered this one by length **ftp && frame.len >90** and sorted highest to lowest*
 
+**Answer: 192.168.1.105**
 ---
 
 **4. What is the flag hidden inside the FTP stream transferring the CSV file to the suspicious IP?**
 
-Answer:
-
+<img src=screenshots/thmftpexfil.png width="600">
+**Answer: THM{ftp_exfil_hidden_flag}**
 ---
 
 ## Task 6 - Detection: Data Exfil via HTTP
 
 ### Key Concepts
 
-<!-- HTTP exfil blends with normal web traffic; hard to detect without filtering on size and destination -->
-<!-- Adversaries adapt: low-and-slow, encoding, chunked/multipart, HTTPS tunneling, staging via cloud -->
-<!-- Correlation approach: match Splunk finding to pcap entry, then inspect HTTP stream for exfiltrated content -->
-<!-- Detection requires both SIEM log analysis and pcap confirmation to be conclusive -->
+<!-- Q: Why does HTTP exfiltration blend in so well with normal traffic, and what makes it hard to detect? -->
+Attackers use **HTTP** to exfil data because it blends in with normal web traffic
+  - HTTP traffic passes by firewalls and proxies, it can be obfuscated(encrypted, ecoded, tunneled)
+<!-- Q: What are the seven techniques adversaries use to abuse HTTP for exfiltration? -->
+**Techniques Used by Attackers**
+  - **POST** uploads to external servers: bulk data is sent to attacker-cpntrolled hosts or cloud storage in POST request bodies
+  - **GET** requests with encoded data: they squeeze small chunks into query strings or path segments
+  - **Common Services**
+  - **Custom headers** data is placed inside headers ExampleData: <base64>
+  - **Chunked transfer/multipart** large payloads are split into multiple reuqests to avoid size trashhold
+  - **HTTPS/TLS tunneling** encrypted channel hides the payload
+  - **Staging via cloud services** the attacker uploads to Dropbox/Git/Gist
+<!-- Q: Why did the task increase the frame.len threshold from 500 to 750 in Wireshark, and what did that achieve? -->
+We can increase frame len in wireshark to cut out more noise from 500 to 750
+<!-- Q: How did the Splunk investigation and the Wireshark pcap analysis complement each other in this lab? -->
+<!-- Q: What is a low-and-slow exfiltration approach and why is it harder to catch than a single large transfer? -->
+**Logs in SPLUNK**
+  - filter to get an overview of the avarage amount of bytes sentout to various domains
+    **method=POST | stats count avg(bytes_sent) max(bytes_sent) by domain | sort - count**
+  - filter POST requests with large payloads
+    **method=POST bytes_sent > 600 | table_time src_ip uri domain dst_ip bytes_sent | sort - bytes_sent**
+
+**Logs in Wireshark**
+  - GET or POST requests: **http.request.method == "POST"**
+  - **and fram.len > 500** increase to ;750 to cut out noise
 
 ### HTTP Exfil Techniques
 
@@ -276,13 +376,17 @@ http.request.method == "POST" and frame.len > 750
 
 **1. Which internal compromised host was used to exfiltrate this sensitive data?**
 
+<img src=screenshots/packetbytesthmflag.png width="600">
+*Filtered by POST looking for large payloads **http.request.method == "POST" and frame.len > 750**
 Answer:
 
 ---
 
 **2. What's the flag hidden inside the exfiltrated data?**
 
-Answer:
+<img src=screenshots/packetbytesthmflag2.png width="600">
+*Im not sure how they wanted us to find the answer but my eyes are always reading the packet bytes, so..*
+Answer: THM{http_raw_3xf1ltr4t10n_succ3ss}
 
 ---
 
@@ -290,10 +394,24 @@ Answer:
 
 ### Key Concepts
 
-<!-- ICMP tunneling: data encoded (base64/hex) into echo request/reply payloads; allowed through most firewalls, low inspection -->
-<!-- Normal ping frame is ~74 bytes total; anything over 100 bytes is suspicious and warrants payload inspection -->
-<!-- Detection is straightforward compared to DNS/HTTP: frame size anomaly is the primary signal -->
-<!-- Bursts of large ICMP with no other app traffic from same host = strong indicator -->
+<!-- Q: Why do attackers use ICMP for exfiltration, and what property of the protocol makes it attractive? -->
+**ICMP is commonly used for exfil for being comonly allowed thru firewalls**
+
+**Attackers and ICMP**
+  - ICMP echo(type 8)/reply(type 0) tunneling: they place encoded chunks of files in ICMP payloads
+  - Uncommon ICMP types
+  - Fragmentation and reassmbly: latge payloads split accross multiple packets
+  - ebncrption and obfuscation
+  - large frame.len and icmp.payload
+  - regular timing
+
+Wireshark ICMP Logs
+  - filter by ICMP Echo reuqests **icmp.type == 8**
+  - filter by frame lenghth ** frame.len > 100**
+      - normal packets range around 74 bytes total, anything over 100 is suspiciousic
+<!-- Q: What is the normal frame size of a ping, and at what frame.len does ICMP traffic become suspicious? -->
+<!-- Q: What are the four techniques attackers use to abuse ICMP specifically? -->
+<!-- Q: Why is ICMP exfiltration detection simpler than DNS or HTTP tunneling detection? -->
 
 ### ICMP Tunneling Techniques
 
@@ -331,17 +449,19 @@ icmp.type == 8 and frame.len > 100
 
 **1. What is the flag found in the exfiltrated data through ICMP?**
 
-Answer:
+<img src=screenshots/icmplogflag.png width="600">
+*Same on this one I think they might have wanted the FLAG a different way but it was visible right there on the packet bytes*
 
+**Answer: THM{1cmp_3ch0_3xf1ltr4t10n_succ3ss}**
 ---
 
 ## Task 8 - Conclusion
 
 ### Key Concepts
 
-<!-- Room covered: exfil fundamentals, Cyber Kill Chain (Actions on Objectives), FTP/HTTP/DNS/ICMP detection -->
-<!-- Detection is network-centric in this room; future rooms will expand to additional channels and log sources -->
-<!-- No single-point detection is sufficient; effective SOC work requires cross-source correlation -->
+<!-- Q: What four areas did this room cover from a defender's perspective? -->
+<!-- Q: What does "Actions on Objectives" mean in the context of the Cyber Kill Chain, and where does exfiltration fit? -->
+<!-- Q: What channels and log sources did this room NOT cover that future rooms will expand on? -->
 
 **1. Continue to complete the room.**
 
