@@ -198,7 +198,6 @@ date_completed: 2026-05-14
 
 **2. What MAC address was used by the attacker to impersonate the gateway?**
 
-<img src=screenshots/attackersmac.png width="400">
 
 **Answer:** 02:fe:fe:fe:55:55
 
