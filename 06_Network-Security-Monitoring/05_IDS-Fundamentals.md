@@ -53,7 +53,7 @@ Signature-based and anomaly-based detection. Signature-based matches known attac
 
 ### Key Concepts
 
-<img src=screenshots/nidsvshids.png width="400">
+<img src=screenshots/nidsvshids.png width="300">
 
 <!-- Q: What is the key difference between HIDS and NIDS in terms of scope and deployment? -->
 **HIDS (Host-based):** Installed on individual machines. Monitors activity on that specific host only -- examples include syslogs, Windows Event Logs, Sysmon, and auditd on Linux. Resource-intensive and difficult to scale across large networks.
@@ -105,7 +105,7 @@ A zero-day attack has no prior signature -- it has never been seen before so it 
 
 ### Key Concepts
 
-<img src=screenshots/modesofsnort.png width="400">
+<img src=screenshots/modesofsnort.png width="600">
 
 <!-- Q: When was Snort developed and what detection methods does it use? -->
 Snort was developed in 1998 as an open-source IDS solution. It uses both signature-based and anomaly-based detection defined in its rule files.
