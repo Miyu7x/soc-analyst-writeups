@@ -1,3 +1,5 @@
+
+<img src=screenshots/snort_bar.png width="1200">
 ---
 title: Snort
 module: Network Security Monitoring
