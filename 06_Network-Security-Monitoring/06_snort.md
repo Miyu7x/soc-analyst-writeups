@@ -1,5 +1,3 @@
-<img src=screenshots/snort_bar.png width="600">
-
 ---
 title: Snort
 module: Network Security Monitoring
@@ -10,6 +8,8 @@ status: in-progress
 date: 2026-05-16
 date_completed:
 ---
+
+<img src=screenshots/snort_bar.png width="900">
 
 *Write-up by [Miyu7x](https://github.com/Miyu7x) | TryHackMe: [Miyu7](https://tryhackme.com/p/Miyu7) | BTLO: [Miyu7x](https://blueteamlabs.online/public/user/Miyu7x)*
 
