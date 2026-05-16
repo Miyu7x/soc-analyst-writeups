@@ -1,3 +1,5 @@
+<img src=screenshots/snort_bar.png width="600">
+
 ---
 title: Snort
 module: Network Security Monitoring
@@ -14,6 +16,8 @@ date_completed:
 ---
 
 ## Task 1 - Introduction
+
+<img src=screenshots/snort_logo.png width="600">
 
 ### Key Concepts
 
