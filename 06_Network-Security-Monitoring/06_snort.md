@@ -323,7 +323,7 @@ Snort requires sudo privileges to run, so logged traffic is owned by root.
 
 **5. Read the "snort.log.1640048004" file with Snort; what is the number of the "TCP port 80" packets?**
 
-<img src=screenshots/snort_port80.png width="400">
+<img src=screenshots/snort_port53.png width="400">
 
 `sudo snort -Xr snort.log.1640048004 'tcp and port 80'`
 
