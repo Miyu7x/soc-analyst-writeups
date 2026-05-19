@@ -51,7 +51,7 @@ date_completed: 05-19-2026
 <!-- Q: What is XSS? Walk through the comment box example in your own words. What could an attacker do with it beyond a harmless pop-up? -->
 
 <p align="center">
-<img src=screenshots/web_xss.png width="200">
+<img src=screenshots/web_xss.png width="400">
 </p>
 
 **Cross-Site Scripting (XSS)**
@@ -79,11 +79,11 @@ date_completed: 05-19-2026
 ## Task 3 - Server-Side Attacks
 
 <p align="center">
-<img src=screenshots/web_ssrf.png width="200">
+<img src=screenshots/web_ssrf.png width="400">
 </p>
 
 <p align="center">
-<img src=screenshots/web_serverside.png width="200">
+<img src=screenshots/web_serverside.png width="400">
 </p>
 
 ### Key Concepts
@@ -134,7 +134,7 @@ date_completed: 05-19-2026
   6. User-Agent: outdated browser versions or common attack tools such as sqlmap and wpscan
 
 <p align="center">
-<img src=screenshots/web_logformatexample.png width="200">
+<img src=screenshots/web_logformatexample.png width="400">
 </p>
 
 | Log Field | Example Indicator |
@@ -151,17 +151,17 @@ date_completed: 05-19-2026
 
 1 - Attacker tests directories and forms with a directory fuzz; 200 response codes signify valid finds for the attacker
 <p align="center">
-<img src=screenshots/web_fuzz.png width="200">
+<img src=screenshots/web_fuzz.png width="400">
 </p>
 <!-- Q: What do 200 response codes indicate during a directory fuzz? What does a 302 response code mean in the context of a brute-force? -->
 2 - Attacker exploits login.php with repeated POST requests in quick succession; a 302 Found response indicates a successful brute-force login
 <p align="center">
-<img src=screenshots/web_post2.png width="200">
+<img src=screenshots/web_post2.png width="400">
 </p>
 
 3 - Attacker has gained access to the account and attempts SQLi payloads `' OR '1'='1` and `1' OR 'a'='a` on the /search form
 <p align="center">
-<img src=screenshots/web_sqli.png width="200">
+<img src=screenshots/web_sqli.png width="400">
 </p>
 <!-- Q: What are the limitations of access logs? What data is NOT captured, and why does that matter for investigations? -->
 **Logs Do NOT Always Capture the Full Contents of a Request**
@@ -174,7 +174,7 @@ date_completed: 05-19-2026
 
 **1. What is the attacker's User-Agent while performing the directory fuzz?**
 <p align="center">
-<img src=screenshots/web_fuffv2.png width="200">
+<img src=screenshots/web_fuffv2.png width="400">
 </p>
 
 **Answer: FFUF v2.1.0**
@@ -189,10 +189,10 @@ date_completed: 05-19-2026
 
 **3. What is the complete, decoded SQLi payload the attacker uses on the /changeusername.php form?**
 <p align="center">
-<img src=screenshots/web_sqlidecoded.png width="200">
+<img src=screenshots/web_sqlidecoded.png width="400">
 </p>
 <p align="center">
-<img src=screenshots/web_sqlidecoded2.png width="200">
+<img src=screenshots/web_sqlidecoded2.png width="400">
 </p>
 
 *URL-encoded payload decoded using CyberChef*
@@ -230,7 +230,7 @@ date_completed: 05-19-2026
 
 **1. What password does the attacker successfully identify in the brute-force attack?**
 <p align="center">
-<img src=screenshots/web_astrongpass.png width="200">
+<img src=screenshots/web_astrongpass.png width="400">
 </p>
 
 **Answer: astrongpassword123**
@@ -239,7 +239,7 @@ date_completed: 05-19-2026
 
 **2. What is the flag the attacker found in the database using SQLi?**
 <p align="center">
-<img src=screenshots/web_dumpthedb.png width="200">
+<img src=screenshots/web_dumpthedb.png width="400">
 </p>
 
 *Filter used: `http.user_agent contains "sqlmap"`*
@@ -251,7 +251,7 @@ date_completed: 05-19-2026
 ## Task 6 - Web Application Firewall
 
 <p align="center">
-<img src=screenshots/web_wafexample.png width="200">
+<img src=screenshots/web_wafexample.png width="400">
 </p>
 
 ### Key Concepts
