@@ -10,7 +10,7 @@ date_completed: 05-20-2026
 ---
 
 <p align="center">
-  <img src=screenshots/web_shell.png width="1500">
+  <img src=screenshots/web_shells.png width="1500">
 </p>
 
 *Write-up by [Miyu7x](https://github.com/Miyu7x) | TryHackMe: [Miyu7](https://tryhackme.com/p/Miyu7) | BTLO: [Miyu7x](https://blueteamlabs.online/public/user/Miyu7x)*
