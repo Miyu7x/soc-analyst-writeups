@@ -142,6 +142,7 @@ Attackers have various different motivations to coordinate  attcaks.
   <img src=screenshots/web_accesslogexample.png width="500">
 </p>
 *I opened the log in Splunk and examined it, we can see the IP 203.12.23.195 had 92 repeated requests*
+
 **Answer: 203.12.23.195**
  
 ---
@@ -152,6 +153,7 @@ Attackers have various different motivations to coordinate  attcaks.
   <img src=screenshots/web_loginpage.png width="500">
 </p>
 *Filter by uri_path*
+
 **Answer: /login**
  
 ---
@@ -161,6 +163,7 @@ Attackers have various different motivations to coordinate  attcaks.
   <p align="center">
   <img src=screenshots/web_statuscode.png width="500">
 </p>
+
 **Answer: 503**
  
 ---
@@ -181,8 +184,8 @@ Digging thru raw logs on the command line is not productive.
 
  
 **1. What was the most frequently requested `uri`?**
- n=
-**Answer:**
+
+**Answer: /search**
  
 ---
  
