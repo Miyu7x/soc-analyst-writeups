@@ -135,6 +135,7 @@ Attackers have various different motivations to coordinate  attcaks.
   2. **DoS Attack**: begins at timestamp 10:01:10 with IP address of 203.0.113.55, sends repetaed GET requests to /login.php
   3. Web Server Down: Users are requesting pages and receiving a 503 service unavaliable reposnse
 
+---
  
 **1. What is the attacker's IP address?**
 
@@ -182,6 +183,7 @@ Digging thru raw logs on the command line is not productive.
   <img src=screenshots/web_timechartexample.png width="500">
 </p>
 
+---
  
 **1. What was the most frequently requested `uri`?**
 
