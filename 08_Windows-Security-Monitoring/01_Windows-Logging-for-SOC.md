@@ -15,13 +15,8 @@ date_completed:
 
 ## Task 1 - Introduction
 
-<!--
-ACTIVE RECALL
-**1.** What are the four learning objectives of this room?
-**2.** What four rooms are recommended as prerequisites?
-**3.** What credentials are used to access the VM via RDP?
-**4.** Where are Windows event logs stored on disk and in what format?
--->
+SOCs spend most of their time traiging alerts and hunting threats using a SIEM and logs
+  - SOCs should know how to read logs, interpret them and be able to spot malicious actions within them
 
 **1. I'm ready to move on!**
 
@@ -31,15 +26,42 @@ ACTIVE RECALL
 
 ## Task 2 - What Is Logged
 
-<!--
-ACTIVE RECALL
-**1.** What three SOC activities do logs support?
-**2.** Where are Windows event logs stored on disk and in what format?
-**3.** What does each EVTX file correspond to?
-**4.** What are the four main components of the Event Viewer interface?
-**5.** What is an Event ID and why does it matter for detection?
-**6.** Why does Windows require more knowledge than other OSes to read and interpret its logs?
--->
+Every action performed ona computer is logged somewhere
+  - user logs in, the OS appends a line to some journal, with the time of the action and thw user who perfomed it
+  - propper logging ensures all user and system activities are recorded
+  - this means if anything happens, SOCs can follow the trail of the log and investigate all actions the user and system performed
+
+**Logs** are critical for investigations:
+   - Incident Response: logs will show when and how the attack occurred
+   - Threat Hunting: logs allow SOCs to search for signs of malicious activities
+   - Alert and Triage: logs are the building blocks of any alert or detection rules
+
+**Windows Logs**
+  - Windows generates very powerful logs
+  - Windows logs are stored in binary format which will require extensive knowledge to understand and read
+  - Windows logs are saved in EVTX file format; Windows XML event log file
+
+Windows have a built-in tool called **Event Viewer**
+  - views and manages event logs
+  - open event viewer with _Win + R_ enter _eventvwr_
+
+**Event Viewer Example**
+
+<p align="center">
+<img src=screenshots/windows_eventviewer.png width="500">
+</p>
+
+  1. **Log Sources**: All EVTX files
+  2. **Log List**: Each row is a single event that you can sort by:
+     - Keywords: this shows if the action performed was successful or not(for some events, not all)
+     - Date and Time: timestamp when the event occurred(system time, not UTC!)
+     - Event ID: unique number for the event name(an example is 4625 will always be a **failed login**)
+  3. **Log Details**(Tab): actual content of the log in plain text or XML format
+  4. **Filters Menu**: _Filter Current Log_ and _Find_ options to filter the logs
+
+Everything has a Log
+  - over 500 event IDs just for **Security Logs**
+
 
 **Logging Overview**
 
@@ -58,21 +80,58 @@ ACTIVE RECALL
 
 **1. Looking at the last screenshot, which event ID describes a successful login? (Format: LogSource / ID)**
 
-**Answer:**
+**Answer: Security/4624**
 
 ---
 
 ## Task 3 - Security Log: Authentication
 
-<!--
-ACTIVE RECALL
-**1.** What is Event ID 4624 and on which machine is it logged?
-**2.** What is Event ID 4625 and what attacks does it help detect?
-**3.** What are the key fields to review in a 4624 event?
-**4.** What is Logon Type 10 and what does it indicate?
-**5.** What is the Logon ID field used for and why is it important for correlation?
-**6.** What makes 4624 noisy and 4625 inconsistent?
--->
+**Windows Security Event Logs**
+  - provides critical information for triage
+  - Successful Logon: Event ID 4624
+      - log appears on the traget machine(the one you are trying to access)
+      - **noisy** meaning hundreds of logon events per minute on loaded servers
+  - Failed Logon: Event ID 4625
+      - log appears on the traget machine(the one you are trying to access)
+      - **inconsistent** logs depend on many different conditions, this may trick SOCs into wrongfully reading the event
+---
+
+**Example: Structure of 4624 - Successful Logon**
+<p align="center">
+<img src=screenshots/windows_structure4624.png width="500">
+</p>
+
+**Example: Detecting a Remote Desktop Protocol Brute Force - 4625 Failed Login Attempts**
+
+  1. Open Security logs and filter for 4625 event ID (Failed login attempts)
+  2. Look for events with Logon Type 3 and 10 (Network and RDP logins)
+      - For most modern systems, the logon type will be 3 (since NLA(opens in new tab) is enabled by default)
+      - For older or misconfigured systems, the logon type will be 10 (since NLA is not used)
+  3. Every event is now worth your attention, but the main red flags are:
+      - Many attempted users like admin, helpdesk,  and cctv (Indicates password spraying)
+      - Many login failures on a single account, usually Administrator (Indicates brute force)
+      - Workstation Name does not match a corporate pattern (e.g. kali instead of THM-PC-06)
+      - Source IP is not expected (e.g. your printer trying to connect to your Windows Server)
+
+---
+   
+  **Example: Remote Desktop Protocol - 4624 Successful Logins**
+  
+1. Open Security logs and filter for 4624 event ID (Successful logins)
+2. Look for events with Logon Type 10 (RDP logins)
+      - If NLA(opens in new tab) is enabled, every RDP logon event is preceded by another 4624 with logon type 3
+      - To get a real Workstation Name, you need to check the preceding logon type 3 event
+
+3. Your red flags are either a preceding brute force or a suspicious source IP / hostname
+4. If you assume that the login was indeed malicious, find out what happened next:
+    - Windows assigns a Logon ID to every successful login (e.g. 0x5D6AC)
+    - Logon ID is a unique session identifier. Save it for future analysis!
+
+---
+
+Even experienced IT admins rely on security experts to distinguish between **good** and **bad** events
+
+
 
 | Event ID | Purpose | Logging | Limitations |
 |---|---|---|---|
