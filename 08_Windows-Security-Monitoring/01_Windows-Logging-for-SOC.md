@@ -40,10 +40,11 @@ Every action performed ona computer is logged somewhere
   - Windows generates very powerful logs
   - Windows logs are stored in binary format which will require extensive knowledge to understand and read
   - Windows logs are saved in EVTX file format; Windows XML event log file
+  - C:\Windows\System32\winevt\Logs
 
 Windows have a built-in tool called **Event Viewer**
   - views and manages event logs
-  - open event viewer with _Win + R_ enter _eventvwr_
+  - open event viewer with _Win + R_ type in _eventvwr_ press enter
 
 **Event Viewer Example**
 
@@ -98,7 +99,7 @@ Everything has a Log
 
 **Example: Structure of 4624 - Successful Logon**
 <p align="center">
-<img src=screenshots/windows_structure4624.png width="500">
+<img src=screenshots/windows_structure4624.png width="800">
 </p>
 
 **Example: Detecting a Remote Desktop Protocol Brute Force - 4625 Failed Login Attempts**
@@ -149,33 +150,56 @@ Even experienced IT admins rely on security experts to distinguish between **goo
 
 **1. Which IP performed a brute force of the THM-PC?**
 
-**Answer:**
+<p align="center">
+<img src=screenshots/windows_thmpcip.png width="800">
+</p>
+
+Opened the Event Viewer, under Saved Logs sorted the logs by time, I scrolled to see if i could find multiple Failed Logons Type 3 in a row under the Computer: THM-PC.
+
+**Answer: 10.10.53.248**
 
 ---
 
 **2. Which user has been breached as a result of the attack?**
 
-**Answer:**
+<p align="center">
+<img src=screenshots/windows_thmpcip.png width="800">
+</p>
+
+Kept scroling down looking for a Successful Logon 4624 under the Computer: THM-PC with the Logon Type: 3 which is a Network login, and we found Audit Success under Account Name: Administrator. Logon Type 3 will be for most modern systems, the logon type will be 3 since Network Level Authentication is always enabled by default.
+
+**Answer: Administrator**
 
 ---
 
 **3. What was the Logon ID of the malicious RDP login? (Logon Type 10)**
 
-**Answer:**
+<p align="center">
+<img src=screenshots/windows_logontype10.png width="800">
+</p>
+
+This was also a 4624 Event ID with a Logon Type 10 which indicates a RDP login. Logon Type 10 could also indicate older or misconfigured systems.
+
+**Answer: 0x183C36D**
 
 ---
 
 ## Task 4 - Security Log: User Management
 
-<!--
-ACTIVE RECALL
-**1.** What does Event ID 4720 indicate and how can attackers abuse it?
-**2.** What do Event IDs 4732 and 4733 track and why are they critical to monitor?
-**3.** What three parts make up the structure of user management events?
-**4.** How do you use the Logon ID field to correlate a user management event with a login event?
-**5.** What privileged group do attackers commonly add backdoor accounts to?
-**6.** Why might a threat actor disable a privileged account (4725)?
--->
+Being able to spot suspicious Event IDs on logs is the first step to recognizing a possible attack!
+
+For Example: Event ID 4720 indicates: User Created an Account. This coming after multiple 4625 which are failed logins followed by a successful logon 4624 could indicate a backdoor creation.
+
+Attackers will often add a user that they exploited to a priviliged group like "Administrator" in order to establish a backdoor connection.
+  - 4732 User was added
+  - 4733 User removed from a security group
+
+**Structure of User Management Events**
+  - Subject
+  - Object
+  - Details
+
+Many real world breaches involve some sort of user manipulation: create, delete, reset accounts. 
 
 | Event ID | Description | Malicious Usage |
 |---|---|---|
@@ -194,7 +218,13 @@ ACTIVE RECALL
 
 **1. Which user was created by the attacker soon after the RDP login?**
 
-**Answer:**
+<p align="center">
+<img src=screenshots/windows_usercreated.png width="800">
+</p>
+
+The Event ID for created accounts is 4720, I narrowed it down by such and we can note the Administrator account created a new user account.
+
+**Answer: svc_sysrestore**
 
 ---
 
