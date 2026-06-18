@@ -191,7 +191,7 @@ Being able to spot suspicious Event IDs on logs is the first step to recognizing
 For Example: Event ID 4720 indicates: User Created an Account. This coming after multiple 4625 which are failed logins followed by a successful logon 4624 could indicate a backdoor creation.
 
 Attackers will often add a user that they exploited to a priviliged group like "Administrator" in order to establish a backdoor connection.
-  - 4732 User was added
+  - 4732 User was added to security group
   - 4733 User removed from a security group
 
 **Structure of User Management Events**
@@ -230,27 +230,51 @@ The Event ID for created accounts is 4720, I narrowed it down by such and we can
 
 **2. Which two privileged groups was the backdoor user added to? (alphabetical order)**
 
-**Answer:**
+<p align="center">
+<img src=screenshots/windows_backupoperators.png width="500">
+</p>
+
+<p align="center">
+<img src=screenshots/windows_remotedesktopusers.png width="500">
+</p>
+
+I filtered by Task Category for "Security Group Management" u9nder General we can see *A member was added to a security-enabled local group.* Expanded the General box to be able to see complete details of the Event ID 4732, there were two events. Backup Operators group could be used as a backdoor to dump credentials, and the second Remote Desktop Users to allow RDP logins.
+
+**Answer: Backup Operators, Remote Desktop Users**
 
 ---
 
 **3. Does the Logon ID field match what you saw in the previous task? (Yea/Nay)**
 
-**Answer:**
+<p align="center">
+<img src=screenshots/windows_matchlogonid.png width="500">
+</p>
+
+Upon inspecting the General tab we can see the Logon ID remains the same from the previous task.
+
+**Answer: Yea**
 
 ---
 
 ## Task 5 - Sysmon: Process Monitoring
 
-<!--
-ACTIVE RECALL
-**1.** What is the difference between Event ID 4688 and Sysmon Event ID 1?
-**2.** Why is Sysmon preferred over 4688 for process monitoring?
-**3.** Where in Event Viewer do Sysmon logs appear?
-**4.** What are the four field groups in Sysmon Event ID 1 and what does each contain?
-**5.** What is the Logon ID field used for in Sysmon Event ID 1?
-**6.** Why is process monitoring considered the most important log source for SOC teams?
--->
+There are 2 ways to enable monitoring on Windows:
+
+  - Security Log - Process Creation Event ID 4688: logs an event every time a new process is launched, including its command line and parent process details
+      - disabled by default, needs to be enabled through official documentation
+  
+  - Sysmon - Process Creation Event ID 1: replace 4688 event code and provide more advanced fields such as **process hash and its signature**
+      - Sysmon is an external free tool and it is not installed by default
+      - standard for advanced monitoring
+      - provides more powerful and flexible logs
+      - logs found at: Applications & Services -> Microsoft -> Windows -> Sysmon -> Operational
+   
+  **Example** of difference between Event Viewer for 4688 & Event 1 Sysmon
+  
+  <p align="center">
+<img src=screenshots/windows_eventsexample.png width="700">
+</p>
+
 
 | Event Code | Purpose | Limitations |
 |---|---|---|
@@ -268,17 +292,31 @@ ACTIVE RECALL
 
 **1. Which web browser does Sarah use to browse the web?**
 
-**Answer:**
+  <p align="center">
+<img src=screenshots/windows_googlechrome.png width="800">
+</p>
+
+I filtered the events by Task Category and "DNS query(DnsQuery) under General we note under Image: C:\Program Files (x86)\Google\Chrome\Application\chrome.exe
+
+**Answer: Google Chrome**
 
 ---
 
 **2. Which file did Sarah download from the browser?**
 
-**Answer:**
+ <p align="center">
+<img src=screenshots/windows_sarahdownload.png width="800">
+</p>
+
+Filtered by File created Event ID 11 we can observe in the General the download Image: C:\Users\sarah.miller\Downloads\ckjg.exe
+
+**Answer: C:\Users\sarah.miller\Downloads\ckjg.exe**
 
 ---
 
 **3. Which URL was the file downloaded from?**
+
+Filtered by File stream created Event ID 15 we can observe  file hashes, I used virustotal to search for the MD5 hash of the downloaded file
 
 **Answer:**
 
