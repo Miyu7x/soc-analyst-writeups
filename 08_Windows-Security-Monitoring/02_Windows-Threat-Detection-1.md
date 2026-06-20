@@ -3,313 +3,263 @@ title: Windows Threat Detection 1
 module: Windows Security Monitoring
 path: SOC Level 1
 platform: TryHackMe
-tags: [windows, initial-access, rdp, phishing, usb, sysmon, mitre, soc-level-1]
+tags: [windows, initial-access, RDP, phishing, USB, sysmon, event-logs, MITRE, SOC]
 status: in-progress
-date: 2026-06-18
-date_completed:
+date: 
+date_completed: 
 ---
 
 *Write-up by [Miyu7x](https://github.com/Miyu7x) | TryHackMe: [Miyu7](https://tryhackme.com/p/Miyu7) | BTLO: [Miyu7x](https://blueteamlabs.online/public/user/Miyu7x)*
 
 ---
 
+<p img=src
+
 ## Task 1 - Introduction
 
-This room builds on Windows logging fundamentals from the Windows Logging for SOC room and applies that knowledge to real Initial Access detection scenarios using Windows event logs.
+### Key Concepts
 
-<!-- 
-KEY CONCEPTS:
-- What is the primary log source used for detection in this room?
-- What two categories of Initial Access methods does this room cover?
-- What prerequisites are needed before starting this room?
--->
+Windows Threat Detection involves a lot of Windows Logging
+  - How do attackers gain Initial Access?
+  - What discovery techniques can SOCs use while reading Windows event logs?
+
+### Task Questions
 
 **1. Let's begin!**
 
-**Answer:** N/A
+- **Answer:** N/A
 
 ---
 
 ## Task 2 - Intro to Initial Access
 
-**Initial Access** is the first stage of an attack -- the moment a threat actor successfully enters the target environment. No matter the final objective, every attack begins with getting through the front door.
+### Key Concepts
 
-**Two Categories of Initial Access:**
+<!-- Initial Access = the moment a threat actor first successfully enters a target environment -->
+<!-- Two main groups: exposed service attacks and user-driven attacks -->
+<!-- Exposed services: RDP, VNC, SSH, web apps -- anything with a public-facing port -->
+<!-- User-driven: phishing, USB drops, pirated software -- attacker relies on human error -->
+<!-- MITRE T1133: External Remote Services (RDP/VNC/SSH brute-force or credential abuse) -->
+<!-- MITRE T1190: Exploit Public-Facing Application (vulnerable/misconfigured web services) -->
+<!-- MITRE T1566: Phishing (malicious attachments or links) -->
+<!-- MITRE T1091: Replication Through Removable Media (infected USB) -->
+<!-- Real-world ransomware groups (Medusa, Akira) use all described techniques across campaigns -->
 
-- **Exposed Services:** Internet-facing services attacked without user interaction
-- **User-Driven Methods:** Attacks that rely on a user performing an action (clicking, plugging in a USB, etc.)
-
-**Exposed Service Techniques**
-
-| MITRE ID | Technique | Description |
-|---|---|---|
-| T1133 | External Remote Services | Exploit exposed RDP/VNC/SSH with weak or default credentials |
-| T1190 | Exploit Public-Facing Application | Target misconfigured or unpatched web applications |
-
-**User-Driven Techniques**
-
-| MITRE ID | Technique | Description |
-|---|---|---|
-| T1566 | Phishing | Trick users into launching malware via email attachments or links |
-| T1091 | Removable Media | Infect USB devices and rely on users to spread the malware |
-
-<!-- 
-KEY CONCEPTS:
-- What is Initial Access in the context of the MITRE ATT&CK framework?
-- What MITRE ID covers phishing as an Initial Access vector?
-- What MITRE ID covers exploitation of a vulnerable public-facing service?
-- What is the difference between exposed service attacks and user-driven attacks?
-- Why are user-driven attacks harder to prevent than blocking a port?
--->
+### Task Questions
 
 **1. Which MITRE technique ID describes Initial Access via a vulnerable mail server?**
 
-**Answer:**
+- **Answer:**
 
 ---
 
 **2. Which Initial Access method relies on a user opening a malicious email attachment?**
 
-**Answer:**
+- **Answer:**
 
 ---
 
 ## Task 3 - Initial Access via RDP
 
-<!-- 
-KEY CONCEPTS:
-- What Event ID logs a failed RDP logon attempt?
-- What Event ID logs a successful logon?
-- What Logon Type indicates an RDP session?
-- What Logon Type indicates a Network (NLA) login?
-- How does a Logon ID help correlate RDP session activity across logs?
-- What is the detection approach for RDP brute force vs. credential-based access?
-- Where in Sysmon logs can you trace post-RDP process activity using Logon ID?
--->
+### Key Concepts
 
-**Detection: RDP Brute Force (4625 Failed Logons)**
+<!-- RDP (port 3389) is a massively exposed attack surface -- 5M+ internet-facing machines per Censys -->
+<!-- "Ransomware Deployment Protocol" -- RDP breach frequently precedes ransomware deployment -->
+<!-- Brute-force detection: Event ID 4625 (failed logon), filter Logon Type 3 and 10, filter external source IPs -->
+<!-- Successful RDP logon: Event ID 4624 (successful logon), Logon Type 10 = interactive RDP -->
+<!-- Post-breach activity: copy Logon ID from 4624 event, search Sysmon logs by that Logon ID to see all threat actor processes -->
+<!-- Logon Type 3 = network logon; Logon Type 10 = remote interactive (RDP) -->
+<!-- Log file for this task: C:\Users\Administrator\Desktop\Practice\RDP Case\RDP-Security.evtx -->
 
-1. Open `RDP-Security.evtx` in Event Viewer
-2. Filter for Event ID 4625 (Failed Logon)
-3. Look for high-volume failures from a single IP in a short window -- this is the brute force signature
-4. Note the target `Account Name` being attacked most frequently
+#### RDP Attack Detection Chain
 
-**Detection: Successful RDP Login (4624 Logon Type 10)**
+| Attack Step | Event ID | Filter | What You Find |
+|---|---|---|---|
+| Brute-force attempts | 4625 | Logon Type 3/10 + external source IP | Attacker IP flooding failed logins |
+| Successful Initial Access | 4624 | Logon Type 3/10 + same source IP | Account used to breach the host |
+| Interactive RDP session | 4624 | Logon Type 10 | Confirms hands-on attacker session |
+| Post-breach process activity | Sysmon | Match Logon ID from 4624 | All processes spawned by threat actor |
 
-1. Filter for Event ID 4624 (Successful Logon) with Logon Type 10 (interactive RDP)
-2. Identify the source IP and Workstation Name of the successful session
-3. Record the Logon ID for post-access correlation
-4. Open Sysmon logs and search events with the same Logon ID to trace all processes spawned during the attacker's session
-
-**Log File:** `C:\Users\Administrator\Desktop\Practice\RDP Case\RDP-Security.evtx`
-
----
+### Task Questions
 
 **1. Which user seems to be most actively brute-forced by botnets?**
 
-**Answer:**
+- **Answer:**
 
 ---
 
 **2. Which IP managed to breach the host via RDP (Logon Type 10)?**
 
-**Answer:**
+- **Answer:**
 
 ---
 
 **3. Can you get the real Workstation Name (hostname) of the threat actor?**
 
-**Answer:**
+- **Answer:**
 
 ---
 
 ## Task 4 - Initial Access via Phishing
 
-**Phishing** cannot be mitigated simply by blocking a port. As long as users have internet access, malicious files can reach endpoints and bypass the perimeter firewall entirely.
+### Key Concepts
 
-**Two Common Phishing Attachment Types:**
+<!-- Phishing bypasses firewalls entirely -- user brings malware in from the inside -->
+<!-- Phishing attacks up 41x since ChatGPT release per HoxHunt 2025 report -->
+<!-- MITRE T1566: Phishing -->
 
-**Binary Attachments**
+<!-- Binary attachments: Windows hides known extensions by default -->
+<!-- Dangerous extensions beyond .exe: .com, .scr, .cpl -- all can contain malware -->
+<!-- Abuse pattern: double extension (invoice.pdf.exe) + matching icon tricks untrained users -->
+<!-- Example: "tryhatme.com" looks like a website link, executes as a .COM binary -->
 
-- Windows hides known file extensions by default -- a file named `invoice.pdf.exe` appears as `invoice.pdf`
-- Attackers exploit this by using extensions users do not recognize as executable: `.com`, `.scr`, `.cpl`
-- Icons are spoofed to match the file type being impersonated
+<!-- LNK attachments: used to avoid AV detection by wrapping PowerShell/VBS/BAT scripts -->
+<!-- LNK "Target" field can contain any command; icon can be set to anything -->
+<!-- Detection via LNK: right-click -> Properties -> Shortcut tab to see true target -->
+<!-- RemcosRAT: common RAT delivered via LNK phishing in real-world campaigns against companies and government agencies -->
+<!-- LNK PowerShell pattern: downloads encoded payload to C:\ProgramData\, then executes -->
+<!-- Practice folder: C:\Users\Administrator\Desktop\Practice\Phishing Case 1-3 -->
 
-**LNK Attachments**
+#### Phishing Attachment Types
 
-- LNK shortcut files can point to any command in their `Target` field
-- Attackers embed PowerShell, VBScript, or BAT payloads inside LNK files disguised as PDFs or website links
-- LNK execution leaves minimal trace -- Windows Explorer reads the `Target` field and launches the payload, making the parent process appear as `explorer.exe`
-- Detection pivot: look for a file creation event (Event ID 11) showing the LNK file downloaded to the user's `Downloads` folder before execution
+| Type | Disguise Method | Execution | Detection |
+|---|---|---|---|
+| Binary (.exe, .com, .scr, .cpl) | Double extension + fake icon | User double-clicks | Sysmon Event ID 1 (process create) from explorer.exe |
+| LNK shortcut | Looks like legitimate shortcut, icon set to match | User opens shortcut | LNK properties Target field; Sysmon file creation in Downloads before exec |
 
-| Attachment Type | Detection Method | Parent Process |
-|---|---|---|
-| Binary (.exe, .com, .scr) | Sysmon Event ID 1 -- process creation with suspicious image path | explorer.exe |
-| LNK Shortcut | Sysmon Event ID 11 (file created in Downloads) + Event ID 1 for spawned process | explorer.exe |
-
-<!-- 
-KEY CONCEPTS:
-- Why does Windows hiding known file extensions aid phishing attacks?
-- What extensions are commonly used by attackers besides .exe?
-- What field in an LNK file contains the actual payload?
-- Why does LNK execution show explorer.exe as the parent process?
-- What Sysmon event confirms an LNK file was downloaded before execution?
-- What is RemcosRAT and in what phishing campaigns has it been used?
--->
-
-**Phishing Case 1 -- COM Binary**
-
-**Log File:** `C:\Users\Administrator\Desktop\Practice\Phishing Case 1\`
+### Task Questions
 
 **1. Run the www.skype.com file from the Phishing Case 1 folder -- which flag do you get?**
 
-**Answer:**
+- **Answer:**
 
 ---
-
-**Phishing Case 2 -- LNK Attachment**
-
-**Log File:** `C:\Users\Administrator\Desktop\Practice\Phishing Case 2\`
 
 **2. From which URL does the malicious LNK download the next stage malware?**
 
-To find the download URL, right-click the LNK file, open Properties, and navigate to the Shortcut tab. The `Target` field contains the full PowerShell command including the download URL embedded in the payload.
-
-**Answer:**
+- **Answer:**
 
 ---
 
-**Phishing Case 3 -- Double-Extension File**
+**3. What is the name of the double-extension file you see in Phishing Case 3?**
 
-**Log File:** `C:\Users\Administrator\Desktop\Practice\Phishing Case 3\`
-
-**3. What is the name of the double-extension file you see there?**
-
-Navigated to the Phishing Case 3 folder and enabled "Show file extensions" in File Explorer options. A double-extension file abuses Windows' default behavior of hiding known extensions -- the file appears to be one type while actually being an executable.
-
-**Answer:**
+- **Answer:**
 
 ---
 
-## Task 5 - Phishing Detection via Sysmon
+## Task 5 - Continuing Phishing Topic
 
-**LNK Detection Logic:**
+### Key Concepts
 
-Since LNK files make `explorer.exe` appear as the parent of any spawned process, the key to identifying LNK phishing over other attack vectors is correlating process execution (Event ID 1) with a preceding file creation event (Event ID 11) showing the LNK file arriving in the user's `Downloads` folder.
+<!-- Detecting malicious downloads: trace the full chain from browser launch to process execution -->
+<!-- Archives (.zip, .rar) are more common than raw .exe attachments -- unarchiving adds a step -->
 
-```yaml
-ParentImage: C:\Windows\Explorer.EXE
-```
+<!-- Sysmon Event ID 1: Process creation -- captures what ran and what spawned it (ParentImage) -->
+<!-- Sysmon Event ID 11: File creation -- captures files written to disk (downloads, unarchived files) -->
 
-**Detection Workflow:**
+<!-- Double-extension chain: browser opens -> archive drops to Downloads (ID 11) -> user extracts (ID 11, explorer.exe or 7zG.exe) -> user executes malware (ID 1, ParentImage = explorer.exe) -->
 
-1. Filter Sysmon logs for Event ID 1 (Process Created) with `ParentImage: explorer.exe` and a suspicious `CommandLine` (e.g., PowerShell with encoded commands)
-2. Note the `ProcessId` and timestamp
-3. Filter for Event ID 11 (File Created) in the same timeframe -- look for the LNK file in `Downloads` or a temp folder
-4. Correlate the two events to confirm LNK as the delivery mechanism
-5. Follow the `ProcessId` to Event ID 3 (Network Connection) or Event ID 22 (DNS Query) to identify C2 activity
+<!-- LNK execution trace: LNK files leave little direct execution trace -->
+<!-- Windows Explorer reads LNK Target and launches it, making it appear as if explorer.exe spawned the payload directly -->
+<!-- Key detection: look for Sysmon file creation events (ID 11) for the LNK in Downloads BEFORE execution -->
 
-**Log File:** `C:\Users\Administrator\Desktop\Practice\Phishing Case 3\Phishing-Sysmon.evtx`
+<!-- Sysmon log for this task: C:\Users\Administrator\Desktop\Practice\Phishing Case 3\Phishing-Sysmon.evtx -->
 
-<!-- 
-KEY CONCEPTS:
-- Why does LNK execution always show explorer.exe as the parent?
-- What two Sysmon event IDs are used together to confirm LNK-based phishing?
-- What field is used to pivot from a process creation event to its network activity?
-- How does a double-extension file evade user detection?
--->
+#### Sysmon Event Chain: Double-Extension Binary
+
+| Step | Sysmon Event ID | Image | Key Field |
+|---|---|---|---|
+| Browser launched | 1 (process create) | msedge.exe / browser | ParentImage: Explorer.EXE |
+| Archive downloaded | 11 (file create) | msedge.exe | TargetFilename: Downloads\*.zip |
+| File extracted | 11 (file create) | Explorer.EXE or 7zG.exe | TargetFilename: malware path |
+| Malware executed | 1 (process create) | malware binary | ParentImage: Explorer.EXE |
+
+### Task Questions
 
 **1. Which file did the user download via the web browser?**
 
-**Answer:**
+- **Answer:**
 
 ---
 
 **2. In which folder did the user unarchive the suspicious file?**
 
-**Answer:**
+- **Answer:**
 
 ---
 
 **3. What is the process ID of the launched phishing malware?**
 
-**Answer:**
+- **Answer:**
 
 ---
 
 **4. Which malicious domain did the malware try to connect to?**
 
-**Answer:**
+- **Answer:**
 
 ---
 
 ## Task 6 - Initial Access via USB
 
-**Removable Media** as an Initial Access vector bypasses firewalls entirely and can spread without internet access. Threat actors use USB delivery in targeted attacks and worm-style campaigns.
+### Key Concepts
 
-**Common USB Malware Techniques:**
+<!-- USB attacks bypass firewalls and can spread without internet access or user interaction -->
+<!-- MITRE T1091: Replication Through Removable Media -->
+<!-- Real-world campaigns: Camaro Dragon, Raspberry Robin -- USB malware is not obsolete -->
 
-- Hide all legitimate files on the USB and replace them with a malicious `RECOVERY.lnk`
-- Create a binary (e.g., `Photos.exe`) with a folder icon to trick users into launching it
-- Create double-extension copies of legitimate files (e.g., `photo_2024_1_12.jpg.exe`)
+<!-- Common USB malware tactics: -->
+<!-- - Hide all legitimate files; create a malicious RECOVERY.lnk in their place -->
+<!-- - Drop a Photos.exe with a folder icon -->
+<!-- - Create double-extension copies of existing files (photo_2024_1_12.jpg.exe) -->
 
-**Detection Note:** USB-based Initial Access looks nearly identical to phishing in Sysmon logs because both vectors result in a user launching a binary through `explorer.exe`. The distinguishing indicator is the `Image` path in Event ID 1 -- if execution originates from a removable drive (e.g., `E:\malware.exe`), that confirms USB delivery.
+<!-- Detection looks similar to phishing: user launches malware via explorer.exe -->
+<!-- Key differentiator: look for execution path from external drive (e.g., E:\malware.exe) -->
+<!-- Sysmon Event ID 1 ParentImage = Explorer.EXE + Image path starting with removable drive letter = USB execution -->
 
-**Detection Workflow:**
+<!-- Sysmon log for this task: C:\Users\Administrator\Desktop\Practice\USB Case\USB-Sysmon.evtx -->
 
-1. Filter Sysmon Event ID 1 for processes with `Image` paths on a non-system drive letter (D:, E:, F:, etc.)
-2. Note the `ProcessId` and parent process -- should be `explorer.exe`
-3. Filter Event ID 11 (File Created) to find files the malware dropped to the host disk
-4. Check for additional drive letters in `TargetFilename` paths to identify propagation to other USB devices
-5. Filter Event ID 3 or 22 for C2 activity using the same `ProcessId`
+#### USB vs Phishing Detection Comparison
 
-| Sysmon Event ID | Purpose in USB Investigation |
-|---|---|
-| 1 (Process Created) | Identify the USB binary executed by the user -- note the drive letter in the Image path |
-| 11 (File Created) | Find files dropped to the host or propagated to other USB drives |
-| 3 (Network Connection) | Detect C2 beaconing after execution |
+| Factor | Phishing | USB |
+|---|---|---|
+| Launch point | Downloads folder (C:\Users\...\Downloads\) | External drive path (E:\, F:\, etc.) |
+| ParentImage | Explorer.EXE | Explorer.EXE |
+| Propagation | N/A | Malware copies itself to other removable drives |
+| Pre-exec artifact | LNK or archive in Downloads | Malicious file visible on USB drive |
 
-<!-- 
-KEY CONCEPTS:
-- What distinguishes USB Initial Access from phishing in Sysmon logs?
-- What field in Event ID 1 reveals execution from a removable drive?
-- What Sysmon event shows malware propagating to a second USB device?
-- How does malware hide itself on a USB to trick users into launching it?
-- What real-world threat actor groups have used USB-based Initial Access?
--->
-
-**Log File:** `C:\Users\Administrator\Desktop\Practice\USB Case\USB-Sysmon.evtx`
+### Task Questions
 
 **1. Which USB file was launched by the user?**
 
-**Answer:**
+- **Answer:**
 
 ---
 
-**2. Which suspicious file did the malware drop to the disk? (Format: full path)**
+**2. Which suspicious file did the malware drop to the disk?**
 
-**Answer:**
+- **Answer:**
 
 ---
 
-**3. To which other USB did the malware propagate? (Format: just the drive letter)**
+**3. To which other USB did the malware propagate?**
 
-**Answer:**
+- **Answer:**
 
 ---
 
 ## Task 7 - Conclusion
 
-**Key Takeaways**
+### Key Concepts
 
-- The two primary Windows Initial Access categories are exposed services and user-driven attacks
-- RDP brute force is detectable using default Security logs (Event IDs 4624/4625) -- Logon ID is the key correlation pivot
-- User-driven attacks (phishing, USB) are best detected through Sysmon process execution events (Event ID 1)
-- LNK phishing is identified by correlating Event ID 11 (file creation in Downloads) with Event ID 1 (process launched by explorer.exe)
-- USB delivery is distinguished from phishing by the drive letter in the `Image` path of Event ID 1
+<!-- Two most common Windows Initial Access methods: exposed services and user-driven attacks -->
+<!-- Exposed services: detect via Security log Event IDs 4624/4625 (successful/failed auth) -->
+<!-- User-driven attacks: best detected via Sysmon process execution events (Event ID 1, 11) -->
+<!-- LNK phishing has unique trace pattern -- look for file creation events before execution -->
+<!-- Each technique leaves distinct artifacts in logs -- pattern recognition is the skill to build -->
+
+### Task Questions
 
 **1. I am ready to move on!**
 
-**Answer:** N/A
-
----
+- **Answer:** N/A
