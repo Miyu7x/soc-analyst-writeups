@@ -13,7 +13,9 @@ date_completed:
 
 ---
 
-<p img=src
+<p align="center">
+<img src=screenshots/windows_threatdetection1.png width="1500">
+</p>
 
 ## Task 1 - Introduction
 
@@ -36,26 +38,67 @@ Windows Threat Detection involves a lot of Windows Logging
 ### Key Concepts
 
 <!-- Initial Access = the moment a threat actor first successfully enters a target environment -->
-<!-- Two main groups: exposed service attacks and user-driven attacks -->
-<!-- Exposed services: RDP, VNC, SSH, web apps -- anything with a public-facing port -->
-<!-- User-driven: phishing, USB drops, pirated software -- attacker relies on human error -->
-<!-- MITRE T1133: External Remote Services (RDP/VNC/SSH brute-force or credential abuse) -->
-<!-- MITRE T1190: Exploit Public-Facing Application (vulnerable/misconfigured web services) -->
-<!-- MITRE T1566: Phishing (malicious attachments or links) -->
-<!-- MITRE T1091: Replication Through Removable Media (infected USB) -->
-<!-- Real-world ransomware groups (Medusa, Akira) use all described techniques across campaigns -->
+**Initial Access** can be described as the moment the attacker has successfully entered a target's environment
+  - How do attackers get through the front door?
+      - Attackers can use various methods to gain initial access; it can be through an exposed service, or they can rely on human interaction(user-driven)
+          - brute forcing internet-exposed RDP
+          - exploit a vulnerable mail server
+          - enter the system via unprotected MS SQL
+       
+**Exposed Services**
+<p align="center">
+<img src=screenshots/windows_exposedservices.png width="700">
+</p>
+
+**Ports** offer a door to exposed services
+  - RDP, HTTP, SMTP are all important ports that are regularly used by companies; leaving these unprotected can be disastrous
+
+There are proven **MITRE** Techniques that attackers use to gain Initial Access
+  - **T1133 External Remote Services**: Threat actors look to gain entry through RDP/VNC/SSH with weak passwords
+      - use of legitimate external remote services thru weak passwords, stolen creds, valid accounts or brute-force
+  - **T1190 Exploit Public-Facing Applications**: Threat actors scour the internet for misconfigured, vulnerable websites, applications and, servers
+      - exploit a weakness; bug, CVE, misconfiguration
+
+**User-Driven Methods**
+<p align="center">
+<img src=screenshots/windows_userdriven.png width="700">
+</p>
+
+Humans are often responsible for the breaches in security, whether we like it or not, humans  are the weakest link in security
+  - clicking malicious links
+  - launching phishing attachments
+  - using pirated software
+  - plugin in unknown USB devices
+
+Common User-driven **MITRE** techiniques:
+  - **T1566 Phishing**: Threat actors deploy various methods that trick the user into launching the malware
+  - **T1091 Removable Media**: Threat actors will often leave infected USB devices in the parking lots of big companies, hoping an employee will plug them in
+    
+
 
 ### Task Questions
 
 **1. Which MITRE technique ID describes Initial Access via a vulnerable mail server?**
 
-- **Answer:**
+<p align="center">
+<img src=screenshots/windows_t1190.png width="700">
+</p>
+
+**T1190 Exploit Public-Facing Application** Threat actors gain Initial Access on a website, application or server through weaknesses in the system.
+
+- **Answer: T1190**
 
 ---
 
 **2. Which Initial Access method relies on a user opening a malicious email attachment?**
 
-- **Answer:**
+<p align="center">
+<img src=screenshots/windows_t1566.png width="700">
+</p>
+
+Threat Actors will attempt to gain Initial Access through various forms of Phishing that are electronically delivered via social engineering.
+
+- **Answer: Phishing**
 
 ---
 
@@ -63,13 +106,20 @@ Windows Threat Detection involves a lot of Windows Logging
 
 ### Key Concepts
 
-<!-- RDP (port 3389) is a massively exposed attack surface -- 5M+ internet-facing machines per Censys -->
-<!-- "Ransomware Deployment Protocol" -- RDP breach frequently precedes ransomware deployment -->
-<!-- Brute-force detection: Event ID 4625 (failed logon), filter Logon Type 3 and 10, filter external source IPs -->
-<!-- Successful RDP logon: Event ID 4624 (successful logon), Logon Type 10 = interactive RDP -->
-<!-- Post-breach activity: copy Logon ID from 4624 event, search Sysmon logs by that Logon ID to see all threat actor processes -->
-<!-- Logon Type 3 = network logon; Logon Type 10 = remote interactive (RDP) -->
-<!-- Log file for this task: C:\Users\Administrator\Desktop\Practice\RDP Case\RDP-Security.evtx -->
+It is common knowledge that if you set a weak password to your RDP, you will be breached quicker than you can see it coming.
+  - Exposed RDP is such a problem that we started calling it Ransomware Deployment Protocol
+  - Botnets are running 24/7 and automatically scanning the entire internet for exposed RDP services
+
+**How to Detect an RDP Breach?**
+  - Windows Event Viewer will be our main tool
+  - C:\Users\Desktop\Administrator\Practice\RDP Case\RDP-Security.evtx file
+  - An exposed RDP would show up in the Event Viewer as multiple Logon attempts Event ID**4625** 
+
+  **Exposed RDP Example in Event Viewer**
+  <p align="center">
+<img src=screenshots/windows_exposedrdpexample.png width="700">
+</p>
+
 
 #### RDP Attack Detection Chain
 
@@ -84,19 +134,37 @@ Windows Threat Detection involves a lot of Windows Logging
 
 **1. Which user seems to be most actively brute-forced by botnets?**
 
-- **Answer:**
+  <p align="center">
+<img src=screenshots/windows_exposedrdpexample.png width="700">
+</p>
+
+Reviewing the log RDP-Security.evtx, we can observe multiple Brute-Force Logon attempts with Event ID 4625, Logon Type: 3, under General, and the Account Name ADMINISTRATOR is the account repeatedly probed.
+
+- **Answer: Administrator**
 
 ---
 
 **2. Which IP managed to breach the host via RDP (Logon Type 10)?**
 
-- **Answer:**
+  <p align="center">
+<img src=screenshots/windows_ipaddresstask3.png width="700">
+</p>
+
+Events with the ID 4624 and Logon Type:10 indicate an active RDP connection, we can view the Details Tab and Friendly View: under IpAddress 203.205.34.107
+
+- **Answer: 203.205.34.107**
 
 ---
 
 **3. Can you get the real Workstation Name (hostname) of the threat actor?**
 
-- **Answer:**
+  <p align="center">
+<img src=screenshots/windows_workstationname.png width="700">
+</p>
+
+Under the same Details for the Event in which we found the IpAddress we observe the  WorkstationName WIN-F89VT9IER10 and we keep inspecting earlier logs for further investigation we can observe the WIN-F89VT9IER10 which we saw earlier as a **TargetDomainName** and the **WorkstationName DESKTOP-QNBC4UU**
+
+- **Answer: DESKTOP-QNBC4UU**
 
 ---
 
@@ -104,21 +172,21 @@ Windows Threat Detection involves a lot of Windows Logging
 
 ### Key Concepts
 
-<!-- Phishing bypasses firewalls entirely -- user brings malware in from the inside -->
-<!-- Phishing attacks up 41x since ChatGPT release per HoxHunt 2025 report -->
-<!-- MITRE T1566: Phishing -->
+**Phishing Attacks still play a major role in how threat actors are able to get into systems**
+  - As long as humans have access to the internet they will always be susceptible to phishing attacks
 
-<!-- Binary attachments: Windows hides known extensions by default -->
-<!-- Dangerous extensions beyond .exe: .com, .scr, .cpl -- all can contain malware -->
-<!-- Abuse pattern: double extension (invoice.pdf.exe) + matching icon tricks untrained users -->
-<!-- Example: "tryhatme.com" looks like a website link, executes as a .COM binary -->
+**Binary Attachments** While most of us know not to open random .exe files, people tend to be less cautious when it comes to .src files or .cpl even tyhought they can all contain malware
+  - attackers can double up on the extension file.pdf.exe or cat.png.com
 
-<!-- LNK attachments: used to avoid AV detection by wrapping PowerShell/VBS/BAT scripts -->
-<!-- LNK "Target" field can contain any command; icon can be set to anything -->
-<!-- Detection via LNK: right-click -> Properties -> Shortcut tab to see true target -->
-<!-- RemcosRAT: common RAT delivered via LNK phishing in real-world campaigns against companies and government agencies -->
-<!-- LNK PowerShell pattern: downloads encoded payload to C:\ProgramData\, then executes -->
-<!-- Practice folder: C:\Users\Administrator\Desktop\Practice\Phishing Case 1-3 -->
+**LNK Attachments** Threat actors will hide malicious scripts behind LNK shortcuts
+  - Example: File.zip that contains 2 files, a PDF and a shortcut to the website
+      - PDF looks normal upon inspection
+      - Since the PDF looks harmless, the user is inclined to click on the shortcut, which triggers a PowerShell command
+
+**Example of the PDF file with a hidden LNK PowerShell**
+  <p align="center">
+<img src=screenshots/windows_lnkpowershell.png width="700">
+</p>
 
 #### Phishing Attachment Types
 
@@ -129,21 +197,35 @@ Windows Threat Detection involves a lot of Windows Logging
 
 ### Task Questions
 
-**1. Run the www.skype.com file from the Phishing Case 1 folder -- which flag do you get?**
+**1. Let's play the role of the untrained user and mindlessly open the COM file.
+Run the www.skype.com file from the Phishing Case 1 folder, which flag do you get?**
 
-- **Answer:**
+  <p align="center">
+<img src=screenshots/windows_phishingcase1.png width="700">
+</p>
+
+- **Answer: THM{misleading_extension}**
 
 ---
 
-**2. From which URL does the malicious LNK download the next stage malware?**
+**2. Continue with the second attachment from the Phishing Case 2 folder.
+From which URL does the malicious LNK download the next stage malware?**
 
-- **Answer:**
+Extracted the New PC Store!.zip, checked the Properties for the Official Website Shortcut
+
+- **Answer: http://wp16.hqywlqpa.thm:8000/cgi-bin/f**
 
 ---
 
-**3. What is the name of the double-extension file you see in Phishing Case 3?**
+**3. Finally, move on to the Phishing Case 3 folder and review its content.
+What is the name of the double-extension file you see there?**
 
-- **Answer:**
+ <p align="center">
+<img src=screenshots/windows_bestcatwindow.png width="700">
+</p>
+
+
+- **Answer: best-cat.jpg.exe**
 
 ---
 
@@ -151,19 +233,23 @@ Windows Threat Detection involves a lot of Windows Logging
 
 ### Key Concepts
 
-<!-- Detecting malicious downloads: trace the full chain from browser launch to process execution -->
-<!-- Archives (.zip, .rar) are more common than raw .exe attachments -- unarchiving adds a step -->
+**Detecting Malicious Download**
 
-<!-- Sysmon Event ID 1: Process creation -- captures what ran and what spawned it (ParentImage) -->
-<!-- Sysmon Event ID 11: File creation -- captures files written to disk (downloads, unarchived files) -->
+**Sysmon** is one the tools used to help you find a malware attachment and detect every **attack stage:**
 
-<!-- Double-extension chain: browser opens -> archive drops to Downloads (ID 11) -> user extracts (ID 11, explorer.exe or 7zG.exe) -> user executes malware (ID 1, ParentImage = explorer.exe) -->
+**Example: Sysmon Event Chain for Double_extension Attachment**
+ <p align="center">
+<img src=screenshots/windows_sysmonexample.png width="700">
+</p>
 
-<!-- LNK execution trace: LNK files leave little direct execution trace -->
-<!-- Windows Explorer reads LNK Target and launches it, making it appear as if explorer.exe spawned the payload directly -->
-<!-- Key detection: look for Sysmon file creation events (ID 11) for the LNK in Downloads BEFORE execution -->
+**Notes on LNK Attachments** LNK files leave execution traces
+  - after the LNK attachment is run it can make it look like explorer.exe launches PowerShell directly
+  - you can still find the preceding file creation events if the LNK was truly a phishing attachment, it would show up somewhere in the downloads
 
-<!-- Sysmon log for this task: C:\Users\Administrator\Desktop\Practice\Phishing Case 3\Phishing-Sysmon.evtx -->
+**Example**
+ <p align="center">
+<img src=screenshots/windows_lnknotes.png width="700">
+</p>
 
 #### Sysmon Event Chain: Double-Extension Binary
 
@@ -178,25 +264,48 @@ Windows Threat Detection involves a lot of Windows Logging
 
 **1. Which file did the user download via the web browser?**
 
-- **Answer:**
+ <p align="center">
+<img src=screenshots/windows_topcats.png width="700">
+</p>
+
+- **Answer: C:\Users\Administrator\Downloads\top-cats.zip**
 
 ---
 
 **2. In which folder did the user unarchive the suspicious file?**
 
-- **Answer:**
+ <p align="center">
+<img src=screenshots/windows_picturesfolder.png width="700">
+</p>
+
+Investigating the logs we follow the timeline pipe and see that the top-cats.zip file was extracted 20 seconds later a File Created Event ID 11 
+TargetFilename: C:\Users\Administrator\Pictures\best-cat.jpg.exe
+
+- **Answer: C:\Users\Administrator\Pictures**
 
 ---
 
 **3. What is the process ID of the launched phishing malware?**
 
-- **Answer:**
+ <p align="center">
+<img src=screenshots/windows_process5484.png width="700">
+</p>
+
+Invetigating down the timeline of the logs we search through the several Event ID 1 that are avaliable and we can see the CommandLine: "C:\Users\Administrator\Pictures\best-cat.jpg.exe" 
+
+- **Answer: 5484**
 
 ---
 
 **4. Which malicious domain did the malware try to connect to?**
 
-- **Answer:**
+ <p align="center">
+<img src=screenshots/windows_rjjstore.png width="700">
+</p>
+
+Inspect the logs for Event ID 22 which is DNS query in order to find the domain
+
+- **Answer: rjj.store**
 
 ---
 
