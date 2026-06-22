@@ -4,7 +4,7 @@ module: Windows Security Monitoring
 path: SOC Level 1
 platform: TryHackMe
 tags: [windows, initial-access, RDP, phishing, USB, sysmon, event-logs, MITRE, SOC]
-status: in-progress
+status: completed
 date: 
 date_completed: 
 ---
@@ -313,20 +313,19 @@ Inspect the logs for Event ID 22 which is DNS query in order to find the domain
 
 ### Key Concepts
 
-<!-- USB attacks bypass firewalls and can spread without internet access or user interaction -->
-<!-- MITRE T1091: Replication Through Removable Media -->
-<!-- Real-world campaigns: Camaro Dragon, Raspberry Robin -- USB malware is not obsolete -->
+USB attacks may seem like a thing of the past. But they're very much still active and used by threat actors
+  - Initial Access over USB bypasses firewalls
+  - Starts an attack chain without internet, and spreads  without user interaction
 
-<!-- Common USB malware tactics: -->
-<!-- - Hide all legitimate files; create a malicious RECOVERY.lnk in their place -->
-<!-- - Drop a Photos.exe with a folder icon -->
-<!-- - Create double-extension copies of existing files (photo_2024_1_12.jpg.exe) -->
+**Detecting an Infected USB**
+  - Detecting Initial Access via USB looks a lot like detecting phishing attachments
+  - Both methods rely on the user running a binary via a graphical interface (explorer.exe)
+  - Some cases might offer evidence of external drive execution, such as: E:\malware.exe
 
-<!-- Detection looks similar to phishing: user launches malware via explorer.exe -->
-<!-- Key differentiator: look for execution path from external drive (e.g., E:\malware.exe) -->
-<!-- Sysmon Event ID 1 ParentImage = Explorer.EXE + Image path starting with removable drive letter = USB execution -->
-
-<!-- Sysmon log for this task: C:\Users\Administrator\Desktop\Practice\USB Case\USB-Sysmon.evtx -->
+**USB Detected Event Viewer Example**
+ <p align="center">
+<img src=screenshots/windows_usbexample.png width="700">
+</p>
 
 #### USB vs Phishing Detection Comparison
 
@@ -341,17 +340,32 @@ Inspect the logs for Event ID 22 which is DNS query in order to find the domain
 
 **1. Which USB file was launched by the user?**
 
-- **Answer:**
+ <p align="center">
+<img src=screenshots/windows_externaldrive.png width="700">
+</p>
+Filtered by Event ID 1: Process Create and investigated the logs for an External Drive command. CommandLine: "E:\Open Sandisk 4GB USB.exe" 
+
+- **Answer: E:\Open Sandisk 4GB USB.exe**
 
 ---
 
 **2. Which suspicious file did the malware drop to the disk?**
 
-- **Answer:**
+<p align="center">
+<img src=screenshots/windows_malwaredisk.png width="700">
+</p>
+Upon finding the USB file launched, I sorted the events by the time so I could follow the attack chain, the very next Event is Event ID 11 File Created, and we can observe TargetFilename: C:\Users\Public\Documents\winupdate.exe
+
+- **Answer: C:\Users\Public\Documents\winupdate.exe**
 
 ---
 
 **3. To which other USB did the malware propagate?**
+
+<p align="center">
+<img src=screenshots/windows_externaldrivecopy.png width="700">
+</p>
+Following the timeline, we can observe on Event ID 11: File Created that the USB malware can infect other drives and in this case we can observe it duplicated to another external drive TargetFilename: F:\Open Data Traveler 32 GB USB.exe
 
 - **Answer:**
 
@@ -361,11 +375,11 @@ Inspect the logs for Event ID 22 which is DNS query in order to find the domain
 
 ### Key Concepts
 
-<!-- Two most common Windows Initial Access methods: exposed services and user-driven attacks -->
-<!-- Exposed services: detect via Security log Event IDs 4624/4625 (successful/failed auth) -->
-<!-- User-driven attacks: best detected via Sysmon process execution events (Event ID 1, 11) -->
-<!-- LNK phishing has unique trace pattern -- look for file creation events before execution -->
-<!-- Each technique leaves distinct artifacts in logs -- pattern recognition is the skill to build -->
+  - Two most common Windows Initial Access methods: exposed services and user-driven attacks
+  - Exposed services: detect via Security log Event IDs 4624/4625 (successful/failed auth)
+  - User-driven attacks: best detected via Sysmon process execution events (Event ID 1, 11)
+  - LNK phishing has a unique trace pattern, look for file creation events before execution
+  - Each technique leaves distinct artifacts in logs, pattern recognition is the skill to build 
 
 ### Task Questions
 
