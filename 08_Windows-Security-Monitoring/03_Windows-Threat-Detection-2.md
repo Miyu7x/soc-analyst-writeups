@@ -37,7 +37,7 @@ Once the attacker gains initial access, what is their next step?
       - Think of it as: who am I? where am I? *whoami* or *net user*
 
 <p align="center">
-<img src=screenshots/windows_initialaccess.png width="700">
+<img src=screenshots/windows_situationalawareness.png width="700">
 </p>
 
 **Discovery Process**
