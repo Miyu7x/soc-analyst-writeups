@@ -19,9 +19,9 @@ date_completed: 2026-06-22
 ## Task 1 - Introduction
 
 After breaching a host, what do attackers do now?!
-  - Establish a backdoor for long term access
+  - Establish a backdoor for long-term access
   - Exploit
-  - Move laterally 
+  - Move laterally
 
 ---
 
@@ -31,10 +31,10 @@ After breaching a host, what do attackers do now?!
 
 Once the attacker gains initial access, what is their next step?
   - Discovery
-      - Purpose of the Host
-      - Is the Host part of a network
+      - Purpose of the host
+      - Is the host part of a network
       - Privileges?
-      - Think of it as: who am I? where am I? *whoami* or *net user*
+      - Think of it as: who am I? Where am I? *whoami* or *net user*
 
 <p align="center">
 <img src=screenshots/windows_situationalawareness.png width="700">
@@ -63,10 +63,10 @@ After a malware attachment is launched, depending on the malware, it connects ba
 <img src=screenshots/windows_netuseradmin.png width="700">
 </p>
 
-**Answer:**
+**Answer: Administrators**
 
 
-**2.** Open Event Viewer and try to find your command in Sysmon logs. What is the "Image" field of the net command you just run?
+**2.** Open Event Viewer and try to find your command in Sysmon logs. What is the "Image" field of the net command you just ran?
 
 <p align="center">
 <img src=screenshots/windows_eventimage.png width="700">
@@ -79,7 +79,7 @@ Open the log in the Event Viewer: eventvwr.msc /l:"C:\Windows\System32\winevt\Lo
 
 ## Task 3 - Detecting Discovery
 
-Most commands are logged as new processes, leaving evidence for SOCs in case of an attack
+Most commands are logged as new processes, leaving evidence for SOCs in the event of an attack.
 
 **Example of the Command Tree Launched from *invoice.pdf.exe***
 <p align="center">
@@ -93,10 +93,10 @@ Most commands are logged as new processes, leaving evidence for SOCs in case of 
 
 **Detecting Discovery**
 
-Commands run in a short period of time could be a dead giveaway of discovery attempts
-  - There are some discovery commands that are run by IT departments that are legitimate tools
-      - SOCs need to be aware of the IP running these commands so they dont panic over legitimate discovery commands
-   
+Commands run in a short period of time can be a dead giveaway of discovery attempts.
+  - Some discovery commands are also run by IT departments as legitimate tools.
+      - SOCs need to be aware of which IPs are running these commands to avoid flagging legitimate activity.
+
 **Build a process tree using Sysmon logs:**
   - **filter** for process creation events
   - **correlate** ProcessId and ParentProcessId fields
@@ -113,10 +113,10 @@ Commands run in a short period of time could be a dead giveaway of discovery att
 <p align="center">
 <img src=screenshots/windows_runinvoice.png width="700">
 </p>
-Ran the exe *& "C:\Users\Administrator\Desktop\Practice\Task 3\invoice.pdf.exe"* 
+Ran the exe *& "C:\Users\Administrator\Desktop\Practice\Task 3\invoice.pdf.exe"*
 
-Followed by pulling the log *eventvwr.msc /l"C:\Windows\System32\winevt\Logs\Microsoft-Windows-Sysmon%4Operational.evtx"
-  - located the first event the invoice.pdf.exe opened, followed up the timeline to spot the first command it ran
+Followed by pulling the log *eventvwr.msc /l"C:\Windows\System32\winevt\Logs\Microsoft-Windows-Sysmon%4Operational.evtx"*
+  - Located the first event the invoice.pdf.exe opened, then followed the timeline to spot the first command it ran.
 
 <p align="center">
 <img src=screenshots/windows_whoami.png width="700">
@@ -132,7 +132,7 @@ Followed by pulling the log *eventvwr.msc /l"C:\Windows\System32\winevt\Logs\Mic
 <img src=screenshots/windows_msdefender.png width="700">
 </p>
 
-Continuing the investigation, we follow the timeline up, and we observe multiple commands run by the attacker checking for EDR such as CrowdStrike EDR, and CarbonBlack EDR, and finally MS Defender EDR
+Continuing the investigation, we follow the timeline and observe multiple commands run by the attacker checking for EDR products such as CrowdStrike, CarbonBlack, and finally MS Defender EDR.
 
 **Answer: cmd /c "tasklist /v | findstr MsSense.exe || echo No MS Defender EDR"**
 
@@ -152,11 +152,11 @@ Continuing the investigation, we follow the timeline up, and we observe multiple
 
 **Searching Secrets**
 
-After attackers have explored the system and found out who the owner is and what defenses they might have, the next step is:
+After attackers have explored the system and identified the owner and any active defenses, the next step is:
   - Collection
-      - personal info, crypto wallets, banking accounts...
+      - Personal info, crypto wallets, banking accounts...
   - Credential Access
-      - lateral movement in the company
+      - Lateral movement within the company
   - Exfiltration
 
 <p align="center">
@@ -167,6 +167,7 @@ After attackers have explored the system and found out who the owner is and what
 
 **Common Collection Targets/Paths**
 
+```
 # [Goal: Blackmail Victim] Photos, Chats, Browser History
 C:\Users\<user>\AppData\Roaming\Signal\*
 C:\Users\<user>\AppData\Local\Google\Chrome\User Data\Default\History
@@ -178,17 +179,16 @@ C:\Users\<user>\AppData\Local\Google\Chrome\User Data\Default\Cookies
 # [Goal: Steal Corporate Data] SSH Credentials, Databases
 C:\Users\<user>\.ssh\*
 C:\Program Files\Microsoft SQL Server\...\DATA\*
+```
 
 ---
 
-**Data  Exfiltration**
+**Data Exfiltration**
 
-Attackers will often exfiltrate stolen data to various cloud storage:
-  - DropBox, Mega, Amazon S3...
-Code Repositories
-  - GitHub
-Messengers
-  - Telegram
+Attackers will often exfiltrate stolen data to various cloud storage services:
+  - Dropbox, Mega, Amazon S3...
+  - Code repositories such as GitHub
+  - Messengers such as Telegram
 
 ---
 
@@ -197,7 +197,7 @@ Messengers
 <p align="center">
 <img src=screenshots/windows_chromepass.png width="700">
 </p>
-Inspect the browser Google Chrome, under passwords and autofill we can find stored passwords
+Inspected the Google Chrome browser; under Passwords and Autofill we can find stored passwords.
 
 **Answer: nsAghv51BBav90!**
 
@@ -207,7 +207,7 @@ Inspect the browser Google Chrome, under passwords and autofill we can find stor
 <p align="center">
 <img src=screenshots/windows_sshkey.png width="700">
 </p>
-Inpected the .ssh folder which displayed 2 files a .key and .pub
+Inspected the .ssh folder, which contained two files: a .key and a .pub.
 
 **Answer: thm-access-database.key**
 
@@ -217,9 +217,9 @@ Inpected the .ssh folder which displayed 2 files a .key and .pub
 <p align="center">
 <img src=screenshots/windows_thmpdf.png width="700">
 </p>
-Since the instructions provided us a direction to look well isolate the search for those folders:
-Get-ChildItem -Path "C:\Users\Administrator\Desktop","C:\Users\Administrator\Downloads","C:\Users\Administrator\Documents" -Recurse -Filter "*.pdf"
-In a real-wrold scenario pulling all PDF files would be a nightmare.
+Since the instructions pointed us to specific folders, we isolated the search to those paths:
+`Get-ChildItem -Path "C:\Users\Administrator\Desktop","C:\Users\Administrator\Downloads","C:\Users\Administrator\Documents" -Recurse -Filter "*.pdf"`
+In a real-world scenario, pulling all PDF files across the system would be a much bigger task.
 
 **Answer: thm-network-diagram-2025.pdf**
 
@@ -227,9 +227,9 @@ In a real-wrold scenario pulling all PDF files would be a nightmare.
 
 ## Task 5 - Detecting Collection
 
-Threat actors can view files through the GUI or CLI, however in collection they look for specific files and folders.
+Threat actors can view files through the GUI or CLI, but during collection they typically hunt for specific file types and folders.
 
-SOCs can use the commands below to detect access to certain files:
+SOCs can use the commands below to detect access to files of interest:
 
 | Command Example | Description |
 |---|---|
@@ -241,15 +241,15 @@ SOCs can use the commands below to detect access to certain files:
 | `7za.exe a -tzip C:\Temp\stolen_data.zip C:\Temp\*.*` | Same as above using 7-Zip instead of native PowerShell |
 
 **Collection Example**
-  - Notepad and Word documents of interest are opened and captured in the Event Viewer with Event ID 1
-  
+  - Notepad and Word documents of interest are opened and captured in Event Viewer with Event ID 1.
+
 <p align="center">
 <img src=screenshots/windows_wordpad.png width="700">
 </p>
 
 **Data Stealing**
-  - Data stealers rarely use CMD or Powershell commands, they rely on their own code
-      - this makes them harder to track
+  - Data stealers rarely use CMD or PowerShell commands; they rely on their own code.
+      - This makes them harder to track.
 
 **Code Example of Data Stealing Telegram Sessions**
 <p align="center">
@@ -263,13 +263,13 @@ SOCs can use the commands below to detect access to certain files:
 <p align="center">
 <img src=screenshots/windows_mkdir.png width="700">
 </p>
-Ran the .\stealer.exe followed by:
-eventvwr.msc /l:"C:\Windows\System32\winevt\Logs\Microsoft-Windows-Sysmon%4Operational.evtx"
-Located the log CommandLine: "C:\Users\Administrator\Desktop\Practice\Task 5\stealer.exe" from this we can investigate the events that follow after.
+Ran .\stealer.exe, then pulled the log:
+`eventvwr.msc /l:"C:\Windows\System32\winevt\Logs\Microsoft-Windows-Sysmon%4Operational.evtx"`
+Located the entry with CommandLine: `"C:\Users\Administrator\Desktop\Practice\Task 5\stealer.exe"` and investigated the events that followed.
 
-The next log we can observe the command mkdir.
+The next log shows the mkdir command being executed.
 
-**Answer:staging_58f1**
+**Answer: staging_58f1**
 
 ---
 
@@ -298,7 +298,7 @@ The next log we can observe the command mkdir.
 <p align="center">
 <img src=screenshots/windows_dnsqueryexfil.png width="700">
 </p>
-Upon investigating the logs further we can follow the timeline and look for the Event ID 22 which signals DNS query
+Investigating the logs further, we follow the timeline and filter for Event ID 22, which signals a DNS query.
 
 **Answer: collecteddata-storage-2025.s3.amazonaws.com**
 
@@ -306,12 +306,12 @@ Upon investigating the logs further we can follow the timeline and look for the 
 
 ## Task 6 - Ingress Tool Transfer
 
-**Ingress Tool Transfer MITRE Techinique ID T1105**
+**Ingress Tool Transfer - MITRE Technique ID T1105**
 
-Some attacks provide threat actors with just Initial Access; this means that they might need to download extr tools
+Some attacks grant threat actors only Initial Access, meaning they may need to download additional tools:
   - A script to automate Discovery and find common vulnerabilities like [Seatbelt](https://github.com/GhostPack/Seatbelt)
-  - Tool to extract saved passwords or OS credentials [Mimikatz](https://github.com/gentilkiwi/mimikatz)
-  - Fully functional Remote Access Trojan RAT - Remcos RAT
+  - A tool to extract saved passwords or OS credentials like [Mimikatz](https://github.com/gentilkiwi/mimikatz)
+  - A fully functional Remote Access Trojan (RAT) such as Remcos RAT
   - A ransomware binary to encrypt the system after data is stolen
 
 **Common Transfer Methods**
@@ -325,14 +325,14 @@ Some attacks provide threat actors with just Initial Access; this means that the
 
 **Detecting Tool Transfer**
 
-Transfer reuquires a network connection
-  - Threat actors avoid detection by downloading tools from legitimate sites like GitHub
-      - SOCs need to analyze which process is making the connection, the destination domain and file being downloaded
+Transfer requires a network connection.
+  - Threat actors avoid detection by downloading tools from legitimate sites like GitHub.
+      - SOCs need to analyze which process is making the connection, the destination domain, and the file being downloaded.
+
 **Example:**
 <p align="center">
 <img src=screenshots/windows_detecttool.png width="700">
 </p>
-
 
 ---
 
@@ -349,20 +349,20 @@ Transfer reuquires a network connection
 **2.** Download the file from the same URL using curl.exe. What is the flag in the response?
 
 <p align="center">
-<img src=screenshots/windows_certutil.png width="700">
+<img src=screenshots/windows_curliscool.png width="700">
 </p>
 
-**Answer:THM{abusing_certutil}**
+**Answer: THM{curl_is_cool}**
 
 ---
 
 **3.** Download using certutil.exe. What is the flag in the response?
 
 <p align="center">
-<img src=screenshots/windows_curliscool.png width="700">
+<img src=screenshots/windows_certutil.png width="700">
 </p>
 
-**Answer:**
+**Answer: THM{abusing_certutil}**
 
 ---
 
