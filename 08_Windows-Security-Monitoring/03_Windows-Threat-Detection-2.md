@@ -6,7 +6,7 @@ platform: "TryHackMe"
 tags: [windows, sysmon, discovery, collection, exfiltration, ingress-tool-transfer, MITRE, event-logs]
 status: completed
 date: 2026-06-22
-date_completed:2026-06-22
+date_completed: 2026-06-22
 ---
 
 *Write-up by [Miyu7x](https://github.com/Miyu7x) | TryHackMe: [Miyu7](https://tryhackme.com/p/Miyu7) | BTLO: [Miyu7x](https://blueteamlabs.online/public/user/Miyu7x)*
