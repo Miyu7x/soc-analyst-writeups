@@ -186,20 +186,63 @@ Inpected the logs for failed logons Event ID **4625** and counted how many were 
 
 **Malware Persistence**
 
+Persistence trhu backdoor requeires a RDP login; so if an attack started with a USB or phishging email, that is just nt possible.
+
+ - Attackers need an **actively running** malware that maintains connection with their C2 server
+    - This malware needs to be able to stay active even after a system reboot
+    - Threat Actors will use **Windows Services and Scheduled Tasks** to hide this malware in
+       - There is **hundreds of methods** to persist on a Windows Machine
+     
+ **Two Common Persistance Methods**
+
 | Persistence Method | Attack Example | Event ID Logging |
 |---|---|---|
 | Create a Windows Service (runs after OS startup) | `sc create "BadService" binpath= "C:\malware.exe" start= auto` | Launch of sc.exe: Sysmon EID 1 / Service creation: Security EID 4697 |
 | Create a Scheduled Task (runs after OS startup) | `schtasks /create /tn "BadTask" /tr "C:\malware.exe" /sc onstart /ru System` | Launch of schtasks.exe: Sysmon EID 1 / Task creation: Security EID 4698 |
 
+**Detection Services**
+
+Critical Windows components includes:
+ - DNS client
+ - Security Center
+    - View services: **services.msc**
+    - Administrative privileges and **sc.exe** command is needed in order to create or modify a service
+  
+  Threat actors will createe their own services that run on startup, you can detect them a few different ways:
+
+   1. Detect launch of the commmand: **sc.exe create**
+   2. Service Creation: Security Event ID **4697** or System event ID **7045**
+   3. Processes are suspicious when their Parent Process is: **services.exe**
+
+**Example**
+<p align="center">
+<img src=screenshots/windows_servicesexample.png width="700">
+</p>
+
+**Detecting Tasks**
+
+Scheduled Tasks is a heavily used Windows Feature 
+
+---
+
 **1. Which Windows service was created to persist the Nessie malware?**
 
-- **Answer:**
+<p align="center">
+<img src=screenshots/windows_dps.png width="700">
+</p>
+Observing the logs Event ID 4697 under General information we spot the nessie.exe and Service Name: Data Protection Service
+
+- **Answer: Data Protection Service **
 
 ---
 
 **2. Which scheduled task was created to persist the Troy malware?**
 
-- **Answer:**
+<p align="center">
+<img src=screenshots/windows_dps.png width="700">
+</p>
+
+- **Answer: AmazonSync**
 
 ---
 
