@@ -314,7 +314,7 @@ Programs launched from Startup will have a **Parent Process** of: **explorer.exe
 
 **Example**
 <p align="center">
-<img src=screenshots/windows_startupexample.png width="700">
+<img src=screenshots/windows_startup_example.png width="700">
 </p>
 
 **Detecting Run Keys**
