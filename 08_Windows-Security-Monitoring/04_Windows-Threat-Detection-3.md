@@ -4,9 +4,9 @@ module: Windows Security Monitoring
 path: SOC Level 1
 platform: TryHackMe
 tags: [windows, threat-detection, c2, persistence, sysmon, event-logs, blue-team, soc-level-1]
-status: in-progress
-date: 
-date_completed: 
+status: completed
+date: 06-26-2026
+date_completed: 06-26-2026
 ---
 
 *Write-up by [Miyu7x](https://github.com/Miyu7x) | TryHackMe: [Miyu7](https://tryhackme.com/p/Miyu7) | BTLO: [Miyu7x](https://blueteamlabs.online/public/user/Miyu7x)*
@@ -18,11 +18,11 @@ date_completed:
 
 ## Task 1 - Introduction
 
- This lab focuses on:
+This lab focuses on:
 
-   - Command and Control C2
+   - Command and Control (C2)
 
-   - Persistance
+   - Persistence
 
    - Impact
 
@@ -30,14 +30,13 @@ date_completed:
 
    - Windows logs to investigate persistence
 
-
 ---
 
 ## Task 2 - Command and Control
 
-**MITRE tactic Command and Control C2 TA0011**
+**MITRE Tactic: Command and Control (C2) TA0011**
 
-  - How do threat actors send commands and maintain control of a victim host
+  - How do threat actors send commands and maintain control of a victim host?
 
 **Attacks Without C2**
 
@@ -45,16 +44,16 @@ date_completed:
   - RDP becomes unavailable once the session is closed
       - Threat actors are known to set up C2 as soon as they breach
 <p align="center">
-<img src=screenshots/windows_intro3.png width="700">
+<img src=screenshots/windows_attackwithoutc2.png width="700">
 </p>
 
 **Simplest C2**
 
-  - RDP is not available every time
+  - RDP is not always available
 
   - Threat actors establish a Command and Control channel so the victim's system can "phone home"
       - In advanced cases, the attachment won't immediately connect back; instead, it downloads additional C2 malware
-          - They'll hide it in a folder like C:\Temp and run it as new stealthy process window
+          - They'll hide it in a folder like C:\Temp and run it as a new stealthy process window
 <p align="center">
 <img src=screenshots/windows_simplestc2.png width="700">
 </p>
@@ -66,7 +65,7 @@ date_completed:
 <p align="center">
 <img src=screenshots/windows_urgent.png width="700">
 </p>
-In the Event Viewer at 7/2/2025 8:13::55 PM, Event ID 15 File Stream Created. We observe TargetFilename: C:\Users\Administrator\Downloads\URGENT!.zip
+In Event Viewer at 7/2/2025 8:13:55 PM, Event ID 15 (File Stream Created), we observe TargetFilename: C:\Users\Administrator\Downloads\URGENT!.zip
 
 - **Answer: URGENT!.zip**
 
@@ -77,8 +76,8 @@ In the Event Viewer at 7/2/2025 8:13::55 PM, Event ID 15 File Stream Created. We
 <p align="center">
 <img src=screenshots/windows_hiddenmalware.png width="700">
 </p>
-Following the timeline we observe the attacker extract the zip with explorer.exe we observe the extraction of the .lnk file. 
-The .lnk file triggers Powershell, Powershell drops the update.exe into C:\Users\Administrator\AppData\Roaming\
+Following the timeline, we observe the attacker extract the zip with explorer.exe and the extraction of the .lnk file.
+The .lnk file triggers PowerShell, which drops update.exe into C:\Users\Administrator\AppData\Roaming\
 
 - **Answer: C:\Users\Administrator\AppData\Roaming\update.exe**
 
@@ -89,7 +88,7 @@ The .lnk file triggers Powershell, Powershell drops the update.exe into C:\Users
 <p align="center">
 <img src=screenshots/windows_domain3.png width="700">
 </p>
-Continued following the timeline till we can see a DNS query.
+Continued following the timeline until a DNS query event appeared.
 
 - **Answer: route.m365officesync.workers.dev**
 
@@ -97,13 +96,13 @@ Continued following the timeline till we can see a DNS query.
 
 ## Task 3 - Persistence Overview
 
-Most **Infections** lasts several minutes, attackers quickly;
+Most **infections** last only minutes -- attackers quickly:
   - breach the victim
   - collect the data
-  - exfiltrate and EXIT
+  - exfiltrate and exit
 
-However, maintaining access to the victim for days or even months is crucial, depending on the attacker's end GOAL.
-  - reliable access can survive reboots and password changes
+However, maintaining access to the victim for days or even months is crucial depending on the attacker's end goal.
+  - Reliable access can survive reboots and password changes
 
 **Persistence** MITRE ID: TA0003
 <p align="center">
@@ -112,10 +111,10 @@ However, maintaining access to the victim for days or even months is crucial, de
 
 **Persisting via RDP**
 
-Many Windows breaches happen due to exposed RDP; once in attackers can:
-  - create a backdoor or a webshell
-  - create a new user MITRE ID T1136
-  - make it an Administrator T1098
+Many Windows breaches happen due to exposed RDP. Once in, attackers can:
+  - Create a backdoor or a web shell
+  - Create a new user (MITRE ID T1136)
+  - Elevate that user to Administrator (T1098)
 
 **Example**
 <p align="center">
@@ -124,24 +123,23 @@ Many Windows breaches happen due to exposed RDP; once in attackers can:
 
 **Detecting Backdoor Users**
 
-Every **User Created** event is logged as Security event ID **4720**
+Every **User Created** event is logged as Security Event ID **4720**.
 
-Attackers are creative when creating **user names**, they're not going to be naming it: hacker. Its important to investigate:
+Attackers are creative when naming backdoor accounts -- they won't call it "hacker". It's important to investigate:
   - Who created the account
-  - What is the Source IP, and time created?
-  - Which other suspicious events can you see?
+  - What is the source IP and time of creation?
+  - Which other suspicious events surround it?
 
-Attackers will add these users to **Privileged Groups**. This change is tracked by Security Event ID **4732**
+Attackers will add these users to **Privileged Groups**. This change is tracked by Security Event ID **4732**:
   - Administrators
   - Remote Desktop Users
 
-More advanced cases, attackers will reset passwords to old or unused accounts; Security Event ID **4724**
+In more advanced cases, attackers reset passwords on old or unused accounts; Security Event ID **4724**
 
 **Examples**
 <p align="center">
 <img src=screenshots/windows_persistenceexample.png width="700">
 </p>
-
 
 | Event ID | Log Source | What It Detects | Key Fields to Investigate |
 |---|---|---|---|
@@ -149,18 +147,18 @@ More advanced cases, attackers will reset passwords to old or unused accounts; S
 | 4732 | Security | User added to a privileged local group | Target group name (Administrators, Remote Desktop Users), who performed the action |
 | 4724 | Security | Password reset on an existing account | Target account name (old/unused accounts are a red flag), who initiated the reset |
 
-**Note** Logon Type:
-  - 2 Interactive, physical keyboard
-  - 10 RemoteInteractive, whos RPD'd in
+**Note** Logon Types:
+  - 2: Interactive (physical keyboard)
+  - 10: RemoteInteractive (RDP session)
 
 ---
 
-**1. How many times did the threat actor fail to log in to the Administrator?**
+**1. How many times did the threat actor fail to log in to the Administrator account?**
 
 <p align="center">
 <img src=screenshots/windows_failedlogon.png width="700">
 </p>
-Inpected the logs for failed logons Event ID **4625** and counted how many were present
+Inspected the logs for failed logon events (Event ID **4625**) and counted the occurrences.
 
 - **Answer: 6**
 
@@ -186,33 +184,33 @@ Inpected the logs for failed logons Event ID **4625** and counted how many were 
 
 **Malware Persistence**
 
-Persistence trhu backdoor requeires a RDP login; so if an attack started with a USB or phishging email, that is just nt possible.
+Persistence through a backdoor requires an RDP login, so if an attack started via USB or phishing email, that is simply not possible.
 
- - Attackers need an **actively running** malware that maintains connection with their C2 server
-    - This malware needs to be able to stay active even after a system reboot
-    - Threat Actors will use **Windows Services and Scheduled Tasks** to hide this malware in
-       - There is **hundreds of methods** to persist on a Windows Machine
-     
- **Two Common Persistance Methods**
+ - Attackers need **actively running** malware that maintains a connection with their C2 server
+    - This malware must stay active even after a system reboot
+    - Threat actors use **Windows Services and Scheduled Tasks** to keep malware running
+       - There are **hundreds of methods** to persist on a Windows machine
+
+**Two Common Persistence Methods**
 
 | Persistence Method | Attack Example | Event ID Logging |
 |---|---|---|
 | Create a Windows Service (runs after OS startup) | `sc create "BadService" binpath= "C:\malware.exe" start= auto` | Launch of sc.exe: Sysmon EID 1 / Service creation: Security EID 4697 |
 | Create a Scheduled Task (runs after OS startup) | `schtasks /create /tn "BadTask" /tr "C:\malware.exe" /sc onstart /ru System` | Launch of schtasks.exe: Sysmon EID 1 / Task creation: Security EID 4698 |
 
-**Detection Services**
+**Detecting Services**
 
-Critical Windows components includes:
- - DNS client
+Critical Windows components include:
+ - DNS Client
  - Security Center
     - View services: **services.msc**
-    - Administrative privileges and **sc.exe** command is needed in order to create or modify a service
-  
-  Threat actors will createe their own services that run on startup, you can detect them a few different ways:
+    - Administrative privileges and the **sc.exe** command are required to create or modify a service
 
-   1. Detect launch of the commmand: **sc.exe create**
-   2. Service Creation: Security Event ID **4697** or System event ID **7045**
-   3. Processes are suspicious when their Parent Process is: **services.exe**
+Threat actors will create their own services that run on startup. You can detect them a few different ways:
+
+   1. Detect launch of the command: **sc.exe create**
+   2. Service Creation: Security Event ID **4697** or System Event ID **7045**
+   3. Processes are suspicious when their **Parent Process** is: **services.exe**
 
 **Example**
 <p align="center">
@@ -221,7 +219,22 @@ Critical Windows components includes:
 
 **Detecting Tasks**
 
-Scheduled Tasks is a heavily used Windows Feature 
+Scheduled Tasks is a heavily used Windows feature -- the OS and external apps rely on it, which makes it a great place to hide malware.
+
+ - Threat actors prefer scheduled tasks because they are easy to configure and blend in
+
+ - Manage Tasks: **taskschd.msc** or **schtasks.exe**
+
+How to detect suspicious scheduled tasks:
+
+ 1. Detect the launch of **schtasks.exe /create** (Sysmon Event ID 1)
+ 2. Analyze suspicious Task Creation events in Security Event ID **4698**
+ 3. Look for suspicious processes with **Parent Process**: **svchost.exe [...] -s Schedule**
+
+**Example**
+<p align="center">
+<img src=screenshots/windows_scheduleexamples.png width="700">
+</p>
 
 ---
 
@@ -230,17 +243,20 @@ Scheduled Tasks is a heavily used Windows Feature
 <p align="center">
 <img src=screenshots/windows_dps.png width="700">
 </p>
-Observing the logs Event ID 4697 under General information we spot the nessie.exe and Service Name: Data Protection Service
+Filtered for Event ID 4697 and reviewed the General information. We spot nessie.exe with Service Name: Data Protection Service.
 
-- **Answer: Data Protection Service **
+- **Answer: Data Protection Service**
 
 ---
 
 **2. Which scheduled task was created to persist the Troy malware?**
 
 <p align="center">
-<img src=screenshots/windows_dps.png width="700">
+<img src=screenshots/windows_amazonsync.png width="700">
 </p>
+Searched the logs for Event ID 4698 (Scheduled Task Created) and reviewed the General information for each event. Inside the task XML we spotted:
+`<Command>"C:\Program Files\Common Files\troy.exe"</Command>`
+This confirmed the task was created by the Troy malware.
 
 - **Answer: AmazonSync**
 
@@ -248,58 +264,166 @@ Observing the logs Event ID 4697 under General information we spot the nessie.ex
 
 **3. What flag do you get after finding and running the Troy malware?**
 
-- **Answer:**
+<p align="center">
+<img src=screenshots/windows_c2schedule.png width="700">
+</p>
+Ran the command `& "C:\Program Files\Common Files\troy.exe"` and received the following prompt:
+
+```
+=========================================
+Not so fast! What was my parent commandline?
+Example: C:\Windows\System32\os.exe -run
+=========================================
+```
+
+Inspected the post-reboot logs and found various svchost.exe processes. The suspicious one was:
+`CommandLine: C:\Windows\system32\svchost.exe -k netsvcs -p -s Schedule`
+
+- **Answer: THM{c2_is_on_schedule!}**
 
 ---
 
 ## Task 5 - Persistence: Run Keys and Startup
 
-<!-- What is the functional difference between Startup Folder and Run Key persistence? What triggers each one -- boot vs. user login? -->
+**Run Keys and Startup**
 
-<!-- Why does Startup Folder persistence produce an explorer.exe parent, and why does that make it harder to differentiate from legitimate user activity? -->
+When a system boots, **Services and Scheduled Tasks** typically run -- but they require **Administrative Privileges** to configure.
 
-<!-- What is the shared MITRE technique ID for both methods, and why are they grouped together? -->
+What happens when malware needs to run only when a specific user logs in?
+
+**Examples of Per-User Persistence**
 
 | Persistence Method | Attack Example | Event ID Logging |
 |---|---|---|
 | Add malware to Startup Folder (runs upon user login) | `copy C:\malware.exe "%AppData%\Microsoft\Windows\Start Menu\Programs\Startup\malware.exe"` | New startup item: Sysmon EID 11 |
 | Add malware to "Run" keys (runs upon user login) | `reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v BadKey /t REG_SZ /d "C:\malware.exe"` | New registry value: Sysmon EID 13 |
 
+**Detecting Startup**
+
+The Startup folder lets users launch applications automatically on login -- simply drop the executable in and it runs.
+
+**Startup Folder Paths**
+```
+C:\Users\<USER>\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\
+Or for all users: C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp
+```
+
+Programs launched from Startup will have a **Parent Process** of: **explorer.exe**
+  - This makes it harder to differentiate from legitimate user activity
+  - Startup items are logged as Sysmon Event ID 11 (File Created)
+
+**Example**
+<p align="center">
+<img src=screenshots/windows_startupexample.png width="700">
+</p>
+
+**Detecting Run Keys**
+
+Unlike Startup, Run Keys require a new value to be written to the Windows Registry pointing to the malware path.
+
+```
+HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run
+Or for all users: HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Run
+```
+
+**Detecting Run Key Entries**
+
+ - Check **regedit.exe**
+ - Registry change events: Sysmon Event ID 13
+
+**Example**
+<p align="center">
+<img src=screenshots/windows_runkey.png width="700">
+</p>
+
+---
+
 **1. What is the parent process image of the "Odin" malware?**
 
-- **Answer:**
+<p align="center">
+<img src=screenshots/windows_odin.png width="700">
+</p>
+Filtered the logs for Sysmon Event ID 11 (File Created) and located the new startup item:
+`TargetFilename: C:\Users\Administrator\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\odin.cmd`
+
+Since malware launched from the Startup folder always has explorer.exe as its parent, the answer follows directly.
+
+- **Answer: C:\Windows\explorer.exe**
 
 ---
 
 **2. What is the last line that the "Odin" malware outputs?**
 
-- **Answer:**
+<p align="center">
+<img src=screenshots/windows_badstuff.png width="700">
+</p>
+Ran the target file: `& "C:\Users\Administrator\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\odin.cmd"`
+
+- **Answer: Done doing bad stuff!**
 
 ---
 
 **3. What flag do you get after finding and running the "Kitten" malware?**
 
-- **Answer:**
+<p align="center">
+<img src=screenshots/windows_basket.png width="700">
+</p>
+Rather than searching logs individually, I opted to search the C:\ drive directly for the file, bypassing permission errors on protected folders:
+`Get-ChildItem C:\ -Recurse -Filter "*kitten*" -ErrorAction SilentlyContinue`
+
+Located the file at `C:\Users\Public\kitten.exe` and attempted to run it:
+
+```
+=========================================
+Not so fast! How is my Run key named?
+Example: WinUpdate
+=========================================
+```
+
+Since this is a Run Key-launched malware, I checked the Registry Editor at:
+`HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run`
+
+- **Answer: THM{persisting_in_basket!}**
 
 ---
 
 ## Task 6 - Impact and Threat Detection Recap
 
-<!-- What are the three main reasons threat actors use Persistence -- botnet, espionage, lateral movement? Summarize each with the real-world example given in the room. -->
+**Need for Persistence**
 
-<!-- What is ransomware and why is it the biggest threat to corporate Windows networks? What does it do beyond encrypting files? -->
+Why don't attackers just breach a system, grab what they need, and leave? There are several possible reasons:
 
-<!-- At which attack stage is detection most valuable and why? What is the relationship between early detection and preventing ransomware Impact? -->
+ - Add the breached host to a botnet and use it for future attacks
+ - Spy on the host as part of a state-sponsored espionage campaign
+ - Use the host as an entry point into a much larger network
+
+**Active Directory and Ransomware**
+
+Large networks are prime targets because they run Active Directory, giving attackers access to every connected system.
+ - These attacks are often ransomware-motivated
+ - Hospitals are high-value targets due to the volume of sensitive patient data they hold
+
+**Example of Ransom Letter Sent to a Health Organization**
+<p align="center">
+<img src=screenshots/windows_ransomware.png width="700">
+</p>
+
+**MITRE Threat Detection Recap**
+<p align="center">
+<img src=screenshots/windows_mitrerecap.png width="700">
+</p>
+
+---
 
 **1. What is the biggest threat to most corporate Windows networks?**
 
-- **Answer:**
+- **Answer: Ransomware**
 
 ---
 
 **2. At which stage is it best to detect and stop the attack (e.g. Exfiltration)?**
 
-- **Answer:**
+- **Answer: Initial Access**
 
 ---
 
