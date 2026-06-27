@@ -212,23 +212,59 @@ To find the specific failed ssh logs only command: **cat /var/log/auth.log | gre
 2. Which user was created and added to the "sudo" group?
 
    <p align="center">n 
-<img src=screenshots/linux_logformatexample.png width="700">
+<img src=screenshots/linux_xerxes.png width="700">
 </p>
 To find user management events we can filter the log by: **cat /var/log/auth.log | grep -E '(useradd|usermod)\[**
 
-**Answer:**
+**Answer: xerxes**
 
 ---
 
 ## Task 4 -- Common Linux Logs
 
-Generic System Logs
+### Generic System Logs
 
+Linux logs offer a variety of other information:
+ - Kernel messages and errors
+    - /var/log/kern.log
+ - Various Linux events
+    - /var/log/syslog
+ - Package manager logs
+    - /var/log/dpkg.log
+ - Package manager logs
+    - /var/log/dnf.log
 
-App-Specific Logs
+### App-Specific Logs
 
+App-specific logs help SOCs monitor specific programs, such as database, mail, container, and web server logs.
 
-Bash History
+**Example of Nginx Web Server Logs**
+root@thm-vm:~$ cat /var/log/nginx/access.log
+# Every log line corresponds to a web request to the web server
+10.0.1.12 - - [11/08/2025:14:32:10 +0000] "GET / HTTP/1.1" 200 3022
+10.0.1.12 - - [11/08/2025:14:32:14 +0000] "GET /login HTTP/1.1" 200 1056
+10.0.1.12 - - [11/08/2025:14:33:09 +0000] "POST /login HTTP/1.1" 302 112
+10.0.4.99 - - [11/08/2025:17:11:20 +0000] "GET /images/logo.png HTTP/1.1" 200 5432
+10.0.5.21 - - [11/08/2025:17:56:23 +0000] "GET /admin HTTP/1.1" 403 104
+
+### Bash History
+
+An interesting log source is bash history; every command is logged the moment you press enter.
+ - Bash history is stored in memory and, written to ~/.bash_history once the user logs out
+ - This is not very useful, though, as attackers can simply hide their commands and avoid being logged completely.
+
+**Bash History File and Command Example**
+ubuntu@thm-vm:~$ cat /home/ubuntu/.bash_history
+echo "hello" > world.txt
+nano /etc/ssh/sshd_config
+sudo su
+ubuntu@thm-vm:~$ history
+1 echo "hello" > world.txt
+2 nano /etc/ssh/sshd_config
+3 sudo su
+4 ls -la /home/ubuntu
+5 cat /home/ubuntu/.bash_history
+6 history
 
 
 | Log File | Purpose |
@@ -239,13 +275,34 @@ Bash History
 | /var/log/dnf.log | Package installs (RHEL-based) |
 | ~/.bash_history | Per-user interactive command history |
 
-According to the VM's package manager logs, which version of unzip was installed?
+---
 
-**Answer:**
+1. According to the VM's package manager logs, which version of unzip was installed?
 
-What is the flag in one of the users' bash history?
+   <p align="center">n 
+<img src=screenshots/linux_unzip.png width="700">
+</p>
 
-**Answer:**
+**Answer: 6.0-28ubuntu4.1**
+
+---
+
+2. What is the flag in one of the users' bash history?
+
+    <p align="center">n 
+<img src=screenshots/linux_notetoremember.png width="700">
+</p>
+Ran the command:
+ubuntu@thm-vm:~$ cat /home/ubuntu/.bash_history
+sudo su
+sudo su
+sudo su
+sudo apt install zip unzip
+passwd
+
+From this output we can see the user was in root, and there is no trace of a THM flag. Escalated privileges to root with **sudo su** in the bash I utilized the arrow keys to see if any commands were stored in memory and observed the flag. 
+
+**Answer: THM{note_to_remember}**
 
 ---
 
