@@ -15,14 +15,15 @@ date_completed:
 
 ## Task 1 -- Introduction
 
-Learning Objectives
+### Learning Objectives
 
+Linux authentication, runtime, and system logs: how to view them directly on the host and how Linux logs are sent to SIEM.
 
 ---
 
 ## Task 2 -- Working With Text Logs
 
-Log Format
+### Log Format
 
 
 Working With Logs
