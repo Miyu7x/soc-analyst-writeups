@@ -4,15 +4,17 @@ module: Linux Security Monitoring
 path: SOC Level 1
 platform: TryHackMe
 tags: [linux, logging, auth-log, auditd, syslog, bash-history, runtime-monitoring]
-status: in-progress
+status: completed
 date: 2026-06-26
 date_completed:
 ---
- 
+
 *Write-up by [Miyu7x](https://github.com/Miyu7x) | TryHackMe: [Miyu7](https://tryhackme.com/p/Miyu7) | BTLO: [Miyu7x](https://blueteamlabs.online/public/user/Miyu7x)*
+
 <p align="center">
 <img src=screenshots/linux_intro.png width="1500">
 </p>
+
 ---
 
 ## Task 1 -- Introduction
@@ -27,20 +29,22 @@ Linux authentication, runtime, and system logs: how to view them directly on the
 
 ### Log Format
 
-The log formatting will be viewed on Linux servers without a GUI, no desktop logging.
+Log formatting will be viewed on Linux servers without a GUI, no desktop logging.
 
 ### Working With Logs
 
-Unlike Windows logs, Linux logs are plain .txt files.
- - Logs can be viewed with any text editor
-    - This means that the logs will be unstructured because they have no formatting rules, which makes them hard to read
-    - Most Linux logs are located in the /var/log folder
-    - /var/log/syslog logs various system events
+Unlike Windows logs, Linux logs are plain `.txt` files.
+
+- Logs can be viewed with any text editor
+- Because there are no formatting rules, logs are unstructured and can be hard to read
+- Most Linux logs are located in `/var/log`
+- `/var/log/syslog` logs various system events
 
 ---
 
 **Syslog File Content Example**
 
+```
 root@thm-vm:~$ cat /var/log/syslog | head
 [...]
 2025-08-13T13:57:49.388941+00:00 thm-vm systemd-timesyncd[268]: Initial clock synchronization to Wed 2025-08-13 13:57:49.387835 UTC.
@@ -48,35 +52,42 @@ root@thm-vm:~$ cat /var/log/syslog | head
 2025-08-13T14:02:22.606216+00:00 thm-vm dbus-daemon[564]: [system] Successfully activated service 'org.freedesktop.timedate1'
 2025-08-13T14:05:01.999677+00:00 thm-vm CRON[1027]: (root) CMD (command -v debian-sa1 > /dev/null && debian-sa1 1 1)
 [...]
+```
 
 ---
 
 ### Filtering Logs
 
-There are thousands of events on a syslog, but only a few are useful for SOC.
- - It's essential to filter and narrow down as much as possible
- - For example: using the **grep** command to filter for the "CRON" keyword would yield only the **cronjob** logs
+There are thousands of events in syslog, but only a few are useful for SOC work.
+
+- It is essential to filter and narrow down as much as possible
+- For example: using `grep` to filter for the "CRON" keyword yields only cronjob logs
 
 ---
 
 **CRON Log Filtering Example**
-**Or "grep -v CRON" to exclude "CRON" from results**
+
+Use `grep -v CRON` to exclude "CRON" from results instead.
+
+```
 root@thm-vm:~$ cat /var/log/syslog | grep CRON
 2025-08-13T14:17:01.025846+00:00 thm-vm CRON[1042]: (root) CMD (cd / && run-parts --report /etc/cron.hourly)
 2025-08-13T14:25:01.043238+00:00 thm-vm CRON[1046]: (root) CMD (command -v debian-sa1 > /dev/null && debian-sa1 1 1)
 2025-08-13T14:30:01.014532+00:00 thm-vm CRON[1048]: (root) CMD (date > mycrondebug.log)
+```
 
 ---
 
 ### Discovering Logs
 
-Searching for **all users logins** you can filter them with grep and keywords such as "login", "auth", or "session"
+To search for all user logins, filter with keywords such as `login`, `auth`, or `session`.
 
 ---
 
 **Example of Filtering by User Login**
 
-**List what's logged by your system (/var/log folder)** 
+```
+# List what's logged by your system
 root@thm-vm:~$ ls -l /var/log
 drwxr-xr-x  2 root      root               4096 Aug 12 16:41 apt
 drwxr-x---  2 root      adm                4096 Aug 12 12:40 audit
@@ -87,24 +98,26 @@ drwxr-sr-x+ 3 root      systemd-journal    4096 Oct 22  2024 journal
 -rw-r-----  1 syslog    adm              315798 Aug 13 15:05 syslog
 [...]
 
-**Search for potential logins across all logs (/var/log)**
+# Search for potential logins across all logs
 root@thm-vm:~$ grep -R -E "auth|login|session" /var/log
 [...]
+```
 
 ---
 
 ### Logging Caveats
 
-Linux allows you to easily change log format, verbosity, and storage location
+Linux allows you to easily change log format, verbosity, and storage location.
 
 ---
 
 1. Which time server domain did the VM contact to sync its time?
 
-   <p align="center">
+<p align="center">
 <img src=screenshots/linux_domain.png width="700">
 </p>
-Used the command: ubuntu@thm-vm:~$ cat /var/log/syslog | grep timesync
+
+Command: `cat /var/log/syslog | grep timesync`
 
 **Answer: ntp.ubuntu.com**
 
@@ -112,10 +125,11 @@ Used the command: ubuntu@thm-vm:~$ cat /var/log/syslog | grep timesync
 
 2. What is the kernel message from Yama in /var/log/syslog?
 
-   <p align="center">
+<p align="center">
 <img src=screenshots/linux_mindful.png width="700">
 </p>
-Command: cat /var/log/syslog | grep "Yama" to filter out by the specific word "Yama"
+
+Command: `cat /var/log/syslog | grep "Yama"`
 
 **Answer: Becoming mindful.**
 
@@ -123,68 +137,90 @@ Command: cat /var/log/syslog | grep "Yama" to filter out by the specific word "Y
 
 ## Task 3 -- Authentication Logs
 
-Linux's most useful log file can be found: /var/log/auth.log
- - Stores authentication events, management events, and launched sudo commands
+Linux's most useful log file: `/var/log/auth.log`
 
-**Log File Format Example**  
-   <p align="center">
+- Stores authentication events, management events, and launched sudo commands
+
+**Log File Format Example**
+
+<p align="center">
 <img src=screenshots/linux_logformatexample.png width="700">
 </p>
 
 ### Login and Logout Events
 
-Each successful logon and logoff is logged, this log also includes: 
- - Sessions opened and closed
-    - command: **cat /var/log/auth.log | grep -E 'session opened|session closed'**
- - Cron and Sudo logins
-    - command: **cat /var/log/auth.log | grep -E 'session opened|session closed'**
- - Succesful and Failed SSH logins
-    - command: **cat /var/auth.log | grep "sshd" | grep -E 'Accepted|Failed'**
- - User management events(useradd, pass change, escalation...)
-    - command: **cat /var/log/auth.log | grep -E '(passwd|useradd|usermod|userdel)\['**
- - Any command ran with **sudo**
-    - command: **cat /var/log/auth.log | grep -E 'COMMAND='**
- - /var/log/auth.log
+Each successful logon and logoff is logged. This file also includes:
 
-**Examples:**
+- Sessions opened and closed
+  - `cat /var/log/auth.log | grep -E 'session opened|session closed'`
+- Cron and sudo logins
+  - `cat /var/log/auth.log | grep -E 'session opened|session closed'`
+- Successful and failed SSH logins
+  - `cat /var/log/auth.log | grep "sshd" | grep -E 'Accepted|Failed'`
+- User management events (useradd, password change, escalation...)
+  - `cat /var/log/auth.log | grep -E '(passwd|useradd|usermod|userdel)\['`
+- Any command run with sudo
+  - `cat /var/log/auth.log | grep -E 'COMMAND='`
+
+---
 
 **Local and Remote Logins**
+
+```
 root@thm-vm:~$ cat /var/log/auth.log | grep -E 'session opened|session closed'
-**Local, on-keyboard login and logout of Bob (login:session)**
+
+# Local, on-keyboard login and logout of Bob (login:session)
 2025-08-02T16:04:43 thm-vm login[1138]: pam_unix(login:session): session opened for user bob(uid=1001) by bob(uid=0)
 2025-08-02T19:23:08 thm-vm login[1138]: pam_unix(login:session): session closed for user bob
-**Remote login examples of Alice (via SSH and then SMB)**
+
+# Remote login examples of Alice (via SSH and then SMB)
 2025-08-04T09:09:06 thm-vm sshd[839]: pam_unix(sshd:session): session opened for user alice(uid=1002) by alice(uid=0)
 2025-08-04T12:46:13 thm-vm smbd[1795]: pam_unix(samba:session): session opened for user alice(uid=1002) by alice(uid=0)
+```
 
 **Cron and Sudo Logins**
+
+```
 root@thm-vm:~$ cat /var/log/auth.log | grep -E 'session opened|session closed'
-**Traces of some cron job launch running as root (cron:session)**
+
+# Traces of a cron job running as root (cron:session)
 2025-08-06T19:35:01 thm-vm CRON[41925]: pam_unix(cron:session): session opened for user root(uid=0) by root(uid=0)
 2025-08-06T19:35:01 thm-vm CRON[3108]: pam_unix(cron:session): session closed for user root
-**Carol running "sudo su" to access root (sudo:session)**
+
+# Carol running "sudo su" to access root (sudo:session)
 2025-08-07T09:12:32 thm-vm sudo: pam_unix(sudo:session): session opened for user root(uid=0) by carol(uid=1003)
+```
 
 **SSH Specific Events**
+
+```
 root@thm-vm:~$ cat /var/log/auth.log | grep "sshd" | grep -E 'Accepted|Failed'
-**Common SSH log format: <is-successful> <auth-method> for <user> from <ip>**
+
+# Common SSH log format: <is-successful> <auth-method> for <user> from <ip>
 2025-08-07T11:21:25 thm-vm sshd[3139]: Failed password for root from 222.124.17.227 port 50293 ssh2
 2025-08-07T14:17:40 thm-vm sshd[3139]: Failed password for admin from 138.204.127.54 port 52670 ssh2
 2025-08-09T20:30:51 thm-vm sshd[1690]: Accepted publickey for bob from 10.19.92.18 port 55050 ssh2: <key>
-   
+```
+
 **User Management Events**
+
+```
 root@thm-vm:~$ cat /var/log/auth.log | grep -E '(passwd|useradd|usermod|userdel)\['
 2023-02-01T11:09:55 thm-vm passwd[644]: password for 'ubuntu' changed by 'root'
 2025-08-07T22:11:11 thm-vm userdel[1887]: delete user 'oldbackdoor'
 2025-08-07T22:11:29 thm-vm useradd[1878]: new user: name=backdoor, UID=1002, GID=1002, shell=/bin/sh
 2025-08-07T22:11:54 thm-vm usermod[1906]: add 'backdoor' to group 'sudo'
 2025-08-07T22:11:54 thm-vm usermod[1906]: add 'backdoor' to shadow group 'sudo'
+```
 
 **Commands Run With Sudo**
+
+```
 root@thm-vm:~$ cat /var/log/auth.log | grep -E 'COMMAND='
 2025-08-07T11:21:49 thm-vm sudo: ubuntu : TTY=pts/0 ; [...] COMMAND=/usr/bin/systemctl stop edr
 2025-08-07T11:23:18 thm-vm sudo: ubuntu : TTY=pts/0 ; [...] COMMAND=/usr/bin/ufw status numbered
 2025-08-07T11:23:33 thm-vm sudo: ubuntu : TTY=pts/0 ; [...] COMMAND=/usr/bin/su
+```
 
 ---
 
@@ -203,7 +239,8 @@ root@thm-vm:~$ cat /var/log/auth.log | grep -E 'COMMAND='
 <p align="center">
 <img src=screenshots/linux_logformatexample.png width="700">
 </p>
-To find the specific failed ssh logs only command: **cat /var/log/auth.log | grep "sshd" | grep -E 'Failed'**
+
+Command: `cat /var/log/auth.log | grep "sshd" | grep -E 'Failed'`
 
 **Answer: 10.14.94.82**
 
@@ -211,10 +248,11 @@ To find the specific failed ssh logs only command: **cat /var/log/auth.log | gre
 
 2. Which user was created and added to the "sudo" group?
 
-   <p align="center">n 
+<p align="center">
 <img src=screenshots/linux_xerxes.png width="700">
 </p>
-To find user management events we can filter the log by: **cat /var/log/auth.log | grep -E '(useradd|usermod)\[**
+
+Command: `cat /var/log/auth.log | grep -E '(useradd|usermod)\['`
 
 **Answer: xerxes**
 
@@ -225,39 +263,44 @@ To find user management events we can filter the log by: **cat /var/log/auth.log
 ### Generic System Logs
 
 Linux logs offer a variety of other information:
- - Kernel messages and errors
-    - /var/log/kern.log
- - Various Linux events
-    - /var/log/syslog
- - Package manager logs
-    - /var/log/dpkg.log
- - Package manager logs
-    - /var/log/dnf.log
+
+- Kernel messages and errors: `/var/log/kern.log`
+- Various Linux events: `/var/log/syslog`
+- Package manager logs (Debian-based): `/var/log/dpkg.log`
+- Package manager logs (RHEL-based): `/var/log/dnf.log`
 
 ### App-Specific Logs
 
-App-specific logs help SOCs monitor specific programs, such as database, mail, container, and web server logs.
+App-specific logs help SOCs monitor specific programs such as database, mail, container, and web server logs.
 
-**Example of Nginx Web Server Logs**
+**Example: Nginx Web Server Logs**
+
+```
 root@thm-vm:~$ cat /var/log/nginx/access.log
-**Every log line corresponds to a web request to the web server**
+
+# Every log line corresponds to a web request to the web server
 10.0.1.12 - - [11/08/2025:14:32:10 +0000] "GET / HTTP/1.1" 200 3022
 10.0.1.12 - - [11/08/2025:14:32:14 +0000] "GET /login HTTP/1.1" 200 1056
 10.0.1.12 - - [11/08/2025:14:33:09 +0000] "POST /login HTTP/1.1" 302 112
 10.0.4.99 - - [11/08/2025:17:11:20 +0000] "GET /images/logo.png HTTP/1.1" 200 5432
 10.0.5.21 - - [11/08/2025:17:56:23 +0000] "GET /admin HTTP/1.1" 403 104
+```
 
 ### Bash History
 
-An interesting log source is bash history; every command is logged the moment you press enter.
- - Bash history is stored in memory and, written to ~/.bash_history once the user logs out
- - This is not very useful, though, as attackers can simply hide their commands and avoid being logged completely.
+An interesting log source is bash history: every command is logged the moment you press enter.
+
+- Bash history is stored in memory and written to `~/.bash_history` once the user logs out
+- Limited as a SOC source: attackers can clear or manipulate history to hide their commands
 
 **Bash History File and Command Example**
+
+```
 ubuntu@thm-vm:~$ cat /home/ubuntu/.bash_history
 echo "hello" > world.txt
 nano /etc/ssh/sshd_config
 sudo su
+
 ubuntu@thm-vm:~$ history
 1 echo "hello" > world.txt
 2 nano /etc/ssh/sshd_config
@@ -265,7 +308,9 @@ ubuntu@thm-vm:~$ history
 4 ls -la /home/ubuntu
 5 cat /home/ubuntu/.bash_history
 6 history
+```
 
+---
 
 | Log File | Purpose |
 |---|---|
@@ -292,15 +337,8 @@ ubuntu@thm-vm:~$ history
 <p align="center">
 <img src=screenshots/linux_notetoremember.png width="700">
 </p>
-Ran the command:
-ubuntu@thm-vm:~$ cat /home/ubuntu/.bash_history
-sudo su
-sudo su
-sudo su
-sudo apt install zip unzip
-passwd
 
-From this output, we can see the user was in root, and there is no trace of a THM flag. Escalated privileges to root with **sudo su** in the bash I utilized the arrow keys to see if any commands were stored in memory and observed the flag. 
+Ran `cat /home/ubuntu/.bash_history`. Output showed sudo commands and package installs but no flag in the file itself. Escalated to root with `sudo su` and used the arrow keys to check commands stored in memory, where the flag was found.
 
 **Answer: THM{note_to_remember}**
 
@@ -309,19 +347,24 @@ From this output, we can see the user was in root, and there is no trace of a TH
 ## Task 5 -- Runtime Monitoring
 
 ### Runtime Monitoring
+
 Like Windows, Linux does not natively log runtime events such as process creation, file integrity changes, or network connections at the depth required for security monitoring. Windows uses Sysmon to extend that visibility; Linux uses Auditd.
+
 <p align="center">
 <img src=screenshots/linux_runtime.png width="700">
 </p>
 
 ### System Calls
-Everytime the user opens a file, creates a process, accesses the camera, or make a request to any OS service, you make a **specific system call.**
- -There are over 300 system calls in Linux..
- - **execve** is a system call that executes a program
- - All modern EDR solutions and logging tools rely on system calls
- - Attackers **cannot** simply bypass system calls, which is what makes monitoring system calls a vital part of monitoring systems
+
+Every time a user opens a file, creates a process, accesses the camera, or makes a request to any OS service, a specific system call is made.
+
+- There are over 300 system calls in Linux
+- `execve` is the system call that executes a program
+- All modern EDR solutions and logging tools rely on system calls
+- Attackers cannot simply bypass system calls, which is what makes monitoring them a vital part of system monitoring
 
 **Example of a High-Level Flowchart of execve in Action**
+
 <p align="center">
 <img src=screenshots/linux_systemcalls.png width="700">
 </p>
@@ -343,40 +386,47 @@ Everytime the user opens a file, creates a process, accesses the camera, or make
 ## Task 6 -- Using Auditd
 
 ### Audit Daemon
-To monitor runtime events, analysts use Auditd to define monitoring rules. 
- - Instructions can be found in /etc/audit.rules.d/
-    - Which filters to apply
-    - Which system calls to monitor and log
-   
+
+To monitor runtime events, analysts use Auditd to define monitoring rules.
+
+- Rules are found in `/etc/audit/rules.d/`
+- Rules define which filters to apply and which system calls to monitor and log
+
 **Drawbacks:**
- - Monitoring **every** process, file and network event can quickly become a storage issue, as these logs produce large amounts of data every day
- - Large volume of logs can bury an attack when you have terabytes of noise
- - This is why SOCs must focus on **highest risk events** logging and crafting balanced rulesets
+
+- Monitoring every process, file, and network event can quickly become a storage problem: these logs produce large amounts of data daily
+- High log volume can bury an attack in terabytes of noise
+- This is why SOCs must focus on highest-risk events and craft balanced rulesets
 
 **Example: Auditd Rules**
+
 <p align="center">
 <img src=screenshots/linux_auditdexample.png width="700">
 </p>
 
 ### Using Auditd
 
-In order to view the generated logs in real time: /var/log/audit/audit.log
- - The command **ausearch** formats output for readability and offers filtering options
+To view generated logs in real time: `/var/log/audit/audit.log`
 
-**Example: Search Execution Events Matching **proc_wget** Key**
+- The `ausearch` command formats output for readability and offers filtering options
+- `-i` interprets raw numeric values (UIDs, syscall numbers, timestamps) into human-readable text
+- `-k` filters results by the key tag assigned in an audit rule
 
-Terminal shows a single wget command:
- 
-**root@thm-vm:~$ ausearch -i -k proc_wget**
+**Example: Search Execution Events Matching `proc_wget` Key**
+
+```
+root@thm-vm:~$ ausearch -i -k proc_wget
+
 type=PROCTITLE msg=audit(08/12/25 12:48:19.093:2219) : proctitle=wget https://files.tryhackme.thm/report.zip
-type=CWD msg=audit(08/12/25 12:48:19.093:2219) : cwd=/root
-type=EXECVE msg=audit(08/12/25 12:48:19.093:2219) : argc=2 a0=wget a1=https://files.tryhackme.thm/report.zip
-type=SYSCALL msg=audit(08/12/25 12:48:19.093:2219) : arch=x86_64 syscall=execve [...] ppid=3752 pid=3888 auid=ubuntu uid=root tty=pts1 exe=/usr/bin/wget key=proc_wget
+type=CWD      msg=audit(08/12/25 12:48:19.093:2219) : cwd=/root
+type=EXECVE   msg=audit(08/12/25 12:48:19.093:2219) : argc=2 a0=wget a1=https://files.tryhackme.thm/report.zip
+type=SYSCALL  msg=audit(08/12/25 12:48:19.093:2219) : arch=x86_64 syscall=execve [...] ppid=3752 pid=3888 auid=ubuntu uid=root tty=pts1 exe=/usr/bin/wget key=proc_wget
+```
 
 | auditd Field | Meaning |
 |---|---|
 | pid / ppid | Process ID and Parent Process ID |
-| auid | Audit user -- original login account |
+| auid | Audit user (original login account) |
 | uid | User who ran the command (may differ after sudo/su) |
 | tty | Session identifier |
 | exe | Absolute path to the executed binary |
@@ -384,45 +434,79 @@ type=SYSCALL msg=audit(08/12/25 12:48:19.093:2219) : arch=x86_64 syscall=execve 
 
 ### File Events
 
-This example is for file events matching **file_sshconf**
- - SOCs setup rules to monitor changes in critical files and directories(e.g., SSH config files, cronjob definitions, or system settings)
+SOCs set up rules to monitor changes to critical files and directories such as SSH config files, cronjob definitions, or system settings.
 
-**root@thm-vm:~$ ausearch -i -k file_sshconf**
+**Example: File Events Matching `file_sshconf`**
+
+```
+root@thm-vm:~$ ausearch -i -k file_sshconf
+
 type=PROCTITLE msg=audit(08/12/25 13:06:47.656:2240) : proctitle=nano /etc/ssh/sshd_config
-type=CWD msg=audit(08/12/25 13:06:47.656:2240) : cwd=/
-type=PATH msg=audit(08/12/25 13:06:47.656:2240) : item=0 name=/etc/ssh/sshd_config [...]
-type=SYSCALL msg=audit(08/12/25 13:06:47.656:2240) : arch=x86_64 syscall=openat [...] ppid=3752 pid=3899 auid=ubuntu uid=root tty=pts1 exe=/usr/bin/nano key=file_sshconf
+type=CWD      msg=audit(08/12/25 13:06:47.656:2240) : cwd=/
+type=PATH     msg=audit(08/12/25 13:06:47.656:2240) : item=0 name=/etc/ssh/sshd_config [...]
+type=SYSCALL  msg=audit(08/12/25 13:06:47.656:2240) : arch=x86_64 syscall=openat [...] ppid=3752 pid=3899 auid=ubuntu uid=root tty=pts1 exe=/usr/bin/nano key=file_sshconf
+```
 
 ### Auditd Alternatives
 
-Auditd output is inconvenient, hard to read, and ingest into SIEM. SOCs must resort to alternative runtime logging solutions:
- - Sysmon for Linux is a tool for those who are familiar and like working with Sysmon
- - Falco a modern open source solution for monitoring containerized systems
- - EDRs most EDR solutions track and monitor various Linux runtime events
+Auditd output is inconvenient, hard to read, and difficult to ingest into a SIEM. SOCs often use alternative runtime logging solutions:
 
-All tools work on towards monitoring system calls.
+- **Sysmon for Linux:** familiar workflow for analysts already comfortable with Windows Sysmon
+- **Falco:** modern open-source solution built for monitoring containerized systems
+- **EDRs:** most enterprise EDR solutions track and monitor Linux runtime events natively
+
+All of these tools ultimately work by monitoring system calls.
 
 ---
 
 1. When was the secret.thm file opened for the first time? (MM/DD/YY HH:MM:SS)
 
-**Answer:**
+Note: Access to this file is logged with the `file_thmsecret` key.
+
+<p align="center">
+<img src=screenshots/linux_secret.png width="700">
+</p>
+
+Command: `ausearch -i -k file_thmsecret`
+
+The `-i` flag made the timestamp and UIDs readable at a glance. In a real investigation, this timestamp becomes part of the attack timeline: it tells you when an attacker first touched the file, which you can correlate against login events and other auditd entries to reconstruct the full access chain.
+
+**Answer: 08/13/25 18:36:54**
 
 ---
 
 2. What is the original file name downloaded from GitHub via wget?
 
-**Answer:**
+Note: Wget process creation is logged with the `proc_wget` key.
 
-Which network range was scanned using the downloaded tool?
+<p align="center">
+<img src=screenshots/linux_naabu.png width="700">
+</p>
 
-**Answer:**
+Command: `ausearch -i -k proc_wget | grep "download"`
+
+Knowing the original filename matters because attackers frequently rename tools after dropping them to evade detection. Catching the name at download time, before any renaming, gives you the original artifact to pivot on: hash it, look it up in threat intel, and track where else it may have landed.
+
+**Answer: naabu_2.3.5_linux_amd64.zip**
+
+---
+
+3. Which network range was scanned using the downloaded tool?
+
+<p align="center">
+<img src=screenshots/linux_scannedrange.png width="700">
+</p>
+
+Command: `ausearch -i | grep "naabu"`
+
+Naabu is a port scanner. Knowing the scanned range tells you the scope of the attacker's reconnaissance. In this case they were mapping out `192.168.50.0/24`, which suggests internal lateral movement prep rather than external probing. That context drives escalation priority and containment decisions.
+
+**Answer: 192.168.50.0/24**
 
 ---
 
 ## Task 7 -- Conclusion
 
-Key Takeaways
-
+### Key Takeaways
 
 **Answer:** N/A
