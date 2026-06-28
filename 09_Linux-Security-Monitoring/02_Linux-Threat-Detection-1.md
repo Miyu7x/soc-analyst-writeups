@@ -11,6 +11,10 @@ date_completed:
 
 *Write-up by [Miyu7x](https://github.com/Miyu7x) | TryHackMe: [Miyu7](https://tryhackme.com/p/Miyu7) | BTLO: [Miyu7x](https://blueteamlabs.online/public/user/Miyu7x)*
 
+<p align="center">
+<img src=screenshots/linux_introthreat.png width="1500">
+</p>
+
 ---
 
 ## Task 1 -- Introduction
@@ -33,6 +37,10 @@ date_completed:
 ## Task 2 -- Initial Access via SSH
 
 ### Popularity of SSH
+
+Exposed SSH is the lead cause of Linux breaches, as it is a remote service that is popularly used by IT teams.
+  - Every internet-facing Linux machine has SSH enabled by default
+  - Shodan reports over 40 million machiones worldwide in 2025, with only some secured
 
 ### Initial Access via SSH
 
