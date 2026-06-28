@@ -60,7 +60,7 @@ There are thousands of events on a syslog, but only a few are useful for SOC.
 ---
 
 **CRON Log Filtering Example**
-# Or "grep -v CRON" to exclude "CRON" from results
+**Or "grep -v CRON" to exclude "CRON" from results**
 root@thm-vm:~$ cat /var/log/syslog | grep CRON
 2025-08-13T14:17:01.025846+00:00 thm-vm CRON[1042]: (root) CMD (cd / && run-parts --report /etc/cron.hourly)
 2025-08-13T14:25:01.043238+00:00 thm-vm CRON[1046]: (root) CMD (command -v debian-sa1 > /dev/null && debian-sa1 1 1)
@@ -76,7 +76,7 @@ Searching for **all users logins** you can filter them with grep and keywords su
 
 **Example of Filtering by User Login**
 
-# List what's logged by your system (/var/log folder) 
+**List what's logged by your system (/var/log folder)** 
 root@thm-vm:~$ ls -l /var/log
 drwxr-xr-x  2 root      root               4096 Aug 12 16:41 apt
 drwxr-x---  2 root      adm                4096 Aug 12 12:40 audit
@@ -87,7 +87,7 @@ drwxr-sr-x+ 3 root      systemd-journal    4096 Oct 22  2024 journal
 -rw-r-----  1 syslog    adm              315798 Aug 13 15:05 syslog
 [...]
 
-# Search for potential logins across all logs (/var/log)
+**Search for potential logins across all logs (/var/log)**
 root@thm-vm:~$ grep -R -E "auth|login|session" /var/log
 [...]
 
@@ -127,7 +127,7 @@ Linux's most useful log file can be found: /var/log/auth.log
  - Stores authentication events, management events, and launched sudo commands
 
 **Log File Format Example**  
-   <p align="center">n 
+   <p align="center">
 <img src=screenshots/linux_logformatexample.png width="700">
 </p>
 
@@ -200,7 +200,7 @@ root@thm-vm:~$ cat /var/log/auth.log | grep -E 'COMMAND='
 
 1. Which IP address failed to log in on multiple users via SSH?
 
-   <p align="center">n 
+<p align="center">
 <img src=screenshots/linux_logformatexample.png width="700">
 </p>
 To find the specific failed ssh logs only command: **cat /var/log/auth.log | grep "sshd" | grep -E 'Failed'**
@@ -240,7 +240,7 @@ App-specific logs help SOCs monitor specific programs, such as database, mail, c
 
 **Example of Nginx Web Server Logs**
 root@thm-vm:~$ cat /var/log/nginx/access.log
-# Every log line corresponds to a web request to the web server
+**Every log line corresponds to a web request to the web server**
 10.0.1.12 - - [11/08/2025:14:32:10 +0000] "GET / HTTP/1.1" 200 3022
 10.0.1.12 - - [11/08/2025:14:32:14 +0000] "GET /login HTTP/1.1" 200 1056
 10.0.1.12 - - [11/08/2025:14:33:09 +0000] "POST /login HTTP/1.1" 302 112
@@ -279,7 +279,7 @@ ubuntu@thm-vm:~$ history
 
 1. According to the VM's package manager logs, which version of unzip was installed?
 
-   <p align="center">n 
+<p align="center">
 <img src=screenshots/linux_unzip.png width="700">
 </p>
 
@@ -289,7 +289,7 @@ ubuntu@thm-vm:~$ history
 
 2. What is the flag in one of the users' bash history?
 
-    <p align="center">n 
+<p align="center">
 <img src=screenshots/linux_notetoremember.png width="700">
 </p>
 Ran the command:
@@ -300,7 +300,7 @@ sudo su
 sudo apt install zip unzip
 passwd
 
-From this output we can see the user was in root, and there is no trace of a THM flag. Escalated privileges to root with **sudo su** in the bash I utilized the arrow keys to see if any commands were stored in memory and observed the flag. 
+From this output, we can see the user was in root, and there is no trace of a THM flag. Escalated privileges to root with **sudo su** in the bash I utilized the arrow keys to see if any commands were stored in memory and observed the flag. 
 
 **Answer: THM{note_to_remember}**
 
@@ -308,35 +308,70 @@ From this output we can see the user was in root, and there is no trace of a THM
 
 ## Task 5 -- Runtime Monitoring
 
-Runtime Monitoring
+### Runtime Monitoring
+Like Windows, Linux does not natively log runtime events such as process creation, file integrity changes, or network connections at the depth required for security monitoring. Windows uses Sysmon to extend that visibility; Linux uses Auditd.
+<p align="center">
+<img src=screenshots/linux_runtime.png width="700">
+</p>
 
+### System Calls
+Everytime the user opens a file, creates a process, accesses the camera, or make a request to any OS service, you make a **specific system call.**
+ -There are over 300 system calls in Linux..
+ - **execve** is a system call that executes a program
+ - All modern EDR solutions and logging tools rely on system calls
+ - Attackers **cannot** simply bypass system calls, which is what makes monitoring system calls a vital part of monitoring systems
 
-System Calls
+**Example of a High-Level Flowchart of execve in Action**
+<p align="center">
+<img src=screenshots/linux_systemcalls.png width="700">
+</p>
 
+---
 
-Which Linux system call is commonly used to execute a program?
+1. Which Linux system call is commonly used to execute a program?
 
-**Answer:**
+**Answer: execve**
 
-Can a typical program open a file or create a process bypassing system calls? (Yea/Nay)
+---
 
-**Answer:**
+2. Can a typical program open a file or create a process bypassing system calls? (Yea/Nay)
+
+**Answer: Nay**
 
 ---
 
 ## Task 6 -- Using Auditd
 
-Audit Daemon
+### Audit Daemon
+To monitor runtime events, analysts use Auditd to define monitoring rules. 
+ - Instructions can be found in /etc/audit.rules.d/
+    - Which filters to apply
+    - Which system calls to monitor and log
+   
+**Drawbacks:**
+ - Monitoring **every** process, file and network event can quickly become a storage issue, as these logs produce large amounts of data every day
+ - Large volume of logs can bury an attack when you have terabytes of noise
+ - This is why SOCs must focus on **highest risk events** logging and crafting balanced rulesets
 
+**Example: Auditd Rules**
+<p align="center">
+<img src=screenshots/linux_auditdexample.png width="700">
+</p>
 
-Using Auditd
+### Using Auditd
 
+In order to view the generated logs in real time: /var/log/audit/audit.log
+ - The command **ausearch** formats output for readability and offers filtering options
 
-File Events
+**Example: Search Execution Events Matching **proc_wget** Key**
 
-
-Auditd Alternatives
-
+Terminal shows a single wget command:
+ 
+**root@thm-vm:~$ ausearch -i -k proc_wget**
+type=PROCTITLE msg=audit(08/12/25 12:48:19.093:2219) : proctitle=wget https://files.tryhackme.thm/report.zip
+type=CWD msg=audit(08/12/25 12:48:19.093:2219) : cwd=/root
+type=EXECVE msg=audit(08/12/25 12:48:19.093:2219) : argc=2 a0=wget a1=https://files.tryhackme.thm/report.zip
+type=SYSCALL msg=audit(08/12/25 12:48:19.093:2219) : arch=x86_64 syscall=execve [...] ppid=3752 pid=3888 auid=ubuntu uid=root tty=pts1 exe=/usr/bin/wget key=proc_wget
 
 | auditd Field | Meaning |
 |---|---|
@@ -347,11 +382,35 @@ Auditd Alternatives
 | exe | Absolute path to the executed binary |
 | key | Tag from auditd rule for filtering |
 
-When was the secret.thm file opened for the first time? (MM/DD/YY HH:MM:SS)
+### File Events
+
+This example is for file events matching **file_sshconf**
+ - SOCs setup rules to monitor changes in critical files and directories(e.g., SSH config files, cronjob definitions, or system settings)
+
+**root@thm-vm:~$ ausearch -i -k file_sshconf**
+type=PROCTITLE msg=audit(08/12/25 13:06:47.656:2240) : proctitle=nano /etc/ssh/sshd_config
+type=CWD msg=audit(08/12/25 13:06:47.656:2240) : cwd=/
+type=PATH msg=audit(08/12/25 13:06:47.656:2240) : item=0 name=/etc/ssh/sshd_config [...]
+type=SYSCALL msg=audit(08/12/25 13:06:47.656:2240) : arch=x86_64 syscall=openat [...] ppid=3752 pid=3899 auid=ubuntu uid=root tty=pts1 exe=/usr/bin/nano key=file_sshconf
+
+### Auditd Alternatives
+
+Auditd output is inconvenient, hard to read, and ingest into SIEM. SOCs must resort to alternative runtime logging solutions:
+ - Sysmon for Linux is a tool for those who are familiar and like working with Sysmon
+ - Falco a modern open source solution for monitoring containerized systems
+ - EDRs most EDR solutions track and monitor various Linux runtime events
+
+All tools work on towards monitoring system calls.
+
+---
+
+1. When was the secret.thm file opened for the first time? (MM/DD/YY HH:MM:SS)
 
 **Answer:**
 
-What is the original file name downloaded from GitHub via wget?
+---
+
+2. What is the original file name downloaded from GitHub via wget?
 
 **Answer:**
 
