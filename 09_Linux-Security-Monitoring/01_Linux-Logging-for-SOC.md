@@ -150,24 +150,24 @@ Each successful logon and logoff is logged, this log also includes:
 
 **Local and Remote Logins**
 root@thm-vm:~$ cat /var/log/auth.log | grep -E 'session opened|session closed'
-# Local, on-keyboard login and logout of Bob (login:session)
+**Local, on-keyboard login and logout of Bob (login:session)**
 2025-08-02T16:04:43 thm-vm login[1138]: pam_unix(login:session): session opened for user bob(uid=1001) by bob(uid=0)
 2025-08-02T19:23:08 thm-vm login[1138]: pam_unix(login:session): session closed for user bob
-# Remote login examples of Alice (via SSH and then SMB)
+**Remote login examples of Alice (via SSH and then SMB)**
 2025-08-04T09:09:06 thm-vm sshd[839]: pam_unix(sshd:session): session opened for user alice(uid=1002) by alice(uid=0)
 2025-08-04T12:46:13 thm-vm smbd[1795]: pam_unix(samba:session): session opened for user alice(uid=1002) by alice(uid=0)
 
 **Cron and Sudo Logins**
 root@thm-vm:~$ cat /var/log/auth.log | grep -E 'session opened|session closed'
-# Traces of some cron job launch running as root (cron:session)
+**Traces of some cron job launch running as root (cron:session)**
 2025-08-06T19:35:01 thm-vm CRON[41925]: pam_unix(cron:session): session opened for user root(uid=0) by root(uid=0)
 2025-08-06T19:35:01 thm-vm CRON[3108]: pam_unix(cron:session): session closed for user root
-# Carol running "sudo su" to access root (sudo:session)
+**Carol running "sudo su" to access root (sudo:session)**
 2025-08-07T09:12:32 thm-vm sudo: pam_unix(sudo:session): session opened for user root(uid=0) by carol(uid=1003)
 
 **SSH Specific Events**
 root@thm-vm:~$ cat /var/log/auth.log | grep "sshd" | grep -E 'Accepted|Failed'
-# Common SSH log format: <is-successful> <auth-method> for <user> from <ip>
+**Common SSH log format: <is-successful> <auth-method> for <user> from <ip>**
 2025-08-07T11:21:25 thm-vm sshd[3139]: Failed password for root from 222.124.17.227 port 50293 ssh2
 2025-08-07T14:17:40 thm-vm sshd[3139]: Failed password for admin from 138.204.127.54 port 52670 ssh2
 2025-08-09T20:30:51 thm-vm sshd[1690]: Accepted publickey for bob from 10.19.92.18 port 55050 ssh2: <key>
