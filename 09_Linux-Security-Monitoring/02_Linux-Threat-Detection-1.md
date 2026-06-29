@@ -169,15 +169,59 @@ Command: cat /var/log/auth.log | grep "sshd" | grep "Accepted" | grep "root"
 
 ### Linux and Public Services
 
+Linux sometimes hosts public-facing services or applications such as:
+  - web servers, email servers, databases
+  - various development or IT management tools
+  - core of most firewalls and VPN software
+  - Exploit Public Facing MITRE Technique T1190
+
+If any of these applications are compromised, your entire host is at risk.
+
+**Example: Insecure WordPress Website Breach Leads to Backdoor Uploaded to Linux Host**
+<p align="center">
+<img src=screenshots/linux_publicexploit.png width="700">
+</p>
+
 ### Using Application Logs
+
+Application Logs do not tell the full sotry of an attack, they can provide the following:
+  - Web logs to detect web attacks
+  - Database logs to detect suspicious SQL queries
+  - VPN logs to detect abnormal VPN logins
+  - Other logs to refer to specific events such as bank transactions for example
 
 ### Web as Initial Access
 
+**Example of a Vulnerable Web Server**
+
+The IT team creates a simple web app called TryPingMe
+  - Users can ping the specified IP online
+  - On the backend: the app runs a system command **ping -c 2 [User Input]** to test or ping the connection, with no input filtering
+  - Attackers could easily find the command injection here
+
+**Example: Command Injection on the TryPingMe Web Log**
+ubuntu@thm-vm:~$ cat /var/log/nginx/access.log
+10.2.33.10 - - [19/Aug/2025:12:26:07] "GET /ping?host=3.109.33.76 HTTP/1.1" 200 [...]
+10.12.88.67 - - [23/Aug/2025:09:32:22] "GET /ping?host=54.36.19.83 HTTP/1.1" 200 [...]
+10.14.105.255 - - [26/Aug/2025:20:09:43] "GET /ping?host=hello HTTP/1.1" 500 [...]
+10.14.105.255 - - [26/Aug/2025:20:09:46] "GET /ping?host=whoami HTTP/1.1" 500 [...]
+10.14.105.255 - - [26/Aug/2025:20:09:49] "GET /ping?host=;whoami HTTP/1.1" 200 [...]
+10.14.105.255 - - [26/Aug/2025:20:10:41] "GET /ping?host=;ls HTTP/1.1" 200 [...]
+
+The requests seen above are coming from IP 10.14.105.255 seem suspicious.
+  - You can see the evidence of command injection as the attacker tries, hello, whoami and ls
+  - This puts the entire system risk
+    
 ---
 
 1. What is the path to the Python file the attacker attempted to open?
 
-**Answer:**
+<p align="center">
+<img src=screenshots/linux_pyfile.png width="700">
+</p>
+
+
+**Answer: /opt/trypingme/main.py**
 
 ---
 
