@@ -62,15 +62,23 @@ Windows jas RDP and Linux SSH, both powerful remote tools that are often left un
   - Accidental exposure of old insecure SSH server on the internet
 ---
 
+**You can start from: cat /var/log/auth.log | grep "sshd"**
+
 1. When did the ubuntu user log in via SSH for the first time? Answer Example: 2023-09-16.
 
-**Answer:**
+<p align="center">
+<img src=screenshots/linux_sshdlogin.png width="700">
+</p>
+In order to filter through the noise we can use the following keywords to nawrrow our log to find exactly what we need.
+Command: cat /var/log/auth.log | grep "sshd" | grep "ubuntu" | grep "Accepted"
+
+**Answer: 2024-10-22**
 
 ---
 
 2. Did the ubuntu user use SSH keys instead of a password for the above found date? (Yea/Nay)
 
-**Answer:**
+**Answer: Yea**
 
 ---
 
@@ -78,7 +86,36 @@ Windows jas RDP and Linux SSH, both powerful remote tools that are often left un
 
 ### SSH Breach Example
 
+Real-World Scenario: An IT admin enables **public** SSH access to the server
+  - Allows password-based authentication
+  - Sets a weak password for one of the support users
+      - These three actions, or lack thereof, will inevitably lead to an SSH breach, its just a matter of time
+   
+**Example: Log Sample of Brute Force Followed by Password Breach**
+<p align="center">
+<img src=screenshots/linux_sshbreach.png width="700">
+</p>
+
 ### Detecting SSH Attacks
+
+Detecting an SSH attack on Linux is more direct than Windows: No Logon Types and Event ID memorizing
+  - You can just filter Linux logs by Accepted(successful) SSH logins
+
+**Example: Three Successful SSH Logins**
+ubuntu@thm-vm:~$ cat /var/log/auth.log | grep -E 'Accepted'
+2025-08-19T14:00:02 thm-vm sshd[1013]: Accepted publickey for ansible from 10.14.105.255 port 18442 ssh2: [...]
+2025-08-20T12:56:49 thm-vm sshd[2830]: Accepted password for jsmith from 54.155.224.201 port 51058 ssh2
+2025-08-22T03:14:06 thm-vm sshd[2830]: Accepted password for jsmith from 196.251.118.184 port 51058 ssh2
+
+1. Ansible login through public key and automated account, at normal business hour of 14:00
+2. JSmith logins are more interesting:
+     - 2 password-based authentication logins
+     - 1 login at 3am
+         - Investigate who the user is?
+         - IS this a normal login time for them?
+         - Does this IP match the location they're supposed to be based in? Clean IP?
+         - Login history for the user
+         - After all those have been answered, you should determine if it requires further investigation
 
 | Field | What to Check |
 |---|---|
@@ -91,19 +128,40 @@ Windows jas RDP and Linux SSH, both powerful remote tools that are often left un
 
 1. When did the SSH password brute force start? Answer Format: 2023-09-15.
 
-**Answer:**
+<p align="center">
+<img src=screenshots/linux_sshbreach.png width="700">
+</p>
+Brute-Force attacks can be indicated by repeated failed login attempts in quick succession. This can be narrowed down by searching the logs for "Failed" sshd login attempts.
+Command: cat /var/log/auth.log | grep "sshd" | grep "Failed"
+
+**Answer: 2025-08-21**
 
 ---
 
 2. Which four users did the botnet attempt to breach? Answer Format: Separate by a comma, in alphabetical order.
 
-**Answer:**
+<p align="center">
+<img src=screenshots/linux_users.png width="700">
+</p>
+Investigate the entire log, as the 4 different user names are spaced out throughout the log...
+2025-08-21T16:34:04.201269+00:00 thm-vm sshd[18432]: Failed password for root from 197.39.195.136 port 47942 ssh2
+2025-08-21T16:38:47.168117+00:00 thm-vm sshd[18479]: Failed password for invalid user sol from 193.32.162.145 port 46702 ssh2
+2025-08-21T16:41:06.828985+00:00 thm-vm sshd[18495]: Failed password for invalid user roy from 80.94.95.112 port 63189 ssh2
+2025-08-21T17:06:23.687748+00:00 thm-vm sshd[18544]: Failed password for invalid user user from 80.94.95.112 port 63350 ssh2
+
+**Answer: root, roy, sol, user**
 
 ---
 
 3. Finally, which IP managed to breach the root user?
 
-**Answer:**
+<p align="center">
+<img src=screenshots/linux_rootbreached.png width="700">
+</p>
+To find exactly what we're looking for in this scenario, we can narrow our search for the SSHD login to "Accepted," since we know it was successful, as well as the user "breached "root.
+Command: cat /var/log/auth.log | grep "sshd" | grep "Accepted" | grep "root"
+
+**Answer: 91.224.92.79**
 
 ---
 
