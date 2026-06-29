@@ -38,12 +38,28 @@ date_completed:
 
 ### Popularity of SSH
 
-Exposed SSH is the lead cause of Linux breaches, as it is a remote service that is popularly used by IT teams.
+Exposed SSH is a leading cause of Linux breaches, as it is a remote service widely used by IT teams.
   - Every internet-facing Linux machine has SSH enabled by default
-  - Shodan reports over 40 million machiones worldwide in 2025, with only some secured
+  - Shodan reports over 40 million machines worldwide in 2025, with only some secured
+
+<p align="center">
+<img src=screenshots/linux_shodanreport.png width="700">
+</p>
 
 ### Initial Access via SSH
 
+Windows jas RDP and Linux SSH, both powerful remote tools that are often left unsecured.
+  - MITRE has included both these protocols under their own technique. External Remote Services ID T1133
+  - Tactics: Initial Access and Persistence
+
+**Common Risks of Key-Based Authentication**
+  - Attackers will steal keys and SSH credentials from GitHub repos or Ansible automation
+  - Infect and Admins system with a data stealer to retrieve SSH keys
+
+**Risks with Password-Based Authentication**
+  - IT admin sets weak SSH password
+  - IT sets up SSH for a contractor who sets a weak password
+  - Accidental exposure of old insecure SSH server on the internet
 ---
 
 1. When did the ubuntu user log in via SSH for the first time? Answer Example: 2023-09-16.
