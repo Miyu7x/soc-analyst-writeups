@@ -68,13 +68,20 @@ An attacker in **Discovery Phase** will run commands to get a lay of the land, t
 
 2. Now run ps aux and look for EDR or antivirus processes. What is the full path to the detected antimalware binary?
 
-**Answer:**
+<p align="center">
+<img src=screenshots/linux2_malscan.png width="1500">
+</p>
+During the attacker's discovery phase, they need to know which processes are currently running on a system so they can determine what security measures they're up against.
+
+**Answer: /var/lib/ultrasec/malscan**
 
 ---
 
 ## Task 3 -- Detecting Discovery
 
 ### Specialized Discovery
+
+After **Initial Discovery**, attackers can then decide their next move:
 
 | Attack Objectives | Typical Commands |
 |---|---|
