@@ -21,17 +21,12 @@ date_completed:
 
 ### Learning Objectives
 
+What happens after an attacker enters a Linux System?
+  - What commands do they run?
+  - What is their final goal?
+  - How do attackers upload malware onto their targets?
 
-
-### Prerequisites
-
-
-
----
-
-1. I'm ready to learn!
-
-**Answer:**
+How can SOCs detect their actions, by investigating Discovery commands in logs?
 
 ---
 
@@ -39,10 +34,18 @@ date_completed:
 
 ### Discovery
 
-
+The majority of Linux breaches happen by to be intiated by automated botnets, the attacker is notified, his command center is just the bash.
+<p align="center">
+<img src=screenshots/linux2_botnet.png width="1500">
+</p>
 
 ### First Actions
 
+The starting commands attacker use once they have acces to the systems bash are usually the same:
+  - Who am I? Where am I? What privileges do I have?
+  - Attackers use the same commands IT Teams across the world are constantly using, how do you distinguish?
+  - whoami is a command thats always suspisicous
+    
 | Discovery Goal | Typical Commands |
 |---|---|
 | OS and Filesystem Discovery | pwd, ls /, env, uname -a, lsb_release -a, hostname |
@@ -50,13 +53,16 @@ date_completed:
 | Process and Network Discovery | ps aux, top, ip a, ip r, arp -a, ss -tnlp, netstat -tnlp |
 | Cloud or Sandbox Discovery | systemd-detect-virt, lsmod, uptime, pgrep "<edr-or-sandbox>" |
 
-
-
 ---
 
 1. Run systemd-detect-virt to detect the system's cloud. What is the command's output you discovered?
 
-**Answer:**
+<p align="center">
+<img src=screenshots/linux2_amazon.png width="1500">
+</p>
+An attacker in **Discovery Phase** will run commands to get a lay of the land, the command: **systemd-detect-virt** , in this case returned Amazon, the attacker is hunting information about the network and its cloud system.
+
+**Answer: Amazon**
 
 ---
 
