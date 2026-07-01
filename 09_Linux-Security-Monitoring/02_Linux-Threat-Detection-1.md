@@ -219,7 +219,8 @@ The requests seen above are coming from IP 10.14.105.255 seem suspicious.
 <p align="center">
 <img src=screenshots/linux_pyfile.png width="700">
 </p>
-
+If we ahve evidence an attacker attempted to open a cert file we can search our log for exactly that.
+Command: **grep "/.py" /var/log/nginx/access.log*
 
 **Answer: /opt/trypingme/main.py**
 
@@ -227,13 +228,28 @@ The requests seen above are coming from IP 10.14.105.255 seem suspicious.
 
 2. Looking inside the opened file, what's the flag you see there?
 
-**Answer:**
+<p align="center">
+<img src=screenshots/linux_readpyfile.png width="700">
+</p>
+In the above task, we located the path to the file the attacker tried to open. Let's read the file.
+Command: **cat /opt/trypingme/main.py**
+
+**Answer: THM{i_am_vulnerable!} **
 
 ---
 
 ## Task 5 -- Detecting Service Breach
 
 ### Building Process Tree
+
+Application logs are not always available or helpful. Which is why SOCs rely on **Process Tree Analysis** to unwrap an Initial Access breach.
+  - Process Trees can visually highlight how a breach happened and how to spot it in process creation logs
+  - "whoami" is often a suspicious command
+
+**Example: You spot a whoami command. What was the parent process of that command? Follow the PPID trail.**
+<p align="center">
+<img src=screenshots/linux_processtree.png width="700">
+</p>
 
 ### Auditd and Process Tree
 
