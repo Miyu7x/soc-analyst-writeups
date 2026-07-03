@@ -33,6 +33,7 @@ Not all Linux attacks are simple SSH brute force or cryptomining. This room cove
 Attackers when they breach a system thur SSH they get a visual terminal, which often has autocompletion and Ctrl+C integration.  
 	- Initial Access via exploit or web vulnerability often comes with visual difficulties for the attackers.
 
+![](screenshots/linux3_trypingme.png)
 
 ### Reverse Shells
 
