@@ -108,9 +108,10 @@ In this task, use the VM to see how TryPingMe vulnerability works in practice:
 <p align="center">
 <img src=screenshots/linux3_trypingme.png width="700">
 </p>
+Whenever an attacker sees an input box their first thought proably is: is this input box sanitized, followed by inputting a command in there stringed with the format of what the input box might be looking for. In this case its looking for a domain or an IP address so the attacker does just that. The fact that this website in particular returns the result on the web browser itself lets the attacker know right away that this website is vulnerable.
+Command: 127.0.0.1 && whoami 
 
-
-**Answer:**
+**Answer: svctrypingme**
 
 ---
 
@@ -119,15 +120,20 @@ In this task, use the VM to see how TryPingMe vulnerability works in practice:
 <p align="center">
 <img src=screenshots/linux3_revshell.png width="700">
 </p>
+The attacker saw the vulnerability and now they want to run a command so that this web server calls back to their computer... Its not really practical to use the browser and the little input box to run multiple commands. The field TCP: in a real-world attack would be followed by the attacker's real IP address, and thats where the victim system will connect to. 
 
-
-**Answer:**
+**Answer: THM{revshells_practitioner!}**
 
 ---
 
 **3. Now look at the exported auditd logs at /home/ubuntu/scenario. Which IP spawned a similar reverse shell via the TryPingMe app?**
 
-**Answer:**
+<p align="center">
+<img src=screenshots/linux3_socatcommand.png width="700">
+</p>
+As an SOC we can set rules in auditd to search for commands that spawn reverse shell in order to maintain visibility where it matters. 
+
+**Answer: 10.14.105.255**
 
 ---
 
