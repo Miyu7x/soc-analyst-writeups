@@ -215,7 +215,7 @@ You can start the hunt from ausearch -i -if /home/ubuntu/scenario/audit.log.
 **1. Which command line was used to look for the "pass" keyword in files?**
 
 <p align="center">
-<img src=screenshots/linux3_passcommand.png width="700">
+<img src=screenshots/linux3_commandpass.png width="700">
 </p>
 An attacker will run discovery commands on the victim to obtain information or data, such as user login credentials and stored passwords, to perform privilege escalation. This is why looking for specific commands that include the keyword "pass" can be useful; in a real investigation, you would broaden the search to include pass, pwd, password... Type proctitle and keyword pass will return all commands that include the keyword pass.
 Command: **ausearch -i -if /home/ubuntu/scenario/audit.log | grep "type=PROCTITLE" | grep "pass"**
