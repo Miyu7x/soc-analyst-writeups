@@ -536,27 +536,58 @@ Targeted attacks are more devastating because the attacker knows where they are 
 Linux machines are mostly used as firewalls, web servers, mail servers or other public-facing services.
 	- Your entire company might run on Windows, but your mail server may be LInux...
 		- That compromised mail server can be an entry point to the entire company network.
-
+<p align="center">
+<img src=screenshots/linux3_webserver.png width="700">
+</p> 
 
 ### Linux in Espionage
 
-
+The government is known for using Linux machines to store sensitive information. This makes these Linux machines appealing to state threat actors.
+**Example: Backdoor via Systemd Service Persistence**
+<p align="center">
+<img src=screenshots/linux3_systemd.png width="700">
+</p> 
 
 ### Linux in Ransomware
 
-
+Hypervisors are becoming quite popular in Ransomware attacks... Imagine hundreds of Windows VMs that all sit inside just 3 Linux physical servers(hypervisors).
+	- If the hypervisors are not secured a breach could spill into the entire company, hundreds of Windows VMs will be compromised
+**Example: Windows VMs Hosted by Linux Hypervisor**
+<p align="center">
+<img src=screenshots/linux3_hypervisor.png width="700">
+</p> 
 
 ### Threat Detection Recap
 
+**auth.log** /var/log/auth.log
+	- Who logged in, when, and from where using which method?
+	- grep or cat directly, human-readable from the box 
+	- logins, logouts, sudo usage, su usage, SSH connection accepted/rejected, password changes
+	- PID only sshd[1234] 
 
+**audit.log** /var/log/audit/audit.log
+	- Tracks file create/writes/reads, process execution, and permissions changes
+	- Kernel audit rules need to be created to determine what the SOC needs to monitor
+	- **ausearch -i** needed to read it, it is numeric formated
+	- audit(timestamp:serial), -a (serial) for investigation
 
-**Does Linux ransomware exist and impact organizations worldwide? (Yea/Nay)**
+**MITRE ATT&CK Matrix of Threat Detection Recap**
 
-**Answer:**
+ <p align="center">
+<img src=screenshots/linux3_mitre.png width="700">
+</p> 
 
-**Should you learn Linux threats even if working with Windows? (Yea/Nay)**
+---
 
-**Answer:**
+**1. Does Linux ransomware exist and impact organizations worldwide? (Yea/Nay)**
+
+**Answer: Yea**
+
+---
+
+**2. Should you learn Linux threats even if working with Windows? (Yea/Nay)**
+
+**Answer: Yea**
 
 ## Task 7: Conclusion
 
