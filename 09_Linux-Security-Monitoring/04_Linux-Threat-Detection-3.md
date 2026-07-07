@@ -426,7 +426,7 @@ Press Enter to exit...
 ```
 
 
-**Answer:**
+**Answer: THM{ressurect_on_reboot!}**
 
 ---
 
@@ -434,50 +434,108 @@ Press Enter to exit...
 
 ### Account Persistence
 
+How do attackers leave a backdoor persistence for later access? You dont want to leave evidence of malware...
 
 
 ### New User Account
 
-Reference syntax:
+If an attacker got in by SSH, they may create a brand new user and add it to a privileged group for later access..
+	- Detecting this type of persistence is easier if you know what creation events to track!
+		- Authentication logs will offer valuable information to reconstruct the attack tree
+			- auditd search: **ausearch -i --ppid 27254 **
+
+**Example: Detecting New User Account:**
 
 ```
-cat /var/log/auth.log | grep -E 'useradd|usermod'
-ausearch -i --ppid <pid>
+root@thm-vm:~$ cat /var/log/auth.log | grep -E 'useradd|usermod'
+2025-09-18T15:46:30 thm-vm useradd[27254]: new group: name=support, GID=1001
+2025-09-18T15:46:30 thm-vm useradd[27254]: new user: name=support, UID=1001, GID=1001, home=/home/support, shell=/bin/bash
+2025-09-18T15:46:32 thm-vm usermod[27258]: add 'support' to group 'sudo'
+2025-09-18T15:46:32 thm-vm usermod[27258]: add 'support' to shadow group 'sudo'
 ```
-
-
 
 ### Backdoored SSH Keys
 
-Reference syntax:
+Sometimes the attacker is not able to create a new user account, but they have found stored SSH keys...
+The attacker will backdoor the SSH and use them for future logins... This is tricky for SOCs to spot as this process can easily blend in within a legitimate login,
+
+**Example: Adding SSH Backdoor to Authorized Keys**:
 
 ```
-echo "AAAAC3Nza...IkiINvQt/R" >> ~/.ssh/authorized_keys
-ausearch -i -f /.ssh/authorized_keys
-```
+# Adding SSH backdoor to the authorized_keys
+root@thm-vm:~$ echo "AAAAC3Nza...IkiINvQt/R" >> ~/.ssh/authorized_keys
 
+# It's hard to guess which key is a backdoor!
+root@thm-vm:~$ cat ~/.ssh/authorized_keys
+ssh-ed25519 AAAAC3Nza...oh5fpNy1Gi # Legitimate key
+ssh-ed25519 AAAAC3Nza...N9a2UYsFpQ # Legitimate key
+ssh-ed25519 AAAAC3Nza...IkiINvQt/R # Backdoor key
+```
+SSh keys by default are stored in **~/.ssh/authorized_keys**, as an SOC its vital to keep rules monitoring changes in these files.
+	- In this case, process creation events are ineffective; SSH keys can be modified in a multitude of different ways.
+	- Thus why logging evidence of SSH key manipulation is a bit more difficult
+
+**Example: Detecting SSH Behavior**
+```
+# Traces of a backdoor created with "echo [key] >> ~/.ssh/authorized_keys"
+# Note how the malicious "echo" command is logged simply as "bash"
+root@thm-vm:~$ ausearch -i -f /.ssh/authorized_keys
+type=PROCTITLE msg=audit(09/22/25 16:55:12.740:806) : proctitle=bash
+type=PATH msg=audit(09/22/25 16:55:12.740:806) : item=1 name=/home/user/.ssh/authorized_keys
+type=CWD msg=audit(09/22/25 16:55:12.740:806) : cwd=/
+type=SYSCALL msg=audit(09/22/25 16:55:12.740:806) : syscall=openat [...] a2=O_WRONLY|O_CREAT|O_EXCL ppid=1265 pid=1310 uid=root exe=/usr/bin/vi key=systemd
+```
+	
 
 
 ### Application Persistence
 
+If an attacker breaches a WordPress website and they have access to amdin privileges they can:
+	- add a backdoor to the website and run commands thru the backldoor
+	- No cron job or SSH keys required
+	- The persistence lives in the application layer
+		- **auditd** and **system logs** often **never** see it
 
+If you suffered a breach and cleared all possible techinique persistence but malware keeps reappearing; your **public-facing** app may be compromised
+**Example**
+<p align="center">
+<img src=screenshots/linux3_apppersistence.png width="700">
+</p> 
+---
 
-**Which user was created and added to the sudo group?**
+Now, detect two more persistence methods on the VM: Backdoored user and SSH key.
+You can use auditd (ausearch -i) and authentication logs to answer the questions.
+**/var/log/auth.log**
 
-**Answer:**
+---
+
+**1. Which user was created and added to the sudo group?**
+
+<p align="center">
+<img src=screenshots/linux3_apppersistence.png width="700">
+</p> 
+In order to filer for added users, were going to read the auth.log file for any "useradd".
+Command: cat /var/log/auth.log | grep "useradd" 
+
+**Answer: koichi**
 
 **Which file was changed to allow SSH key persistence?**
 
-**Answer:**
+**Answer: /root/.ssh/authorized_keys**
 
 ## Task 6: Targeted Attacks and Recap
 
 ### Targeted Attacks
 
+Targeted attacks are more devastating because the attacker knows where they are going and who they want to hurt. It could be a specific high-profile person, a large company, or a government entity.
+	- The reward and risk are much greater, as is the difficulty.
 
 
 ### Linux as Entry Point
 
+Linux machines are mostly used as firewalls, web servers, mail servers or other public-facing services.
+	- Your entire company might run on Windows, but your mail server may be LInux...
+		- That compromised mail server can be an entry point to the entire company network.
 
 
 ### Linux in Espionage
