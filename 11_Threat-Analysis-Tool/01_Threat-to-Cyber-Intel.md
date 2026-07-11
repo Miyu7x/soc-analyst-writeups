@@ -360,19 +360,18 @@ All the things we have discussed come together when mapping out an adversary bas
 **Answer: flbpfuh.exe**
 
 ---
-
+ 
 **3. After building the threat profile, what message do you receive?**
-
+ 
 <p align="center">
 <img src=screenshots/threat_flag.png width="700">
 </p>
-
-Threat Actor Extraction IP Address? Outbound network flow initiated to 91.185.23.222
-Threat Actor Email Address? Email received by John Doe from vipivillain@badbank.com
-Malware Tool? File download initiated by John Doe. File name: flbpfuh.exe
-User Victim Logged Account? Account logged on successfully. Account name: Administrator
-Victim Email Recipient? Account logged off successfully. Account name: John Doe
-
-**Answer: THM{NOW_I_CAN_CTI}**
-
+- **Threat Actor Extraction IP Address?** Outbound network flow initiated to 91.185.23.222
+- **Threat Actor Email Address?** Email received by John Doe from vipivillain@badbank.com
+- **Malware Tool?** File download initiated by John Doe. File name: flbpfuh.exe
+- **User Victim Logged Account?** Account logged on successfully. Account name: Administrator
+- **Victim Email Recipient?** Account logged off successfully. Account name: John Doe
+ 
+**Answer:** THM{NOW_I_CAN_CTI}
+ 
 ---
