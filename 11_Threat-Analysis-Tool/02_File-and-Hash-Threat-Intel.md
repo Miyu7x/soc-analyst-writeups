@@ -10,14 +10,16 @@ date_completed:
 ---
 
 *Write-up by [Miyu7x](https://github.com/Miyu7x) | TryHackMe: [Miyu7](https://tryhackme.com/p/Miyu7) | BTLO: [Miyu7x](https://blueteamlabs.online/public/user/Miyu7x)*
+<p align="center">
+<img src=screenshots/threat2_intro.png width="1500">
+</p>
+---
 
 ## Task 1: Introduction
-*[reference]*
 
-Security Operations teams live inside alert queues and triaging. Every entry follows three essential steps: verify, enrich, and decide. File and hash intelligence sits squarely in the enrich phase, transforming a lone path or hash value into contextual knowledge within your organisation about malicious artefacts that would be identified.
+Security Operations teams live inside alert queues and triaging. Every entry follows three essential steps: verify, enrich, and decide. File and hash intelligence sits squarely in the enrich phase, transforming a lone path or hash value into contextual knowledge within your organization about malicious artifacts that would be identified.
 
 ### Learning Objectives
-*[reference]*
 
 By completing this room, you will be able to:
 
@@ -27,7 +29,6 @@ By completing this room, you will be able to:
 * Extract behaviour from sandbox telemetry and map it to MITRE ATT&CK.
 
 ### Prerequisites
-*[reference]*
 
 Before embarking on the journey, ensure that you have covered the following concepts and rooms:
 
@@ -35,12 +36,10 @@ Before embarking on the journey, ensure that you have covered the following conc
 * [Intro to Cyber Threat Intelligence](https://tryhackme.com/room/cyberthreatintel)
 
 ### Scenario
-*[reference]*
 
 It is a Monday in April. Try Daily is preparing a significant release. The EDR tool flags multiple binaries on various workstations during a routine alert sweep. You, the L1 analyst (shadowing your L2 mentor), receive a curated triage package containing those samples. Within 60 minutes, you must provide evidence to showcase whether these files are bait, benign, or malicious.
 
 ### Lab Access
-*[reference]*
 
 Before proceeding, start the lab by clicking the Start Machine button below. The VM will open in split view and take about 2 minutes to load fully. If it is not visible, click the Show Split View button at the top of the page. Once the VM loads, you will find:
 
@@ -59,29 +58,56 @@ Before proceeding, start the lab by clicking the Start Machine button below. The
 ---
 
 ## Task 2: Filenames and Paths
-*[quick definition]*
 
+You spot a suspicious.exe; your first reliable course of action is to read the strings, such as filepaths.
+
+<p align="center">
+<img src=screenshots/threat2_filepath.png width="700">
+</p>
 
 ### Filepath Analysis
-*[quick definition]*
 
-
+Think of a crime scene: file paths and names are like clues left by the attacker.
+  - Attackers may attempt to hide evidence by using different disk locations to hide their actions
+      - C:\ disk is a common target for persistence tachiniques
+      - C:\Users\Public the **public** profile can enable be used as files can be shared to all other users through this account
+      - C:\Users\Public\Public Downloads is a high traffic directory that is often over looked in monitoring
+      - C: \Windows\Temp\ attackers will put files in here because they are created, used, and deleted temporarily.
+      - C:\ProgramData\ attackers will often use this directory for stealthy persistence
+    
 ### Filename Heuristic Indicators
-*[decision logic]*
 
+Heuristic Indicators basically means little clues that could point to an attacker trick; 
+  - doubling up on extension **file.pdf.exe**
+  - changing the file name to a regularly used process such as **scvhost.exe**
+  - a file name **jh8F21.exe** suggests packing or polyphormic generation known as high-entropy strings
+  - dishguising filenames such as backup-2300.exe can blend with routine files
 
-**Answer the questions below**
+**Tip**: These should be in the starter book of any SOC to learn and recognize!
+
 
 ---
 
 **1. One of the files included in the `CTI Files` folder on the Desktop shows one of the indicators mentioned. Can you identify the file and the indicator? (Answer: file, property)**
 
-**Answer:**
+Looking inside the directory, we observed four different files, the one that jumped out right away that it could represent CTI is the obvious double exenstion **payroll.pdf.exe**
+<p align="center">
+<img src=screenshots/threat2_doubleexe.png width="700">
+</p>
+
+**Answer: payroll.pdf, Double extensions**
 
 ---
 
 ## Task 3: File Hash Lookup
-*[decision logic]*
+
+Even after spotting the suspicious filename, we still don't have concrete evidence of a malicious file. Attackers are constantly changing file names; however, the file's cryptographic fingerprint remains the same. By analyzing the SHA256 and MD5 we can identify files and malware.
+
+Tips on dealing with hashes:
+  - Store hashes in lowercase to avoid nuisances
+  - .zip files should be hashed as well as the extracted file
+  - Plain strings without any context where you got them could confuse your team
+  - **Note:** one byte of the file is changed, and the hash will be completely different, so hashes should not be considered foolproof as evidence.
 
 We can generate and verify our file hash using the following commands:
 
@@ -104,7 +130,16 @@ ubuntu@tryhackme$ sha256sum bl0gger.exe
 
 
 ### Analysis With VirusTotal
-*[decision logic]*
+
+Hash in hand the SOC can move to the next step in his investigation. https://www.virustotal.com/ is a tool widely used by security analysts, it provides us with dozens of antivirus reports from a single serach.
+  - Simply submit a hash and the website will return a comprehensive report with various fields of useful information
+      - **Detection Score**: the more dangerous a hash/file/website is, the higher the number
+      - **Detection rules**: Technical signatures used by antivirus software, YARA rules, heuristic indicators, and behavioral triggers
+      - **Properties**: Core metadata can for the file, type, size, compilation, timestamp
+      - **Contained domains and IPs**: Malwares network infrastructure
+      - **Contained files**: Details files embedded or dorpped during malware execution 
+
+
 
 | Section | Key Question | Red Flags | Analyst Considerations |
 |---|---|---|---|
@@ -117,7 +152,11 @@ ubuntu@tryhackme$ sha256sum bl0gger.exe
 
 
 ### Cross-Reference With MalwareBazaar
-*[decision logic]*
+
+https://bazaar.abuse.ch/ All-in-one database for malware collection and analysis 
+  - Upload malware samples for analysis
+  - Malware hunting through: malware family tagging, YARA rule integration search, campaign contribution search through tags such as #TA551
+  - Malware samples for download and research
 
 
 **Answer the questions below**
