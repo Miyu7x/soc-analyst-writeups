@@ -18,25 +18,21 @@ date_completed: ""
 ---
 
 *Write-up by [Miyu7x](https://github.com/Miyu7x) | TryHackMe: [Miyu7](https://tryhackme.com/p/Miyu7) | BTLO: [Miyu7x](https://blueteamlabs.online/public/user/Miyu7x)*
+<p align="center">
+<img src=screenshots/shadow_intro.png width="1500">
+</p>
+
+---
 
 ## Task 1 — Introduction
 
 ### Learning Objectives
-
-
-### Prerequisites
-
-
-### Practice
-
-
-**Answer the questions below**
-
----
-
-**1.** All set to begin.
-
-**Answer:** N/A
+ 
+- Enrich domains with WHOIS age, DNS records, and TLS details
+- Learn the concepts of ASNs and geolocation for SOC triage
+- Spot red-flag services using VirusTotal, Shodan, and Censys
+- Detect VPN, proxy, and Tor exit nodes with IP2Proxy and Spur
+- Correlate signals across sources instead of trusting one verdict
 
 ---
 
@@ -44,20 +40,34 @@ date_completed: ""
 
 ### Resolving DNS Domains
 
+Domain Name Sysytem Protocol - Converts www.x.com to 162.159.140.229. The user types in a human readable address the DNS converts it into an address the machine can read it
 
 ### A / AAAA Records
 
+https://www.nslookup.io/
+https://dnschecker.org
+
+These websites keep recors of the IP address and where they are hosted. SOCs can check these records to see if the IP could be tied to any **Advanced Persistence Threat** groups.
 
 ### TXT Records
 
+TXT Records details the IP addresses: security settings such as SPF and DKIM and its used tools. A legitemate website dfiscloses its security tools.
+  - An attack on infrastructure will have an empty TXT records
+  - Suspicious Sender Policy Framework records and faked Domain Keys Identified Mail which are often abused by fishing campaigns 
 
 ### WHOIS / RDAP
 
+WHOIS is another domain enrichament tool: registration information, expiry dates and the domains age date.
+RDAP is going to take over WHOIS in the near future. As modern attacker domains does not stay online for more than a few months, which makes the WHOIS tracker obselete since the malicious domain will appear and be gone within a few days.
 
 ### Attack Techniques Using DNS
 
+**Content Delivery Network**
+Globally distributed network of proxy servers, sits on the edge of the network so the connection distance is shortned.
+  - minimizes physical distance data must travel to reach its user
 
-### CDN Abuse
+**CDN Abuse** attackers will route their malicious traffic through a legitimate CDNs like cloudflare, Akamai of Fastly to hide their origin server
+
 
 
 ### Typosquatting
@@ -68,20 +78,33 @@ date_completed: ""
 
 ### SOC Practice
 
+On June 1, 2026, the SIEM raises a critical alert pointing to the domain purematrixa[.]com.
+As an L1 analyst, enrich this indicator by using tools such as nslookup.io(opens in new tab) or whois.domaintools.com(opens in new tab).
 
-**Answer the questions below**
+IMPORTANT NOTE: Domain intel changes rapidly, so online tools may give you incorrect answers over time. 
+
+To answer the questions, please use the attached PDF reports
+However, you are encouraged to try out online tools as well
 
 ---
 
 **1.** Which CDN does the purematrixa[.]com domain use?
 
-**Answer:**
+<p align="center">
+<img src=screenshots/shadow_cloudflare.png width="700">
+</p>
+
+**Answer: Cloudflare**
 
 ---
 
 **2.** According to the report, how old was the domain when SIEM raised an alert?
 
-**Answer:**
+<p align="center">
+<img src=screenshots/shadow_date.png width="700">
+</p>
+
+**Answer: 1 days old**
 
 ---
 
