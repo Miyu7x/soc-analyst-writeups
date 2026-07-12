@@ -19,7 +19,7 @@ date_completed: ""
 
 *Write-up by [Miyu7x](https://github.com/Miyu7x) | TryHackMe: [Miyu7](https://tryhackme.com/p/Miyu7) | BTLO: [Miyu7x](https://blueteamlabs.online/public/user/Miyu7x)*
 <p align="center">
-<img src=screenshots/shadow_intro.png width="1500">
+<img src=screenshots/threat3_intro.png width="1500">
 </p>
 
 ---
@@ -63,8 +63,8 @@ RDAP is going to take over WHOIS in the near future. As modern attacker domains 
 ### Attack Techniques Using DNS
 
 **Content Delivery Network**
-Globally distributed network of proxy servers, sits on the edge of the network so the connection distance is shortned.
-  - minimizes physical distance data must travel to reach its user
+Globally distributed network of proxy servers sits on the edge of the network, so the connection distance is shortened.
+  - minimizes the physical distance data must travel to reach its user
 
 **CDN Abuse** attackers will route their malicious traffic through a legitimate CDNs like cloudflare, Akamai of Fastly to hide their origin server
 
@@ -91,7 +91,7 @@ However, you are encouraged to try out online tools as well
 **1.** Which CDN does the purematrixa[.]com domain use?
 
 <p align="center">
-<img src=screenshots/shadow_cloudflare.png width="700">
+<img src=screenshots/threat_cloudflare.png width="700">
 </p>
 
 **Answer: Cloudflare**
@@ -101,7 +101,7 @@ However, you are encouraged to try out online tools as well
 **2.** According to the report, how old was the domain when SIEM raised an alert?
 
 <p align="center">
-<img src=screenshots/shadow_date.png width="700">
+<img src=screenshots/threat_date.png width="700">
 </p>
 
 **Answer: 1 days old**
@@ -112,10 +112,30 @@ However, you are encouraged to try out online tools as well
 
 ### IP Enrichment Within the SOC
 
+When a SIEM or EDR alert pops up, it reveals at least one IP address, more often than not that IP will not seem malicious since most attackers will hide their real IP address.
+  - The IP could be from a CDN edge, users  with cloud services...
+    - Without IP enrichment as an SOC, you might risk blocking legitimate infrastructure and underreacting by ignoring real malicious servers.
+    - SOCs specifically L1s can do some investigation about the IP services
+        - https://www.abuseipdb.com/ To see if the IP was involved in any **port scans** or **brute-force** attacks
+        - https://www.virustotal.com/ Revelas IP reputation
+
+**Important:** If an IP is not within a **CDN** range, even one Alert with that IP is considered dangerous and worth looking into!
 
 ### Autonomous Systems
 
+<p align="center">
+<img src=screenshots/threat3_map.png width="700">
+</p>
 
+**AS** Autonomous System is a group of IP prefixes that are controlled by a single organization
+  - **Residential ASN** Alerts here point to a VPN or compromised device
+      - **AS124888** Vodafone
+  - **Server Hosting** Risky as it is most widely used by attackers to distrubute malware
+      - **AS215439** PLAY2GO
+  - **Cloud/CDN ASN** Used by everyday users and attackers, requires further investigation
+      - **AS16509** Amazon AWS
+
+        
 ### Geolocation (GeoIP)
 
 
