@@ -3,15 +3,7 @@ title: "IP and Domain Threat Intel"
 module: "Threat Analysis Tools"
 path: "SOC Level 1"
 platform: "TryHackMe"
-tags:
-  - soc
-  - blue-team
-  - tryhackme
-  - threat-intel
-  - dns
-  - whois
-  - ip-enrichment
-  - vpn-detection
+tags: [soc, blue-team, tryhackme, threat-intel, dns, whois, ip-enrichment, vpn-detection]
 status: "in-progress"
 date: ""
 date_completed: ""
