@@ -10,6 +10,11 @@ date_completed:
 ---
 
 *Write-up by [Miyu7x](https://github.com/Miyu7x) | TryHackMe: [Miyu7](https://tryhackme.com/p/Miyu7) | BTLO: [Miyu7x](https://blueteamlabs.online/public/user/Miyu7x)*
+<p align="center">
+<img src=screenshots/invite_intro.png width="1500">
+</p>
+
+---
 
 ## Task 1: Investigating Flagged Indicators
 
@@ -40,60 +45,69 @@ To successfully complete this room, you'll need to set up your virtual environme
 
 **1. What is the name of the file identified with the flagged SHA256 hash?**
 
-Answer:
+<p align="center">
+<img src=screenshots/invite_file.png width="700">
+</p>
+As an SOC, finding a suspicious downloaded file called **syshelpers.exe** should set off alarm bells. Attackers will often name their files masquerading as legitimate tools and processes your computer might need; this is a prime example of such! Upon finding the file the SOC should begin immediate static analysis of the hash to collect more information on the potentially malicious file.
 
+**Answer: syshelpers.exe**
+ 
 ---
-
+ 
 **2. What is the file type associated with the flagged SHA256 hash?**
 
-Answer:
+ <p align="center">
+<img src=screenshots/invite_filetype.png width="700">
+</p>
 
+**Answer: Win32 EXE**
+ 
 ---
-
+ 
 **3. What are the execution parents of the flagged hash? List the names chronologically, using a comma as a separator. Note down the hashes for later use.**
-
-Answer:
-
+ 
+**Answer:**
+ 
 ---
-
+ 
 **4. What is the name of the file being dropped? Note down the hash value for later use.**
-
-Answer:
-
+ 
+**Answer:**
+ 
 ---
-
+ 
 **5. Research the second hash in question 3 and list the four malicious dropped files in the order they appear (from up to down), separated by commas.**
-
-Answer:
-
+ 
+**Answer:**
+ 
 ---
-
+ 
 **6. Analyse the files related to the flagged IP. What is the malware family that links these files?**
-
-Answer:
-
+ 
+**Answer:**
+ 
 ---
-
+ 
 **7. What is the title of the original report where these flagged indicators are mentioned? Use Google to find the report.**
-
-Answer:
-
+ 
+**Answer:**
+ 
 ---
-
+ 
 **8. Which tool did the attackers use to steal cookies from the Google Chrome browser?**
-
-Answer:
-
+ 
+**Answer:**
+ 
 ---
-
+ 
 **9. Which phishing technique did the attackers use? Use the report to answer the question.**
-
-Answer:
-
+ 
+**Answer:**
+ 
 ---
-
+ 
 **10. What is the name of the platform that was used to redirect a user to malicious servers?**
-
-Answer:
-
+ 
+**Answer:**
+ 
 ---
