@@ -106,9 +106,9 @@ Searching for dropped files is a crtitical step for any SOC investigation as it 
 <p align="center">
 <img src=screenshots/invite_dropped4.png width="700">
 </p>
-Researching the flagged IP we locate multiple COmmunicating Files that are worth investigating, upon checking the 8 Files individually we observe that they all have one family in common, they all have various Dynamic Analysis Sandbox Detection but there is one that i shared between all of them: **The sandbox C2AE flags this file as: RAT**
+Researching the flagged IP we locate multiple COmmunicating Files that are worth investigating, upon checking the 8 Files individually we observe that they all have one family in common, they all have various Dynamic Analysis Sandbox Detection but there is one that i shared between all of them: **The sandbox C2AE flags this file as: RAT** along with the family label **AsyncRAT** all this information aquire on VirusTotal
  
-**Answer:**
+**Answer:ASyncRAT**
  
 ---
  
