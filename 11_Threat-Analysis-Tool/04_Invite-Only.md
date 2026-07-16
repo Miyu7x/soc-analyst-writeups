@@ -4,7 +4,7 @@ module: Threat Analysis Tools
 path: SOC Level 1
 platform: TryHackMe
 tags: [threat-intel, osint, malware-analysis, ioc-investigation]
-status: in-progress
+status: completed
 date: 2026-07-13
 date_completed: 2026-07-16
 ---
@@ -48,93 +48,100 @@ To successfully complete this room, you'll need to set up your virtual environme
 <p align="center">
 <img src=screenshots/invite_file.png width="700">
 </p>
-As an SOC, finding a suspicious downloaded file called **syshelpers.exe** should set off alarm bells. Attackers will often name their files masquerading as legitimate tools and processes your computer might need; this is a prime example of such! Upon finding the file the SOC should begin immediate static analysis of the hash to collect more information on the potentially malicious file.
+
+As an SOC analyst, finding a suspicious downloaded file called **syshelpers.exe** should set off alarm bells. Attackers often name their files to masquerade as legitimate tools or processes a computer might need, and this is a prime example. Upon finding the file, the SOC should begin immediate static analysis of the hash to collect more information on the potentially malicious file.
 
 **Answer: syshelpers.exe**
- 
+
 ---
- 
+
 **2. What is the file type associated with the flagged SHA256 hash?**
 
- <p align="center">
+<p align="center">
 <img src=screenshots/invite_filetype.png width="700">
 </p>
 
 **Answer: Win32 EXE**
- 
+
 ---
- 
+
 **3. What are the execution parents of the flagged hash? List the names chronologically, using a comma as a separator. Note down the hashes for later use.**
 
-  <p align="center">
+<p align="center">
 <img src=screenshots/invite_parentprocess.png width="700">
 </p>
-**Note:** When analyzing a file in VirusTotal it is best practice request VirusTotal to reanalyze thesuspicious file to pull new information or data that has not been populated!
-Finding out what spawned our malicious file is important because it tells us how the infection breached the system, its is crucial for building a timeline of events to be documented in our **incident report**, future detection incidents could be flagged by the processes that ran which is more in-depth than just a hash which is a big deal for future prevention logic.
+
+**Note:** When analyzing a file in VirusTotal, it is best practice to request VirusTotal reanalyze the suspicious file to pull new information or data that has not been populated.
+
+Finding out what spawned our malicious file is important because it tells us how the infection breached the system in the first place. That's crucial for building a timeline of events to document in our **incident report**. It also matters for future prevention, since a process chain is a lot harder for an attacker to change than a single file hash. Flagging on parent/child process behavior instead of just a hash means detection logic that actually survives the attacker swapping their payload.
 
 **361GJX7J:** 047c5eec0445746862710d20e50a5dd04510b7e625fa5c1f5d48ce078001c0de
 **installer.exe:** fa102d4e3cfbe85f5189da70a52c1d266925f3efd122091cdc8fe0fc39033942
 
-**Answer: 	361GJX7J, 	installer.exe**
- 
+**Answer: 361GJX7J, installer.exe**
+
 ---
- 
+
 **4. What is the name of the file being dropped? Note down the hash value for later use.**
 
-   <p align="center">
+<p align="center">
 <img src=screenshots/invite_parentprocess.png width="700">
 </p>
-Searching for dropped files is a crtitical step for any SOC investigation as it now points to the attacker is moving forward in their attack, this dropped file is the attacker delivering the payload. It also signals they can be in the proceess of escalation, tracking these dropped files lets us build the chain of attacks.
+
+Searching for dropped files is a critical step in any SOC investigation, since a dropped file is the attacker delivering their payload. That's a sign the attacker is moving forward, potentially into escalation, and tracking each dropped file lets us build out the full chain of attack.
+
 **Hash AClient.exe:** dd02c105809e4ca41a5489e585ba025eddb89a91703b73a566c9903e6406a08c
 
 **Answer: AClient.exe**
- 
+
 ---
- 
+
 **5. Research the second hash in question 3 and list the four malicious dropped files in the order they appear (from up to down), separated by commas.**
 
- <p align="center">
+<p align="center">
 <img src=screenshots/invite_dropped4.png width="700">
 </p>
 
-**Answer: searchhost.exe,syshelpers.exe,nat.vbs,runsys.vbs**
- 
+**Answer: searchhost.exe, syshelpers.exe, nat.vbs, runsys.vbs**
+
 ---
- 
+
 **6. Analyse the files related to the flagged IP. What is the malware family that links these files?**
 
 <p align="center">
 <img src=screenshots/invite_dropped4.png width="700">
 </p>
-Researching the flagged IP we locate multiple COmmunicating Files that are worth investigating, upon checking the 8 Files individually we observe that they all have one family in common, they all have various Dynamic Analysis Sandbox Detection but there is one that i shared between all of them: **The sandbox C2AE flags this file as: RAT** along with the family label **AsyncRAT** all this information aquire on VirusTotal
- 
-**Answer: ASyncRAT**
- 
+
+Researching the flagged IP on VirusTotal surfaces multiple Communicating Files worth investigating. Checking all 8 files individually, each one carries its own mix of Dynamic Analysis Sandbox detections, but one classification is shared across every single file: the sandbox flags each of them as a **RAT**, with the family label **AsyncRAT**. That consistency across 8 separate files is what confirms the malware family tying this whole flagged IP together.
+
+**Answer: AsyncRAT**
+
 ---
- 
+
 **7. What is the title of the original report where these flagged indicators are mentioned? Use Google to find the report.**
 
 <p align="center">
-<img src=screenshots/invite_report .png width="700">
+<img src=screenshots/invite_report.png width="700">
 </p>
-An SOC has the entire web for research; don't limit yourself to just the bookmarked tools. Sometimes, finding reports or other information not readily available requires some digging on Google. Your Open Source Intelligence (OSINT) instincts should be used in this case; do some research. 
-For this problem, I Googled: Report for 5d0509f68a9b7c415a726be75a078180e3f02e59866f193b0a99eee8e39c874f
+
+An SOC analyst has the entire web for research, so don't limit yourself to just the bookmarked tools. Sometimes finding a report requires digging on Google, so your OSINT instincts should kick in here. For this question, I searched: Report for 5d0509f68a9b7c415a726be75a078180e3f02e59866f193b0a99eee8e39c874f
 
 **Answer: From Trust to Threat: Hijacked Discord Invites Used for Multi-Stage Malware Delivery**
- 
+
 ---
- 
+
 **8. Which tool did the attackers use to steal cookies from the Google Chrome browser?**
 
- <p align="center">
+<p align="center">
 <img src=screenshots/invite_cookies.png width="700">
 </p>
-The detailed report gives the SOC various types of important information, like how to understand the attacks, the techniques involved, how the exploitation works, as well as examples and scripts.
-   
+
+The full report gives the SOC various layers of context, including how the attack unfolds, the techniques involved, how the exploitation works, and example scripts used along the way.
+
 **Answer: ChromeKatz**
- 
+
 ---
- 
+
 **9. Which phishing technique did the attackers use? Use the report to answer the question.**
 
 <p align="center">
@@ -142,15 +149,15 @@ The detailed report gives the SOC various types of important information, like h
 </p>
 
 **Answer: ClickFix**
- 
+
 ---
- 
+
 **10. What is the name of the platform that was used to redirect a user to malicious servers?**
 
 <p align="center">
 <img src=screenshots/invite_redirect.png width="700">
 </p>
- 
+
 **Answer: Discord**
- 
+
 ---
