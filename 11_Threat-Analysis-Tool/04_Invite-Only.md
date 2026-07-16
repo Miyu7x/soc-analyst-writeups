@@ -6,7 +6,7 @@ platform: TryHackMe
 tags: [threat-intel, osint, malware-analysis, ioc-investigation]
 status: in-progress
 date: 2026-07-13
-date_completed:
+date_completed: 2026-07-16
 ---
 
 *Write-up by [Miyu7x](https://github.com/Miyu7x) | TryHackMe: [Miyu7](https://tryhackme.com/p/Miyu7) | BTLO: [Miyu7x](https://blueteamlabs.online/public/user/Miyu7x)*
@@ -97,7 +97,7 @@ Searching for dropped files is a crtitical step for any SOC investigation as it 
 <img src=screenshots/invite_dropped4.png width="700">
 </p>
 
-**Answer: syshelpers.exe, nat1.vbs, 3uhl34xj.0.cs, bitaddress.pdf**
+**Answer: searchhost.exe,syshelpers.exe,nat.vbs,runsys.vbs**
  
 ---
  
@@ -108,32 +108,49 @@ Searching for dropped files is a crtitical step for any SOC investigation as it 
 </p>
 Researching the flagged IP we locate multiple COmmunicating Files that are worth investigating, upon checking the 8 Files individually we observe that they all have one family in common, they all have various Dynamic Analysis Sandbox Detection but there is one that i shared between all of them: **The sandbox C2AE flags this file as: RAT** along with the family label **AsyncRAT** all this information aquire on VirusTotal
  
-**Answer:ASyncRAT**
+**Answer: ASyncRAT**
  
 ---
  
 **7. What is the title of the original report where these flagged indicators are mentioned? Use Google to find the report.**
 
+<p align="center">
+<img src=screenshots/invite_report .png width="700">
+</p>
+An SOC has the entire web for research; don't limit yourself to just the bookmarked tools. Sometimes, finding reports or other information not readily available requires some digging on Google. Your Open Source Intelligence (OSINT) instincts should be used in this case; do some research. 
+For this problem, I Googled: Report for 5d0509f68a9b7c415a726be75a078180e3f02e59866f193b0a99eee8e39c874f
 
- 
-**Answer:**
+**Answer: From Trust to Threat: Hijacked Discord Invites Used for Multi-Stage Malware Delivery**
  
 ---
  
 **8. Which tool did the attackers use to steal cookies from the Google Chrome browser?**
- 
-**Answer:**
+
+ <p align="center">
+<img src=screenshots/invite_cookies.png width="700">
+</p>
+The detailed report gives the SOC various types of important information, like how to understand the attacks, the techniques involved, how the exploitation works, as well as examples and scripts.
+   
+**Answer: ChromeKatz**
  
 ---
  
 **9. Which phishing technique did the attackers use? Use the report to answer the question.**
- 
-**Answer:**
+
+<p align="center">
+<img src=screenshots/invite_phishing.png width="700">
+</p>
+
+**Answer: ClickFix**
  
 ---
  
 **10. What is the name of the platform that was used to redirect a user to malicious servers?**
+
+<p align="center">
+<img src=screenshots/invite_redirect.png width="700">
+</p>
  
-**Answer:**
+**Answer: Discord**
  
 ---
