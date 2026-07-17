@@ -139,9 +139,8 @@ Logs from all or just a few of these resources are sent to the SIEM platform, wh
 
 Host-based logs come from an individual's computer at a company, a workstation, or a server. This server can be:
   - An SQL server used to store data in a table format with various attributes as well as different relationships between the data values.
-  - DNS servers are machines or software responsible for resolving human-readable URL addresses to their IP addresses  
-
-
+  - DNS servers are machines or software responsible for resolving human-readable URL addresses to their IP addresses
+  - and many more...
 
 #### Network-Based Log Sources
 
@@ -149,7 +148,7 @@ Host-based logs come from an individual's computer at a company, a workstation, 
 <img src=screenshots/analysis_network.png width="400">
 </p>
 
-
+Network-Based logs keep record of anything that touches the web/network 
 
 #### Web-Based Log Sources
 
