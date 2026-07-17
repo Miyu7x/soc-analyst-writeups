@@ -168,20 +168,20 @@ However, this task will touch upon two other important topics, such as time pitf
 #### Time Pitfalls
 
 
-One common challenge analysts face when working in a SIEM is time, specifically how time is recorded across different log sources.
+One common challenge analysts face when working in an SIEM is time, specifically how time is recorded across different log sources.
 
 Logs can come from systems in different time zones. Some can be in UTC, others in local time, and some may not include a timezone at all.
 
 It's important to understand that your local time can be different from the time set in the SIEM.
 
-Let's say you're working in UTC-2, but the logs in Splunk SIEM are normalised to UTC+2. If it's 5 PM for you, those same logs might appear as 9 PM in Splunk. That doesn't mean the logs are ingested four hours late; it's just a difference in time settings.
+Let's say you're working in UTC-2, but the logs in Splunk SIEM are normalized to UTC+2. If it's 5 PM for you, those same logs might appear as 9 PM in Splunk. That doesn't mean the logs are ingested four hours late; it's just a difference in time settings.
 
-So always be aware of which time zones you're dealing with when analysing events. It can make all the difference in understanding what really happened, and when.
+So always be aware of which time zones you're dealing with when analyzing events. It can make all the difference in understanding what really happened, and when.
 
-#### Logs Normalisation
+#### Logs Normalization
 
-Logs come in various formats: JSON, XML and some even in plain text.
-  - Each system logs events ins it **own** way: different field names and structures.
+Logs come in various formats: JSON, XML, and some even in plain text.
+  - Each system logs events in its **own** way: different field names and structures.
   - This is where **Normalization** comes in
       - Converts all these formats into a single cohesive structure
       - All can be viewed in human-readable format in the SIEM
@@ -193,13 +193,13 @@ Logs come in various formats: JSON, XML and some even in plain text.
 
 **1. What is the process of converting logs from different formats into a single format for easier analysis in a SIEM?**
 
-**Answer:**
+**Answer: Normalization**
 
 ---
 
 **2. Which log source type can be used to detect the execution of a malicious script?**
 
-**Answer:**
+**Answer: Host-based**
 
 ---
 
@@ -211,15 +211,24 @@ However, combining these two data sources actually provides clear visibility for
 
 Let's briefly look at each of them.
 
+<p align="center">
+<img src=screenshots/analysis_syswin.png width="400">
+</p>
+
 #### Sysmon
 
-*[quick definition]*
-
+Sysmon is a powerful Windows logging tool; it's capable of keeping logs of various activities, giving SOCs a wide range of visibility during analysis.
+  - Deep visibility into system behavior
+  - Identify the execution of malicious processes and many others such as:
+      - network connections
+      - possible process injection
+      - registry changes
+      - file creation
+  
 
 
 #### Malicious Process Execution
 
-*[reference]*
 
 Let's consider a situation where you've received an alert about the execution of a suspicious encoded PowerShell command. You now need to analyse the activity. How would you use a SIEM in this case? Let's try using a Splunk query to see what useful information we can find in the logs using Splunk SIEM. Let's write a search that detects launched processes (EventCode=1) related to PowerShell that include the EncodedCommand PowerShell argument.
 
@@ -231,10 +240,13 @@ index=winenv EventCode=1 *powershell* AND *EncodedCommand*
 In this example, we detected that on host WINHOST05, a malicious update_config.js file was executed from the C:\Users\Public directory, which resulted in cmd.exe launching PowerShell with an encoded command.
 
 Note: The activities from the following examples will not be visible in your Splunk instance, it only contains logs for your practical tasks.
+<p align="center">
+<img src=screenshots/analysis_example.png width="700">
+</p>
+
 
 #### Suspicious Network Connection
 
-*[reference]*
 
 This story didn't end there, as just a few minutes later, we received another alert from WINHOST05, this time about a suspicious network connection. Let's try to determine what happened using Sysmon logs. To do this, we will search for EventCode 3, which identifies network connections, and filter by the host WINHOST05, since that is where the activity originated.
 
@@ -244,18 +256,18 @@ index=winenv EventCode=3 ComputerName=WINHOST05
 ```
 
 As shown in the image below, a suspicious connection was initiated by the suspicious process PPn423.exe from the Temp folder, targeting the unusual port 9999 on IP address 83.222.191.2. We also recommend checking this IP on TI platforms.
+<p align="center">
+<img src=screenshots/analysis_suspicious.png width="700">
+</p>
 
 These are just two examples of when Sysmon can be useful; in reality, there are many other situations where these logs can help detect anomalies.
 
 #### WinEventLogs
 
-*[quick definition]*
-
+WinEventLogs or Windows Event Logs includes hundreds of unique log files beyond the common three were used to: Security, System and Application Logs
 
 
 #### Windows Security Logs
-
-*[reference]*
 
 The most commonly viewed and referenced logs are the Security logs, but why is that the case? Let's break down why these logs are so important and what makes them essential for investigation. Analysts can detect in Security logs activities such as user authentication attempts, account creation or modification, access to files and registry keys, process execution, system restarts or log clearing, and changes to audit or security policies.
 
@@ -267,10 +279,12 @@ index=winenv EventCode=4720 OR EventCode=4722
 ```
 
 The attacker likely decided to create a persistence mechanism in the form of a backup user account, which was created and enabled by ted-admin on the WINHOST05 host.
+<p align="center">
+<img src=screenshots/analysis_winev.png width="700">
+</p>
+
 
 #### Windows System Logs
-
-*[reference]*
 
 These logs record events generated by the operating system and its core services. They help detect various events related to services, system-level activity, and potential errors.
 
@@ -282,6 +296,9 @@ index=winenv EventCode=7045 OR EventCode=7036 ComputerName=WINHOST05
 ```
 
 From the search results, we can see that on the host, a service named "User Updates" was created and started, which launches the malicious RNSfnsjdf.exe file from the Temp directory under the SYSTEM account. This is most likely a privilege escalation attempt, as we recall that the attacker previously only had access to the ted-admin account.
+<p align="center">
+<img src=screenshots/analysis_winsys.png width="700">
+</p>
 
 In that task, we examined a number of important log sources for an SOC L1 analyst and the value they can provide. Of course, there are many other logs that we will explore together in future rooms.
 
