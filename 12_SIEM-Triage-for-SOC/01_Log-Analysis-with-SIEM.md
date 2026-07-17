@@ -148,12 +148,17 @@ Host-based logs come from an individual's computer at a company, a workstation, 
 <img src=screenshots/analysis_network.png width="400">
 </p>
 
-Network-Based logs keep record of anything that touches the web/network 
+Network-Based logs keep record of anything that touches the web/network: firewalls, routers, IDS and IPS and others.
+  - Monitors traffic and Connections accross your network
 
 #### Web-Based Log Sources
 
-*[quick definition]*
+<p align="center">
+<img src=screenshots/analysis_web.png width="400">
+</p>
 
+Organizations have their own web app most of the time, and these are where the Web-Based logs come from.
+  - Attackers often gain access to an organization through web app vulnerabilities so its important for SOCs to pay close attention to their web events
 
 
 In addition to the above-mentioned data sources, SIEM also collects logs from cloud platforms such as AWS and Azure, various identity providers like Entra ID, and third-party applications. However, this is beyond the scope of this room, so we'll leave it for future discussions.
@@ -162,7 +167,6 @@ However, this task will touch upon two other important topics, such as time pitf
 
 #### Time Pitfalls
 
-*[reference]*
 
 One common challenge analysts face when working in a SIEM is time, specifically how time is recorded across different log sources.
 
@@ -176,8 +180,11 @@ So always be aware of which time zones you're dealing with when analysing events
 
 #### Logs Normalisation
 
-*[quick definition]*
-
+Logs come in various formats: JSON, XML and some even in plain text.
+  - Each system logs events ins it **own** way: different field names and structures.
+  - This is where **Normalization** comes in
+      - Converts all these formats into a single cohesive structure
+      - All can be viewed in human-readable format in the SIEM
 
 
 **Answer the questions below**
