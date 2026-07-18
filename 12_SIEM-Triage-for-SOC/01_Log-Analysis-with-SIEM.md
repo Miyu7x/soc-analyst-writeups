@@ -132,7 +132,7 @@ Logs from all or just a few of these resources are sent to the SIEM platform, wh
 #### Host-Based Log Sources
 
 <p align="center">
-<img src=screenshots/analysis_host.png width="400">
+<img src=screenshots/analysis_host.png width="700">
 </p>
 
 Host-based logs come from an individual's computer at a company, a workstation, or a server. This server can be:
@@ -143,7 +143,7 @@ Host-based logs come from an individual's computer at a company, a workstation, 
 #### Network-Based Log Sources
 
 <p align="center">
-<img src=screenshots/analysis_network.png width="400">
+<img src=screenshots/analysis_network.png width="700">
 </p>
 
 Network-Based logs keep record of anything that touches the web/network: firewalls, routers, IDS and IPS and others.
@@ -152,7 +152,7 @@ Network-Based logs keep record of anything that touches the web/network: firewal
 #### Web-Based Log Sources
 
 <p align="center">
-<img src=screenshots/analysis_web.png width="400">
+<img src=screenshots/analysis_web.png width="700">
 </p>
 
 Organizations have their own web app most of the time, and these are where the Web-Based logs come from.
@@ -209,7 +209,7 @@ However, combining these two data sources actually provides clear visibility for
 Let's briefly look at each of them.
 
 <p align="center">
-<img src=screenshots/analysis_syswin.png width="400">
+<img src=screenshots/analysis_syswin.png width="700">
 </p>
 
 #### Sysmon
@@ -433,31 +433,60 @@ The logs for this task are located in the Splunk index task5. Use the following 
 
 **1. What was the timestamp of the remote-ssh account creation? Answer Format Example: 2025-01-15 12:30:45**
 
-**Answer:**
+<p align="center">
+<img src=screenshots/analysis_sshd.png width="700">
+</p>
+Splunk makes it easy for SOCs to search to search logs for specific keywords, this is crucial for finding **newly created** connections, accounts, users and more. We can filter for those parameters. 
+Filter: **index=Task5 "create" OR "new"**
+
+**Answer: 2025-08-12 09:52:57**
 
 ---
 
 **2. Which user successfully escalated their privileges to root prior to the action from the first question?**
 
-**Answer:**
+<p align="center">
+<img src=screenshots/analysis_sudo.png width="700">
+</p>
+As an SOC, we should be aware that threat actors will always try to escalate privileges or poke around in sudo or su. 
+**Answer: jack-brown**
 
 ---
 
 **3. From which IP address did the user from the previous question successfully log in to the system?**
 
-**Answer:**
+<p align="center">
+<img src=screenshots/analysis_ipaddress.png width="700">
+</p>
+Since we now know the user that has been compromised, lets take a look at all the events ran by the user **jack-brown.** We can observe the brute-force attempts from the malicious IP on port 54446.
+Filter: **index=Task5 "jack-brown"**
+
+**Answer: 10.14.94.82**
 
 ---
 
 **4. How many failed login attempts occurred prior to this successful login?**
 
-**Answer:**
+<p align="center">
+<img src=screenshots/analysis_failed.png width="700">
+</p>
+In our previous searches we were able to see failed login attempts for jack-brown but lets refine it to find those specifically.
+Filter: **index=Task5 "failed" AND "jack-brown"**
+
+**Answer: 4**
 
 ---
 
 **5. Which port is the persistence mechanism configured to connect to?**
 
-**Answer:**
+<p align="center">
+<img src=screenshots/analysis_7654.png width="700">
+</p>
+Persistence comes in all different types of techniques, it is **important** when searching for these to do a though search for all script types such as: ("python" OR "perl" OR "ruby" OR ".sh" OR "bash" OR "nc")
+For this rooms purpose a simple search for cron jobs will suffice.
+Filter: **index=Task5 "cron"**
+
+**Answer: 7654**
 
 ---
 
@@ -467,15 +496,18 @@ Other important data sources for analysis include the Web. Let's discuss them in
 
 #### Web Log Sources
 
-*[quick definition]*
-
+Most companies have a website, this means they also have a web sever running it. 
+  - Common web servers: Apache, Nginx, and others
+  - **Access Logs** provides us with web requests and resources
+      - Scanning
+      - DDoS attempts
+      - Web based attacks
+      - Web shells
 
 
 Let's explore how different types of malicious activity can be detected using web access logs.
 
 #### Brute Force Activity
-
-*[reference]*
 
 Imagine you are a SOC L1 analyst on shift, and you've just received an alert about a possible brute-force attack targeting a WordPress login page. To investigate, we recommend starting by identifying the login page URL (e.g., /wp-login.php) and filtering for POST requests. Brute-force activity involves many repeated attempts, so set a threshold like count > 25 during 5 mins. Group the results by clientip to pinpoint the source of the activity. Other fields, such as user-agent, can also provide useful context. Below is the ready query.
 
@@ -488,10 +520,11 @@ index=* method=POST uri_path="/wp-login.php"
 ```
 
 As a result, we can detect that in our example, the IP address 167.172.41.141 made as many as 160 requests to the wp-login.php page. Interestingly, the User-Agent string shows Hydra, a popular tool often used by attackers to perform brute-force attacks.
+<p align="center">
+<img src=screenshots/analysis_hydra.png width="700">
+</p>
 
 #### Possible Web Shell
-
-*[reference]*
 
 Shortly after, you receive a second alert about possible web shell activity during your shift. To investigate potential web shell activity in Splunk, search for requests to script or executable file types such as .php, .asp, .jsp, or .exe, combined with POST and GET methods and a status=200 response. Web shells often generate a few suspicious requests in a short time frame, so set a threshold such as count > 2. Group the results by domain to identify patterns and review fields like clientip and user-agent for attacker fingerprints. Below is the ready query.
 
@@ -505,6 +538,9 @@ index=*
 ```
 
 As you can see in the results, we detect a variety of different URIs, but what caught our attention the most was 505.php, which could be a web shell. This means we need to take a closer look at it in more detail.
+<p align="center">
+<img src=screenshots/analysis_webshell.png width="700">
+</p>
 
 #### DDoS Activity
 
@@ -521,10 +557,11 @@ index=* status=503
 ```
 
 And from this example, we can see that the resource was unavailable for the last 10 minutes and received more than 1.5 million requests, which confirms a possible DDoS attack.
+<p align="center">
+<img src=screenshots/analysis_ddos.png width="700">
+</p>
 
 #### Practice Scenario
-
-*[reference]*
 
 You are an SOC Level 1 Analyst on shift and have received an alert indicating a spike in activity on the organisation's web server. Your task is to dive into the logs and determine exactly what happened.
 
@@ -536,25 +573,39 @@ The logs for this task are located in the Splunk index task6. Use the following 
 
 **1. Which URI path had the highest number of requests?**
 
-**Answer:**
+<p align="center">
+<img src=screenshots/analysis_login.png width="700">
+</p>
+As an SOC, a high number of requests in a short amount of time should be lighting up alerts in your head, this could signal a brute force attempt. In this case, where searching for over 25 requests in a span of 5 minutes.
+Filter: 
+**index=* method=POST 
+| bin _time span=5m
+| stats values(referer_domain) as referer_domain values(status) as status values(useragent) as UserAgent values(uri_path) as uri_path count by clientip _time
+| where count > 25
+| table referer_domain clientip UserAgent uri_path count status**
+
+**Answer: /wp-login.php**
 
 ---
 
 **2. Which IP address was the source of the activity?**
 
-**Answer:**
+The above search query also provided us with the source IP address. Knowing that all these requests came from the same IP could indicate a brute force attack,
+
+**Answer: 10.10.243.134**
 
 ---
 
 **3. How can this activity be classified?**
 
-**Answer:**
+**Answer: Brute Force**
 
 ---
 
 **4. Which tool did the threat actor use?**
+We observed on our first question the UserAgent the malicious attacker was using, (https://wpscan.com/wordpress-security-scanner)
 
-**Answer:**
+**Answer: WPScan**
 
 ---
 
