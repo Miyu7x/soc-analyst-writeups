@@ -330,17 +330,23 @@ Lets filter out:
 
 **3. What is the MD5 hash of the malicious process from the previous question?**
 
-Since we found the malicious process which spawned the connection, lets build our search around that event. **Note:** remeber to add the parameter **Message** on the table so we get further information on each event, this is crucial for readability.
+<p align="center">
+<img src=screenshots/analysis_hash.png width="700">
+</p>
+Since we found the malicious process which spawned the connection, we will build our search around those events with EventType and EventCode. Lets expand our view with the CommandLine and ParentCommandLine **Note:** remeber to add the parameter **Message** on the table so we get further information on each event, this is crucial for readability.
 Filter: 
 **index=Task4 *SharePoInt.exe* **
-**| _table EventCode ComputerName Service_Name Service_Account Service_File_Name Message**
-**Answer:**
+**| table Time User EventType EventCode Image CommandLine ParentCommandLine Message**
+
+**Answer: 770D14FFA142F09730B415506249E7D1**
 
 ---
 
 **4. What is the name of the scheduled task that was created on the system?**
 
-**Answer:**
+As we investigate the alerts, what comes after the SharePoInt.exe if we follow the timeline and observe the CommandLine field we can observe a **schtasks** command that was ran to install on logon **Office365 Install.**
+
+**Answer: Office365 Install**
 
 ---
 
@@ -354,13 +360,13 @@ Next, you'll come across syslog, which captures general system-level events. Her
 
 #### Authentication Logs
 
-*[quick definition]*
-
-
-
+In SIEM for investigating Linux logs our go to is the **auth.log** provides us with authentication activity such as:
+  - User logins
+  - Sudo usage
+  - Unauthorized access attempts
+  - Privilege Escalation
+    
 #### Unusual login activities
-
-*[reference]*
 
 Let's move on to real scenarios and examine a situation in the SOC. As an SOC L1 analyst, you have received an alert about an unusual SSH login to the ubuntu username on the system. In this case, let's write a query to search for successful and failed login attempts to the system for the ubuntu user.
 
@@ -370,10 +376,11 @@ index=linux source="auth.log" *ubuntu* process=sshd
 ```
 
 There were 97 events, and the last ones show successful login attempts to the ubuntu user. This can likely be classified as a successful brute-force attack - an activity that should be escalated to L2. From a learning perspective, let's take a look at what happened.
+<p align="center">
+<img src=screenshots/analysis_unusual.png width="700">
+</p>
 
 #### Privilege Escalation behaviours
-
-*[reference]*
 
 Attackers often need root access on a system to gain access to certain files and more. Let's see if, in our case, there are any signs of such activities.
 
@@ -383,16 +390,20 @@ index=linux source="auth.log" *su*
 ```
 
 From the image below, it is clear that the attacker managed to gain access to the root account. How exactly this was achieved cannot be determined from auth.log alone; additional logs would be needed for that.
+<p align="center">
+<img src=screenshots/analysis_escalation.png width="700">
+</p>
 
 #### System Logs
 
-*[quick definition]*
-
+Logs involving system-level events are monitored in **syslog** 
+  - Service restarts
+  - cron jobs
+  - background processes
+  - Helpful logs to build timelines and understand system behavior
 
 
 #### Persistence Mechanisms
-
-*[reference]*
 
 We hope you still remember our case in this task about the threat actor who successfully switched from ubuntu to root. In this scenario, syslog can also be useful, specifically for searching for activity related to persistence through cron jobs or services.
 
@@ -403,11 +414,14 @@ index=linux sourcetype=syslog ("CRON" OR "cron")
 
 We detected three interesting events. First, we can see that a suspicious pnr5433sw.sh file from the /tmp folder is being executed via cron every 5 minutes. Next, there are clear signs of a Perl reverse shell attempting to establish a connection to 10.10.101.12 IP on port 9999.
 
+<p align="center">
+<img src=screenshots/analysis_syslog.png width="700">
+</p>
+
 As mentioned earlier, in addition to the core data sources, it's very common to see tools like auditd and osquery used in real-world environments. These tools fall outside the scope of this room, so if you're interested in learning more about them, feel free to explore other related rooms available on our platform.
 
 #### Practice Scenario
 
-*[reference]*
 
 You are an SOC Level 1 Analyst on shift and have received an alert indicating possible persistence through the creation of a new remote-ssh user on an Ubuntu server. Your task is to dive into the logs and determine exactly what happened on the system.
 
