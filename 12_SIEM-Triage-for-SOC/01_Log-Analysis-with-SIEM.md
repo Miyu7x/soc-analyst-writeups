@@ -31,8 +31,6 @@ Any modern SOC analyst must be able to effectively use a SIEM to analyze and cor
 
 #### Room Prerequisites
 
-*[reference]*
-
 It is suggested to complete the following rooms first before proceeding:
 
 - [Introduction to SIEM](https://tryhackme.com/room/introtosiem)
@@ -160,10 +158,9 @@ Network-Based logs keep record of anything that touches the web/network: firewal
 Organizations have their own web app most of the time, and these are where the Web-Based logs come from.
   - Attackers often gain access to an organization through web app vulnerabilities so its important for SOCs to pay close attention to their web events
 
-
 In addition to the above-mentioned data sources, SIEM also collects logs from cloud platforms such as AWS and Azure, various identity providers like Entra ID, and third-party applications. However, this is beyond the scope of this room, so we'll leave it for future discussions.
 
-However, this task will touch upon two other important topics, such as time pitfalls and normalisation in SIEM.
+However, this task will touch upon two other important topics, such as time pitfalls and normalization in SIEM.
 
 #### Time Pitfalls
 
@@ -225,7 +222,6 @@ Sysmon is a powerful Windows logging tool; it's capable of keeping logs of vario
       - registry changes
       - file creation
   
-
 
 #### Malicious Process Execution
 
@@ -304,9 +300,7 @@ In that task, we examined a number of important log sources for an SOC L1 analys
 
 #### Practice Scenario
 
-*[reference]*
-
-You are an SOC Level 1 Analyst on shift and have received an alert indicating a suspicious network connection using port 5678 on the WIN-105 host. Your task is to conduct an investigation and determine whether this activity is suspicious.
+You are an SOC Level 1 Analyst on shift and have received an alert indicating a suspicious network connection using **port 5678** on the **WIN-105** host. Your task is to conduct an investigation and determine whether this activity is suspicious.
 
 The logs for this task are located in the Splunk index task4. Use the following query: `index=task4`
 
@@ -316,18 +310,30 @@ The logs for this task are located in the Splunk index task4. Use the following 
 
 **1. Which IP address was the connection established with?**
 
-**Answer:**
+<p align="center">
+<img src=screenshots/analysis_connection.png width="700">
+</p>
+For our SOC investigation our alert has informed that a supicious network connection on port 5678 on host WIN-105. In order to read splunk we can set table parameters to what we want to see and what we would like to filter out by(we were given source port and host name) and on the next line the table parameters, time for records and image to see which process extablished the network connection. 
+Lets filter out:
+**index=Task4 ComputerName=:WIN-105 DestinationPort=5678**
+**| _time Image SourceIp SourcePort DestinationIp DestinationPort Protocol**
+
+**Answer: 10.10.114.80**
 
 ---
 
 **2. Which process initiated this suspicious connection?**
 
-**Answer:**
+**Answer: SharePoInt.exe**
 
 ---
 
 **3. What is the MD5 hash of the malicious process from the previous question?**
 
+Since we found the malicious process which spawned the connection, lets build our search around that event. **Note:** remeber to add the parameter **Message** on the table so we get further information on each event, this is crucial for readability.
+Filter: 
+**index=Task4 *SharePoInt.exe* **
+**| _table EventCode ComputerName Service_Name Service_Account Service_File_Name Message**
 **Answer:**
 
 ---
