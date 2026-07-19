@@ -75,9 +75,33 @@ index="linux-alert" sourcetype="linux_secure" 10.10.242.248
 1. List of Users Targeted by Login Attempts
 2. Number of Login Attempts per User
 3. Threat Actor IP Address
+4. Strong Evidence of Brute Force Attempts on user John Smith
+<p align="center">
+<img src=screenshots/analysis_example3.png width="700">
+</p>
+<p align="center">
+<img src=screenshots/analysis_example4.png width="700">
+</p>
 
 ---
+**Example:** How to search if an attacker **gained access** to the system
+```
+index="linux-alert" sourcetype="linux_secure" 10.10.242.248
+| rex field=_raw "^\d{4}-\d{2}-\d{2}T[^\s]+\s+(?<log_hostname>\S+)"
+| rex field=_raw "sshd\[\d+\]:\s*(?<action>Failed|Accepted)\s+\S+\s+for(?: invalid user)? (?<username>\S+) from (?<src_ip>\d{1,3}(?:\.\d{1,3}){3})"
+| eval process="sshd"
+| stats count values(action) values(src_ip) as src_ip values(log_hostname) as hostname values(process) as process  by username
+```
+1. Status of Login Attempts
+2. Evidence of Successful System Login
+<p align="center">
+<img src=screenshots/analysis_example5.png width="700">
+</p>
+<p align="center">
+<img src=screenshots/analysis_example6.png width="700">
+</p>
 
+---
 **1. How many failed login attempts were made on the user john.smith?**
 
 **Answer:** ___
