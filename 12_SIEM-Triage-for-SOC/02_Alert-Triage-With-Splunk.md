@@ -58,7 +58,7 @@ index="linux-alert" sourcetype="linux_secure" 10.10.242.248
 2. Invalid User Login Attempts
 3. Failed Logins Due to Invalid User 
 <p align="center">
-<img src=screenshots/analysis_example2.png width="700">
+<img src=screenshots/anlysis_example2.png width="700">
 </p>
 
 ---
