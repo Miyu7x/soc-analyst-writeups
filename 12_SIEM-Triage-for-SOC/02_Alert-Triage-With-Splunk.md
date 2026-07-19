@@ -47,14 +47,13 @@ You've just started your first shift as a SOC analyst at an MSSP. Only a few min
 Your job is to investigate this activity and decide whether it should be considered suspicious.
 
 ---
-**Important:** Query for successful/failed logins, invalid user events could indicate enumeration of accounts
+**Example:** Query for successful/failed logins, invalid user events could indicate enumeration of accounts
 ```
 index="linux-alert" sourcetype="linux_secure" 10.10.242.248 
 | search "Accepted password for" OR "Failed password for" OR "Invalid user"
 | sort + _time
 ```
 
-**Example:**
 1. Large Event Count Associated with 10.10.242.248 Activity
 2. Invalid User Login Attempts
 3. Failed Logins Due to Invalid User 
@@ -62,6 +61,20 @@ index="linux-alert" sourcetype="linux_secure" 10.10.242.248
 <img src=screenshots/analysis_example2.png width="700">
 </p>
 
+---
+
+**Example:** Number of Login attempts made for **each** user
+```
+index="linux-alert" sourcetype="linux_secure" 10.10.242.248
+| rex field=_raw "^\d{4}-\d{2}-\d{2}T[^\s]+\s+(?<log_hostname>\S+)"
+| rex field=_raw "sshd\[\d+\]:\s*(?<action>Failed|Accepted)\s+\S+\s+for(?: invalid user)? (?<username>\S+) from (?<src_ip>\d{1,3}(?:\.\d{1,3}){3})"
+| eval process="sshd"
+| stats count values(src_ip) as src_ip values(log_hostname) as hostname values(process) as process by username
+```
+
+1. List of Users Targeted by Login Attempts
+2. Number of Login Attempts per User
+3. Threat Actor IP Address
 
 ---
 
