@@ -104,25 +104,53 @@ index="linux-alert" sourcetype="linux_secure" 10.10.242.248
 ---
 **1. How many failed login attempts were made on the user john.smith?**
 
-**Answer:** ___
+<p align="center">
+<img src=screenshots/analysis_failed1.png width="700">
+</p>
+In case of a suspected brute force attack we can always filter for failed or failed password... In this case we have the suspected username john.smith.
+**Filter:** index="linux-alert" *john.smith* AND *failed*
+ 
+**Answer: 500**
 
 ---
 
 **2. What was the duration of the brute-force attack in minutes?**
 
-**Answer:** _
+<p align="center">
+<img src=screenshots/analysis_time.png width="700">
+</p>
+As an SOC you could just use the above filter and observe the last event and last event on the last page when the attack started...However, to make it easier, there is a better way to filter than what THM shows us. We can filter by minute intervals from start to end. 
+```
+index="linux-alert" john.smith failed
+| stats earliest(_time) as start latest(_time) as end
+| eval duration_min=(end-start)/60
+```
+
+**Answer: 5**
 
 ---
 
 **3. What username was the attacker able to privilege escalate to?**
 
-**Answer:** ____
+<p align="center">
+<img src=screenshots/analysis_root.png width="700">
+</p>
+Privilege escalation is done through sudo or su if the attacker has breached a low privilege account. Lets filter out for those commands exactly.
+Filter: index="linux-alert" sudo su
+
+**Answer: root** 
 
 ---
 
 **4. What is the name of the user account created by the attacker for persistence?**
 
-**Answer:** __________
+<p align="center">
+<img src=screenshots/analysis_time.png width="700">
+</p>
+If we suspect a threat actor has successfully escalated or if we want to know if they have, we can filter out by new user.
+Filter: index="linux-alert" new user
+
+**Answer: system-utm**
 
 ---
 
@@ -148,13 +176,10 @@ Your job is to investigate this activity and decide whether it should be conside
 
 The logs for this task are located in the Splunk index `win-alert`. Use the following query: `index=win-alert`
 
-#### Investigating the Alert
-
 
 
 #### Next Investigation Steps
 
-*[reference]*
 
 Open questions remain, such as:
 
@@ -164,31 +189,49 @@ Open questions remain, such as:
 
 Normally, these questions would be addressed by an SOC L2 analyst. However, since this is a training exercise, you'll have the chance to answer them yourself during the practical part of this task.
 
-**Answer the questions below**
-
 ---
 
 **1. What is the ProcessId of the process that created this malicious task?**
 
-**Answer:** ____
+<p align="center">
+<img src=screenshots/analysis_certutil.png width="700">
+</p>
+The SOCs job is to stay vigilant, scheduled tasks is one of the main preferred methods of persistence for attackers. We can look for any scheduled tasks or certutil process created.
+Fiter: index=win-alert certutil
+
+**Answer: 5816**
 
 ---
 
 **2. What is the name of the parent process for the process that created this malicious task?**
 
-**Answer:** ___.___
+<p align="center">
+<img src=screenshots/analysis_parent.png width="700">
+</p>
+In order to build attack chains, we need to watch for which parent spawned the malicious task. In the above question, when we searched for the creation of a scheduled task, we can see the full details of the task creation, as well as a lot more info about the event, including the parent process, command lines, hashes, etc.
 
+**Answer: cmd.exe** 
 ---
 
 **3. Which local group did the attacker enumerate during discovery?**
 
-**Answer:** ______________
+<p align="center">
+<img src=screenshots/analysis_enumerate.png width="700">
+</p>
+Investigating groups is also another valuable method for SOCs to keep track if the attacker is adding another user to achieve persistence.
+
+**Answer: Administrators ** 
 
 ---
 
 **4. What is the name of the workstation from which the threat actor logged into this host?**
 
-**Answer:** _____________
+<p align="center">
+<img src=screenshots/analysis_workstation.png width="700">
+</p>
+Filter: index=win-alert oliver.thompson logon workstation
+
+**Answer: DEV-QA-SERVER** 
 
 ---
 
@@ -213,14 +256,6 @@ Your job is to investigate this activity and decide whether it should be conside
 
 The logs for this task are located in the Splunk index `web-alert`. Use the following query: `index=web-alert`
 
-#### Investigating the Alert
-
-
-
-#### Next Investigation Steps
-
-*[reference]*
-
 These questions should be reviewed by the SOC Level 2 analyst:
 
 - Was the brute-force attack using Hydra successful?
@@ -235,19 +270,38 @@ After this, containment and remediation actions should take place.
 
 **1. What time did the brute-force activity using Hydra begin? Answer Format Example: 2025-01-15 12:30:45**
 
-**Answer:** __________ __:__:__
+<p align="center">
+<img src=screenshots/analysis_hydratime.png width="700">
+</p>
+
+**Answer: 2025-09-14 21:20:27**
 
 ---
 
 **2. Which user agent did the attacker use when interacting with the web shell?**
 
-**Answer:** _______/_._ ________ __ __.__ ______ ____ ___________/___.__ ______, ____ ______ ______/___._._._ ______/___.__
+<p align="center">
+<img src=screenshots/analysis_notmozilla.png width="700">
+</p>
+This was a difficult process to think around as THM handed us a brute-force question and this question was meant to move past hydra, so "Mozilla/5.0 (Hydra)"
+Filter: index=web-alert 171.251.232.40 useragent!="Mozilla/5.0 (Hydra)" 
+| table  _time clientip useragent uri_path referer referer_domain method status
+
+**Answer: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36** 
 
 ---
 
 **3. What was the number of requests made by the attacker to the server via the web shell?**
 
-**Answer:** _
+<p align="center">
+<img src=screenshots/analysis_notmozilla.png width="700">
+</p>
+In the previous question, we observed POST requests http://web.trywinme.thm/wp-admin/theme-editor.php?file=b374k.php&theme=blocksy
+The file=b374k.php seems suspicious. I filtered out for POST requests and the file name b374k.
+Filter: index=web-alert 171.251.232.40 b374k method=POST 
+| table  _time clientip useragent uri_path referer referer_domain method status
+
+**Answer: 4**
 
 ---
 
