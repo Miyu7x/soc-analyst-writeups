@@ -4,20 +4,21 @@ module: SIEM Triage for SOC
 path: SOC Level 1
 platform: TryHackMe
 tags: [siem, log-analysis, splunk, alert-triage, brute-force, persistence, web-shell, linux-logs, windows-logs, web-logs]
-status: in-progress
-date:
-date_completed:
+status: completed
+date: 2026-07-20
+date_completed: 2026-07-20
 ---
 
 *Write-up by [Miyu7x](https://github.com/Miyu7x) | TryHackMe: [Miyu7](https://tryhackme.com/p/Miyu7) | BTLO: [Miyu7x](https://blueteamlabs.online/public/user/Miyu7x)*
 <p align="center">
 <img src=screenshots/analysis_intro2.png width="1500">
 </p>
+
 ---
 
 ## Task 1: Introduction
 
-As a SOC analyst, it's important to be able to investigate different types of suspicious activity across a variety of assets in the environment. Knowing what to look for and which details matter most during an investigation is a key part of the role.
+As a SOC analyst, it's important to be able to investigate different types of suspicious activity across a variety of assets in the environment. Knowing what to look for, and which details actually matter during an investigation, is a key part of the role.
 
 #### Learning Objectives
 
@@ -31,7 +32,7 @@ As a SOC analyst, it's important to be able to investigate different types of su
 
 ## Task 2: Initial Access Alert
 
-We will explore three different scenarios that you, as an analyst, may encounter during your shift. The first one takes place on a Linux host, and you will uncover exactly what happens there during our investigation.
+We'll explore three different scenarios that you, as an analyst, may encounter during your shift. The first takes place on a Linux host, and you'll uncover exactly what happens there during the investigation.
 
 #### Alert Scenario
 
@@ -47,23 +48,25 @@ You've just started your first shift as a SOC analyst at an MSSP. Only a few min
 Your job is to investigate this activity and decide whether it should be considered suspicious.
 
 ---
-**Example:** Query for successful/failed logins, invalid user events could indicate enumeration of accounts
+
+**Example:** Query for successful/failed logins and invalid user events, which could indicate account enumeration.
 ```
 index="linux-alert" sourcetype="linux_secure" 10.10.242.248 
 | search "Accepted password for" OR "Failed password for" OR "Invalid user"
 | sort + _time
 ```
 
-1. Large Event Count Associated with 10.10.242.248 Activity
-2. Invalid User Login Attempts
-3. Failed Logins Due to Invalid User 
+1. Large event count associated with 10.10.242.248 activity
+2. Invalid user login attempts
+3. Failed logins due to invalid user
+
 <p align="center">
 <img src=screenshots/anlysis_example2.png width="700">
 </p>
 
 ---
 
-**Example:** Number of Login attempts made for **each** user
+**Example:** Number of login attempts made for each user.
 ```
 index="linux-alert" sourcetype="linux_secure" 10.10.242.248
 | rex field=_raw "^\d{4}-\d{2}-\d{2}T[^\s]+\s+(?<log_hostname>\S+)"
@@ -72,10 +75,11 @@ index="linux-alert" sourcetype="linux_secure" 10.10.242.248
 | stats count values(src_ip) as src_ip values(log_hostname) as hostname values(process) as process by username
 ```
 
-1. List of Users Targeted by Login Attempts
-2. Number of Login Attempts per User
-3. Threat Actor IP Address
-4. Strong Evidence of Brute Force Attempts on user John Smith
+1. List of users targeted by login attempts
+2. Number of login attempts per user
+3. Threat actor IP address
+4. Strong evidence of brute force attempts on user john.smith
+
 <p align="center">
 <img src=screenshots/analysis_example3.png width="700">
 </p>
@@ -84,16 +88,19 @@ index="linux-alert" sourcetype="linux_secure" 10.10.242.248
 </p>
 
 ---
-**Example:** How to search if an attacker **gained access** to the system
+
+**Example:** How to search whether an attacker gained access to the system.
 ```
 index="linux-alert" sourcetype="linux_secure" 10.10.242.248
 | rex field=_raw "^\d{4}-\d{2}-\d{2}T[^\s]+\s+(?<log_hostname>\S+)"
 | rex field=_raw "sshd\[\d+\]:\s*(?<action>Failed|Accepted)\s+\S+\s+for(?: invalid user)? (?<username>\S+) from (?<src_ip>\d{1,3}(?:\.\d{1,3}){3})"
 | eval process="sshd"
-| stats count values(action) values(src_ip) as src_ip values(log_hostname) as hostname values(process) as process  by username
+| stats count values(action) values(src_ip) as src_ip values(log_hostname) as hostname values(process) as process by username
 ```
-1. Status of Login Attempts
-2. Evidence of Successful System Login
+
+1. Status of login attempts
+2. Evidence of successful system login
+
 <p align="center">
 <img src=screenshots/analysis_example5.png width="700">
 </p>
@@ -102,14 +109,17 @@ index="linux-alert" sourcetype="linux_secure" 10.10.242.248
 </p>
 
 ---
+
 **1. How many failed login attempts were made on the user john.smith?**
 
 <p align="center">
 <img src=screenshots/analysis_failed1.png width="700">
 </p>
-In case of a suspected brute force attack we can always filter for failed or failed password... In this case we have the suspected username john.smith.
-**Filter:** index="linux-alert" *john.smith* AND *failed*
- 
+
+In a suspected brute force attack, filtering for "failed" or "failed password" is usually enough. Here we already have the suspected username, john.smith, so we can go straight to it.
+
+**Filter:** `index="linux-alert" *john.smith* AND *failed*`
+
 **Answer: 500**
 
 ---
@@ -119,7 +129,9 @@ In case of a suspected brute force attack we can always filter for failed or fai
 <p align="center">
 <img src=screenshots/analysis_time.png width="700">
 </p>
-As an SOC you could just use the above filter and observe the last event and last event on the last page when the attack started...However, to make it easier, there is a better way to filter than what THM shows us. We can filter by minute intervals from start to end. 
+
+You could use the filter above and manually check the timestamps of the first and last event to work out the duration. There's a cleaner way to get there though, using `earliest`/`latest` with `eval` to calculate it directly instead of eyeballing it.
+
 ```
 index="linux-alert" john.smith failed
 | stats earliest(_time) as start latest(_time) as end
@@ -135,10 +147,12 @@ index="linux-alert" john.smith failed
 <p align="center">
 <img src=screenshots/analysis_root.png width="700">
 </p>
-Privilege escalation is done through sudo or su if the attacker has breached a low privilege account. Lets filter out for those commands exactly.
-Filter: index="linux-alert" sudo su
 
-**Answer: root** 
+Privilege escalation here is done through sudo or su, since the attacker breached a low-privilege account first. Filtering for those commands directly gets us there.
+
+**Filter:** `index="linux-alert" sudo su`
+
+**Answer: root**
 
 ---
 
@@ -147,8 +161,10 @@ Filter: index="linux-alert" sudo su
 <p align="center">
 <img src=screenshots/analysis_time.png width="700">
 </p>
-If we suspect a threat actor has successfully escalated or if we want to know if they have, we can filter out by new user.
-Filter: index="linux-alert" new user
+
+If we suspect the threat actor successfully escalated (or want to confirm whether they did), we can filter for new user creation.
+
+**Filter:** `index="linux-alert" new user`
 
 **Answer: system-utm**
 
@@ -156,11 +172,11 @@ Filter: index="linux-alert" new user
 
 ## Task 3: Persistence Alert
 
-The second scenario focuses on activity in a Windows environment, which SOC analysts come across regularly. That's why knowing how to carry out this kind of analysis is really important.
+The second scenario focuses on activity in a Windows environment, which SOC analysts come across regularly. That's why knowing how to carry out this kind of analysis matters.
 
 #### Alert Scenario
 
-You are working as a Level 1 SOC Analyst on shift at an MSSP. An alert has come through indicating that a suspicious scheduled task was created on a host.
+You are working as a Level 1 SOC analyst on shift at an MSSP. An alert has come through indicating that a suspicious scheduled task was created on a host.
 
 **Alert Details:**
 
@@ -176,10 +192,7 @@ Your job is to investigate this activity and decide whether it should be conside
 
 The logs for this task are located in the Splunk index `win-alert`. Use the following query: `index=win-alert`
 
-
-
 #### Next Investigation Steps
-
 
 Open questions remain, such as:
 
@@ -187,7 +200,7 @@ Open questions remain, such as:
 - How did the attacker gain access to the WIN-H015 host?
 - How was the oliver.thompson account compromised?
 
-Normally, these questions would be addressed by an SOC L2 analyst. However, since this is a training exercise, you'll have the chance to answer them yourself during the practical part of this task.
+Normally, these questions would be addressed by an SOC L2 analyst. But since this is a training exercise, we get to answer them ourselves in the practical part of this task.
 
 ---
 
@@ -196,8 +209,10 @@ Normally, these questions would be addressed by an SOC L2 analyst. However, sinc
 <p align="center">
 <img src=screenshots/analysis_certutil.png width="700">
 </p>
-The SOCs job is to stay vigilant, scheduled tasks is one of the main preferred methods of persistence for attackers. We can look for any scheduled tasks or certutil process created.
-Fiter: index=win-alert certutil
+
+Staying alert for scheduled tasks matters, since they're one of the most common persistence methods attackers use. We can look for any scheduled task or certutil process creation.
+
+**Filter:** `index=win-alert certutil`
 
 **Answer: 5816**
 
@@ -208,9 +223,11 @@ Fiter: index=win-alert certutil
 <p align="center">
 <img src=screenshots/analysis_parent.png width="700">
 </p>
-In order to build attack chains, we need to watch for which parent spawned the malicious task. In the above question, when we searched for the creation of a scheduled task, we can see the full details of the task creation, as well as a lot more info about the event, including the parent process, command lines, hashes, etc.
 
-**Answer: cmd.exe** 
+To build out the attack chain, we need to see which parent process spawned the malicious task. The search from the previous question already gives us the full event details, including the parent process, command lines, and hashes.
+
+**Answer: cmd.exe**
+
 ---
 
 **3. Which local group did the attacker enumerate during discovery?**
@@ -218,9 +235,10 @@ In order to build attack chains, we need to watch for which parent spawned the m
 <p align="center">
 <img src=screenshots/analysis_enumerate.png width="700">
 </p>
-Investigating groups is also another valuable method for SOCs to keep track if the attacker is adding another user to achieve persistence.
 
-**Answer: Administrators ** 
+Watching for group enumeration is another useful way for SOCs to catch an attacker attempting to add a user for persistence.
+
+**Answer: Administrators**
 
 ---
 
@@ -229,9 +247,10 @@ Investigating groups is also another valuable method for SOCs to keep track if t
 <p align="center">
 <img src=screenshots/analysis_workstation.png width="700">
 </p>
-Filter: index=win-alert oliver.thompson logon workstation
 
-**Answer: DEV-QA-SERVER** 
+**Filter:** `index=win-alert oliver.thompson logon workstation`
+
+**Answer: DEV-QA-SERVER**
 
 ---
 
@@ -241,7 +260,7 @@ The last scenario focuses on activity on a vulnerable web server. We'll be inves
 
 #### Alert Scenario
 
-Your shift as an L1 SOC analyst continues, and you've now received the next alert that needs to be investigated. This time, the activity is related to the web.
+Your shift as an L1 SOC analyst continues, and the next alert needs to be investigated. This time, the activity is web-related.
 
 **Alert Details:**
 
@@ -264,11 +283,11 @@ These questions should be reviewed by the SOC Level 2 analyst:
 
 After this, containment and remediation actions should take place.
 
-**Answer the questions below**
-
 ---
 
-**1. What time did the brute-force activity using Hydra begin? Answer Format Example: 2025-01-15 12:30:45**
+**1. What time did the brute-force activity using Hydra begin?**
+
+*Answer format: 2025-01-15 12:30:45*
 
 <p align="center">
 <img src=screenshots/analysis_hydratime.png width="700">
@@ -283,23 +302,32 @@ After this, containment and remediation actions should take place.
 <p align="center">
 <img src=screenshots/analysis_notmozilla.png width="700">
 </p>
-This was a difficult process to think around as THM handed us a brute-force question and this question was meant to move past hydra, so "Mozilla/5.0 (Hydra)"
-Filter: index=web-alert 171.251.232.40 useragent!="Mozilla/5.0 (Hydra)" 
-| table  _time clientip useragent uri_path referer referer_domain method status
 
-**Answer: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36** 
+This one took a bit more thought. THM hands us a brute-force question, but this one is meant to move past Hydra, so we exclude "Mozilla/5.0 (Hydra)" and see what's left.
+
+**Filter:**
+```
+index=web-alert 171.251.232.40 useragent!="Mozilla/5.0 (Hydra)" 
+| table _time clientip useragent uri_path referer referer_domain method status
+```
+
+**Answer: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36**
 
 ---
 
 **3. What was the number of requests made by the attacker to the server via the web shell?**
 
 <p align="center">
-<img src=screenshots/analysis_notmozilla.png width="700">
+<img src=screenshots/analysis_4post.png width="700">
 </p>
-In the previous question, we observed POST requests http://web.trywinme.thm/wp-admin/theme-editor.php?file=b374k.php&theme=blocksy
-The file=b374k.php seems suspicious. I filtered out for POST requests and the file name b374k.
-Filter: index=web-alert 171.251.232.40 b374k method=POST 
-| table  _time clientip useragent uri_path referer referer_domain method status
+
+In the previous question we saw POST requests to `http://web.trywinme.thm/wp-admin/theme-editor.php?file=b374k.php&theme=blocksy`. The `file=b374k.php` parameter stood out, so I filtered for POST requests containing "b374k."
+
+**Filter:**
+```
+index=web-alert 171.251.232.40 b374k method=POST 
+| table _time clientip useragent uri_path referer referer_domain method status
+```
 
 **Answer: 4**
 
@@ -307,9 +335,7 @@ Filter: index=web-alert 171.251.232.40 b374k method=POST
 
 ## Task 5: Conclusion
 
-Great job completing this room! You've now gained practical experience investigating different types of alerts you can encounter in the real world.
+Completed this room, gaining hands-on experience investigating the kinds of alerts SOC analysts run into in the real world:
 
-- Detecting anomalies on Windows and Linux systems.
-- Analysing web shell activity and identifying its traces.
-
-More exciting challenges await you next!
+- Detecting anomalies on Windows and Linux systems
+- Analysing web shell activity and identifying its traces
