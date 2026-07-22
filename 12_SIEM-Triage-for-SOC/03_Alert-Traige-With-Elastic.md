@@ -26,6 +26,10 @@ SomeCorp's infrastructure triggered a string of SOC alerts. Using Kibana, this i
 
 Our team manages servers, applications, and network infrastructure for several small-business clients. SomeCorp, one of those clients, has triggered multiple SOC alerts. As the on-call analyst, the job is to use the available logs, dashboards, and tools to investigate the activity, decide whether it's malicious, and reconstruct the attack sequence.
 
+<p align="center">
+<img src=screenshots/elastic_example.png width="700">
+</p>
+
 Data view: `Alert Triage With Elastic` | Time range: Entire data range | Starting query: `_index:weblogs`
 
 ---
@@ -45,7 +49,7 @@ As an SOC we would typically filter our data surrounding the time we think an at
 **What is the field value for the `client.ip` in the `weblogs` index?**
 
 <p align="center">
-<img src=screenshots/elastic_clientipel.png width="700">
+<img src=screenshots/elastic_clientip.png width="700">
 </p>
 
 If we receive various alerts from a single IP in quick succession, and that IP is making various requests to your web server, this is a red flag and should be investigated further.
@@ -56,10 +60,26 @@ If we receive various alerts from a single IP in quick succession, and that IP i
 
 ## TASK 3 - Investigating Web Attacks
 
+<p align="center">
+<img src=screenshots/elastic_socalert.png width="700">
+</p>
+
 Query: `_index:weblogs and client.ip:203.0.113.55 and http.request.method:POST`
 Table fields: `client.ip`, `user.agent`, `http.request.method`, `url.path`, `http.response.status_code`
 
+<p align="center">
+<img src=screenshots/elastic_example2.png width="700">
+</p>
+
+<p align="center">
+<img src=screenshots/elastic_socalert2.png width="700">
+</p>
+
 Follow-up query: `_index:weblogs and client.ip:203.0.113.55 and http.request.method:GET and errorEE.aspx` (sorted Old-New)
+
+<p align="center">
+<img src=screenshots/elastic_example3.png width="700">
+</p>
 
 ---
 
@@ -113,11 +133,27 @@ The attacker is performing recon, running a command to learn more about the host
 
 ## TASK 4 - Uncovering Account Activity
 
+<p align="center">
+<img src=screenshots/elastic_socalert3.png width="700">
+</p>
+
 Query: `@timestamp >= "2025-07-20T05:11:22" and winlog.event_id:4624 and host.name:winserv2019.some.corp and winlog.event_data.TargetUserName:Administrator`
 Table fields: `winlog.event_id`, `host.name`, `winlog.event_data.TargetUserName`, `winlog.logon.type`, `winlog.event_data.IpAddress`
 
+<p align="center">
+<img src=screenshots/elastic_example4.png width="700">
+</p>
+
 Follow-up query: `@timestamp >= "2025-07-20T05:11:22" and winlog.event_id:1 and user.name:Administrator`
 Table fields: `user.name`, `process.parent.name`, `process.command_line`
+
+<p align="center">
+<img src=screenshots/elastic_example5.png width="700">
+</p>
+
+<p align="center">
+<img src=screenshots/elastic_socalert4.png width="700">
+</p>
 
 Follow-up query: `@timestamp >= "2025-07-20T05:13:10.000" and winlog.channel:Security and winlog.task:User Account Management`
 Table fields: `winlog.event_id`, `winlog.task`, `message`
@@ -168,14 +204,30 @@ Attackers often aim for persistence by creating accounts that sound like legitim
 
 ## TASK 5 - Exposing Command Execution
 
+<p align="center">
+<img src=screenshots/elastic_socalert5.png width="700">
+</p>
+
 Query: `@timestamp >= "2025-07-20T05:13:15" and process.parent.name:cmd.exe and user.name:Administrator`
 Table fields: `process.command_line`, `process.name`, `process.parent.name`
 
+<p align="center">
+<img src=screenshots/elastic_example6.png width="700">
+</p>
+
 Correlated query: `@timestamp >= "2025-07-20T05:13:15" and (winlog.event_id:4732 or process.parent.name:cmd.exe)`
+
+<p align="center">
+<img src=screenshots/elastic_example7.png width="700">
+</p>
 
 ### PowerShell Usage
 
 Query: `@timestamp >= "2025-07-20T05:13:15" and event.module:powershell and event.code:4104` (field added: `powershell.file.script_block_text`, sorted Old-New)
+
+<p align="center">
+<img src=screenshots/elastic_example8.png width="700">
+</p>
 
 ### No Alert Created
 
@@ -222,7 +274,7 @@ Needed the `message` and `powershell.file.script_block_text` fields in the table
 **What is the name of the archive that the attacker creates using the `Rar.exe` executable?**
 
 <p align="center">
-<img src=screenshots/elastic_filename.png width="700">
+<img src=screenshots/elastic_group.png width="700">
 </p>
 
 The attacker staged their haul in `C:\Temp\finance_it_archive.rar`, run from the `svc_backup` account:
