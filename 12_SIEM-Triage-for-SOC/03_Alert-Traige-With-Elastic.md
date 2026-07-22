@@ -11,7 +11,7 @@ date_completed: 2026-07-21
 *Write-up by [Miyu7x](https://github.com/Miyu7x) | TryHackMe: [Miyu7](https://tryhackme.com/p/Miyu7) | BTLO: [Miyu7x](https://blueteamlabs.online/public/user/Miyu7x)*
 
 <p align="center">
-<img src=screenshots/analysis_intro2.png width="1500">
+<img src=screenshots/elastic_intro.png width="1500">
 </p>
 
 ---
