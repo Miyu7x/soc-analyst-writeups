@@ -34,7 +34,7 @@ A SOC analyst noticed an IDS alert pointing to possible C2 activity coming from 
 How many events were returned for the month of March 2022?
 
 <p align="center">
-<img src=screenshots/itsybitsy_total.png width="700">
+<img src=screenshots/itsbitsy_total.png width="700">
 </p>
 
 It's important to know when an attack started and when it ended. Since the incident took place sometime within a week in March, I set the date range to cover the entire month for broader visibility.
