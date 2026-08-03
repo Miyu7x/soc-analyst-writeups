@@ -151,7 +151,7 @@ md5sum document.doc
 <img src=screenshots/bm2-sender.png width="700">
 </p>
 
-**Answer:**
+**Answer: westaylor23@outlook.com**
 
 ---
 
@@ -163,7 +163,7 @@ md5sum document.doc
 <img src=screenshots/bm2-victim.png width="700">
 </p>
 
-**Answer:**
+**Answer: maxine.beck@quicklogisticsorg.onmicrosoft.com**
 
 ---
 
@@ -175,7 +175,7 @@ md5sum document.doc
 <img src=screenshots/bm2-attachment.png width="700">
 </p>
 
-**Answer:**
+**Answer: Resume_WesleyTaylor.doc**
 
 ---
 
