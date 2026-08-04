@@ -18,7 +18,7 @@ date_completed: 2026-07-23
 
 ## TASK 1 - Introduction
 
-This room investigates host-centric Windows process execution logs (Event ID 4688) ingested into Splunk under the `win_eventlogs` index, to uncover a compromised host on the network. Familiarity with Splunk basics helps here — see the splunk101 and splunk201 rooms for background.
+This room investigates host-centric Windows process execution logs (Event ID 4688) ingested into Splunk under the `win_eventlogs` index, to uncover a compromised host on the network. Familiarity with Splunk basics helps here see the splunk101 and splunk201 rooms for background.
 
 ---
 
@@ -30,7 +30,7 @@ One of the client's IDS solutions flagged suspicious process execution pointing 
 
 ### About the Network Information
 
-The network is divided into three logical segments — it will help in the investigation.
+The network is divided into three logical segments it will help in the investigation.
 
 **IT Department**
 - James
@@ -65,7 +65,7 @@ Imposter Alert: There seems to be an imposter account observed in the logs, what
 <img src=screenshots/benign_amelia.png width="700">
 </p>
 
-Under UserName we can only see the top 10 names by default, but there are more we can view by clicking **Rare values**, or using the filter **rare limit=20 UserName**. This is a great tool for SOCs to visually compare usernames and their usage. We immediately spot two similar entries: Amelia and Amel1a. That spelling should raise alarm bells right away — it's attempting to hide behind a legitimate account name.
+Under UserName we can only see the top 10 names by default, but there are more we can view by clicking **Rare values**, or using the filter **rare limit=20 UserName**. This is a great tool for SOCs to visually compare usernames and their usage. We immediately spot two similar entries: Amelia and Amel1a. That spelling should raise alarm bells right away it's attempting to hide behind a legitimate account name.
 
 **Answer: Amel1a**
 
@@ -77,7 +77,7 @@ Which user from the HR department was observed to be running scheduled tasks?
 <img src=screenshots/benign_chris.png width="700">
 </p>
 
-As we saw above, the **rare limit=20** filter is a powerful tool — it really narrows down commands that might have been used only once or twice, which is especially useful when hunting through a sea of commands. In this case we're looking for a scheduled task run by an HR department member. We observe the user account Chris.fort running a scheduled task (`onstart`), as well as a certutil.exe download for benign.exe. Let's keep that in mind!
+As we saw above, the **rare limit=20** filter is a powerful tool it really narrows down commands that might have been used only once or twice, which is especially useful when hunting through a sea of commands. In this case we're looking for a scheduled task run by an HR department member. We observe the user account Chris.fort running a scheduled task (`onstart`), as well as a certutil.exe download for benign.exe. Let's keep that in mind!
 
 Filter: `index=win_eventlogs (haroon OR "chris.fort" OR daina) | rare limit=20 CommandLine`
 
@@ -105,7 +105,7 @@ To bypass the security controls, which system process (lolbin) was used to downl
 <img src=screenshots/benign_certutil.png width="700">
 </p>
 
-As a SOC analyst, if you see the Windows process **certutil.exe** — normally used for certificate management — appear in a log while pointing to a URL and downloading a suspicious file, that's a clear indication the system has been compromised and the attacker successfully installed the malicious .exe on the host.
+As a SOC analyst, if you see the Windows process **certutil.exe**  normally used for certificate management  appear in a log while pointing to a URL and downloading a suspicious file, that's a clear indication the system has been compromised and the attacker successfully installed the malicious .exe on the host.
 
 **Answer: certutil.exe**
 
