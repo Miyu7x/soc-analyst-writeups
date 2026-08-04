@@ -175,8 +175,6 @@ Extract the attachment, then hash it.
 md5sum Resume_WesleyTaylor.doc
 ```
 
-MD5 is broken for security use, but it is still what gets pasted into VirusTotal and shared as an IOC, which is why the room asks for it.
-
 <p align="center">
 <img src=screenshots/bm2-md5.png width="700">
 </p>
@@ -208,8 +206,6 @@ Reading it in order:
 ---
 
 ### 6. What is the name of the process that executed the newly downloaded stage 2 payload?
-
-No memory analysis needed. It is the last line of the macro.
 
 ```
 shell_object.Exec ("wscript.exe C:\ProgramData\update.js")
@@ -248,8 +244,6 @@ PIDs only exist while something is running, so this is the first question that a
 ```
 vol -f dump.raw windows.pstree > pstree.txt
 ```
-
-Sending it to a text file means the plugin only runs once. After that searching is instant.
 
 Static analysis already gave me the search term:
 
