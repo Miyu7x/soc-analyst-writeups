@@ -30,6 +30,31 @@ are you lost in the log space and wasting your precious time?
 
 ## Task 2: Log Configuration
 
+Log configuration is a big deal operation that deals with: security, operational stability, regulatory compliance, and debugging needs.
+  - Provides organizations with comprehensive systems
+  - Resource management for assets and data
+
+Different Scopes and Common Purposes of Log Configurations
+  - Security
+  - Operational
+  - Legal
+  - Debug
+
+### Logging and Configuring for Security Purposes
+
+Responsible for detection and response to anomalies and security issues.
+
+**Example:** A configuration to verify the authenticity of user activity to ensure authorization control and timely detection of unauthorized access.
+  - Anomaly and Threat Detection
+  - Logging User Authentication Data
+  - Ensuring the System's Integrity and Data Confidentiality
+
+### Logging and Configuring for Operational Purposes 
+
+Responsible for detecting and responding to system errors and identifying action points to increase system performance, continuity, and reliability.
+
+
+
 
 ### Q2. Which of the given log purposes would be suitable to measure the cost of using a service?
 
