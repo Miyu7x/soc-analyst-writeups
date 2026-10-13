@@ -1,0 +1,428 @@
+---
+title: Intro to Logs
+module: Log Analysis
+path: SOC Level 2
+platform: TryHackMe
+tags: [log-analysis, linux, syslog, rsyslog, logrotate, log-formats, web-server-logs]
+status: In Progress
+date: 2026-10-13
+date_completed: 
+---
+*Write-up by [Miyu7x](https://github.com/Miyu7x) | TryHackMe: [Miyu7](https://tryhackme.com/p/Miyu7) | BTLO: [Miyu7x](https://blueteamlabs.online/public/user/Miyu7x)*
+
+<p align="center">
+<img src=screenshots/intro-to-logs-intro.png width="1500">
+</p>
+
+---
+# TASK 1 - Introduction
+
+<p align="center">
+<img src=screenshots/log-shipment.png width="700">
+</p>
+
+- Logs are the historical record of what happened on a system, and the first place to look when an intruder leaves evidence behind
+- This room covers log types, formats, and standards, plus how logs are collected, stored, rotated, and analysed
+- Hands-on work happens on a Linux web server (WEBSRV-02) using rsyslog, logrotate, and standard command-line tools
+- Goal: read logs as evidence and use them to detect and track an adversary
+
+<p align="center">
+<img src=screenshots/different-logs.png width="700">
+</p>
+
+---
+
+# TASK 2 - Expanding Perspectives: Logs as Evidence of Historical Activity
+
+
+## Working with Logs: Scenario
+
+- SwiftSpend Financial runs a web server that an adversary keeps scanning
+- I'm the sysadmin: configure logging, collect the logs, and figure out what the adversary is doing
+- The user `damianhall` has limited sudo rights. Run `sudo -l` first to see which commands are allowed. Those commands are all the room needs
+- Privilege escalation is NOT needed for any question
+
+## Connecting to the machine
+
+| Username   | Password | IP           |
+| ---------- | -------- | ------------ |
+| damianhall | Logs321! | 10.64.182.86 |
+
+---
+## In the Heart of Data: Logs
+
+Just like a trees rings shows its years in history, a snails shells notches digital logs provide a history of a systems activity. This is symbolic of growth over time in nature and in the digital world.
+
+Every keystroke, login, power-up, browsing, errors; basically any interaction with a computer will leave a digital footprint in log format.
+
+**This Includes:**
+	- Timestamp of when the event happened
+	- Name of system or app that triggered the log entry
+	- The type of event it was
+	- Details about the event: user, IP, type, machine...
+
+
+<p align="center">
+<img src=screenshots/different-logs.png width="700">
+</p>
+
+## The True Power of Logs: Contextual Correlation
+
+| Question | Answer |
+|---|---|
+| What happened? | An adversary was confirmed to have accessed SwiftSpend Financial's GitLab instance. |
+| When did it happen? | Access started at 22:10 on Wednesday, September 8th, 2023. |
+| Where did it happen? | The event originated from a device with an IP address of 10.10.133.168 within the VPN Users' segment (10.10.133.0/24). |
+| Who is responsible? | Upon examining the network logs, it was observed that the device, identified by the User-Agent "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/115.0", was allocated the IP address 10.10.133.168. |
+| Were they successful? | Yes, since an API Key was found to be publicly exposed on the GitLab instance. Moreover, the web proxy logs confirm that the adversary device reached gitlab.swiftspend.finance and maintained access through their uploaded web shell. |
+| What is the result of their action? | The adversary achieved remote code execution on gitlab.swiftspend.finance and performed post-exploitation activities. |
+
+
+
+---
+
+## 1. What is the name of your colleague who left a note on your Desktop?
+
+
+After using SSH to login to our lab machine we can ==🟢cd== into Desktop and ==🟢cat== the note.txt left for us.
+
+
+<p align="center">
+<img src=screenshots/intro-to-logs-q1.png width="700">
+</p>
+
+**Answer: Perry**
+
+---
+
+## 2. What is the full path to the suggested log file for initial investigation?
+
+The note left by Perry offers clues that we will need for our investigation.
+	- The company's public-facing GitLab server needs maintenance and upgrading.
+	- Location of available logs:
+		- /var/log/gitlab/
+		- /var/log/gitlab/nginx/access.log
+	- Logrotate configuration location:
+		- /etc/logrotate.d/
+		- /var/opt/gitlab/logrotate/logrotate.d/
+		
+
+**Answer: /var/log/gitlab/nginx/access.log**
+
+---
+
+# TASK 3 - Types, Formats, and Standards
+
+## Log Types
+
+<p align="center">
+<img src=screenshots/log-types.png width="700">
+</p>
+
+There are various existing log types in a system but there is some that cover 80% of the typical use cases. As an SOC you need to understand which activities are logged where, in order to effectively investigate log data.
+
+	**Application Logs:** Deals with messages about specific applications; errors, status, warnings etc.
+	**Audit Logs:** Repsonsible for logging activities related to operational procedures for regulatory complience.
+	**Security Logs:** Logins, peermission changes, firewall activity...
+	**Server Logs:** System, event, error and access logs generated by the server.
+	**System Logs:** Kernel activities, system errors, boot sequences, and hardware status.
+	**Network Logs:** Network traffic, connections and other newtwork related events.
+	**Database Logs:** Activities inside a database system; queries and updates
+	**Web Server Logs:** Requests processed by a web server, including URLs, reposnse codes...
+
+
+## Log Formats
+
+**Semi-structured Logs:** Free form text that may or may not be structured.
+
+	Syslog Message Format: Widely used logging protocol for system and network logs
+	Windows Event Log EVTX Format: Microsoft logs
+
+**Structured Logs:** Logs in standardized format
+
+	**Field Delimited Formats**: CSV or Comma-Separated Values and TSV or Tab-Separated Values
+
+```
+damianhall@WEBSRV-02:~/logs$ cat log.csv 
+"time","user","action","status","ip","uri" 
+"2023-05-31T12:34:56Z","adversary","GET",200,"34.253.159.159","http://gitlab.swiftspend.finance:80/"
+```
+
+
+	**JavaScript Object Notation (JSON)**: Provides readability and compatibility with modern programming languages.
+
+```
+damianhall@WEBSRV-02:~/logs$ cat log.json {"time": "2023-05-31T12:34:56Z", "user": "adversary", "action": "GET", "status": 200, "ip": "34.253.159.159", "uri": "http://gitlab.swiftspend.finance:80/"}
+```
+
+
+	**W3C Extended Log Format(ELF)**: Customizable web server logging for Microsoft
+	
+```
+damianhall@WEBSRV-02:~/logs$ cat elf.log #Version: 1.0 #Fields: date time c-ip c-username s-ip s-port cs-method cs-uri-stem sc-status 31-May-2023 13:55:36 34.253.159.159 adversary 34.253.127.157 80 GET /explore 200
+```
+
+
+	**Extensible Markup Language(XML)**: Customizable and flexible standard logging format
+
+```
+damianhall@WEBSRV-02:~/logs$ cat log.xml
+<log><time>2023-05-31T12:34:56Z</time><user>adversary</user><action>GET</action><status>200</status><ip>34.253.159.159</ip><url>https://gitlab.swiftspend.finance/</url></log>  
+```
+
+**Unstructured Logs:** Free form text, rich in content but can be difficult to read.
+
+	**NCSA Common Log Format(CLF)**: Standardized web server logs for client requesrs, it is used by Apache HTTP by default.
+
+```
+damianhall@WEBSRV-02:~/logs$ cat clf.log 34.253.159.159 - adversary [31/May/2023:13:55:36 +0000] "GET /explore HTTP/1.1" 200 4886
+```
+
+	**NCSA Combined Log Format(combined)**: Extension of CLF plus other fields such as; referrer and user agent. Nginx HTTP srever by default.
+	
+```
+damianhall@WEBSRV-02:~/logs$ cat combined.log 34.253.159.159 - adversary [31/May/2023:13:55:36 +0000] "GET /explore HTTP/1.1" 200 4886 "http://gitlab.swiftspend.finance/" "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/115.0"
+```
+## Log Standards
+
+<p align="center">
+<img src=screenshots/log-guidelines.png width="700">
+</p>
+
+A set of guidelines and specifications for how logs are generated, transmitted and stored.
+
+| Standard / Guideline | Type | What It Covers | Link |
+|---|---|---|---|
+| Common Event Expression (CEE) | Log format standard (archived) | MITRE's common structure for log data, for generating, transmitting, storing, and analysing logs | [cee.mitre.org](https://cee.mitre.org/) |
+| OWASP Logging Cheat Sheet | Developer guidance | Building application logging, focused on security logging | [OWASP](https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html) |
+| Syslog Protocol (RFC 5424) | Protocol standard | Separates the software that creates messages from the systems that store and analyse them | [RFC 5424](https://datatracker.ietf.org/doc/html/rfc5424) |
+| NIST SP 800-92 | Federal guidance | Computer security log management | [NIST PDF](https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-92.pdf) |
+| Azure Monitor Logs | Cloud platform docs | Log monitoring on Microsoft Azure | [Microsoft Learn](https://learn.microsoft.com/en-us/azure/azure-monitor/logs/data-platform-logs) |
+| Google Cloud Logging | Cloud platform docs | Logging on Google Cloud Platform (GCP) | [Google Cloud](https://docs.cloud.google.com/logging/docs) |
+| OCI Logging | Cloud platform docs | Logging on Oracle Cloud Infrastructure | [Oracle Docs](https://docs.oracle.com/en-us/iaas/Content/Logging/Concepts/loggingoverview.htm) |
+| Virginia Tech IT Logging Standard | Organizational policy | Sample log review and compliance guideline | [VT PDF](https://it.vt.edu/content/dam/it_vt_edu/policies/Standard_for_Information_Technology_Logging.pdf) |
+
+---
+
+## 1. Based on the list of log types in this task, what log type is used by the log file specified in the note from Task 2?
+
+**Answer: Web Server Log**
+
+---
+
+## 2. Based on the list of log formats in this task, what log format is used by the log file specified in the note from Task 2?
+
+```
+damianhall@WEBSRV-02:~/logs$ cat combined.log 34.253.159.159 - adversary [31/May/2023:13:55:36 +0000] "GET /explore HTTP/1.1" 200 4886 "http://gitlab.swiftspend.finance/" "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/115.0"
+```
+
+**Answer: Combined**
+
+---
+
+# TASK 4 - Collection, Management, and Centralisation
+
+## Log Collection
+
+To paint a full picture of an attack an SOC must aggregate logs together such as : server logs, application logs, database logs, etc...
+
+Depending on where the affected machine may be located its timestamp might not match what the SOC sees on his clock, it is vital that we are all on NTP or **Network Time Protocol.** This ensures one of the key pillar of the CIA triad is maintained, Integrity!
+
+Workflow for an Analyst:
+	- Identify Sources: all potential log types and sources
+	- Choose a Log Tool: The software your team uses for log collection
+	- Configure Collection Parameters: NTP time sync, adjust settings to log events at specific intervals and prioritize level threat. 
+		- **ntpdate pool.ntp.org** for time synchronization on Linux
+```	
+root@WEBSRV-02:~# ntpdate pool.ntp.org 
+12 Aug 21:03:44 ntpdate[2399365]: adjust time server 85.91.1.180 offset 0.000060 sec 
+root@WEBSRV-02:~# date Saturday, 12 August, 2023 09:04:55 PM UTC
+```
+
+## Log Management
+
+Once an SOC has collected logs for their investigation, how they handle them also ensures integrity.
+	**Storage:** Secure storage, keep in mind retention period and accessibility
+	**Organisation:** Classification of logs based on source type
+	**Backup:** Regular back-ups prevent data loss
+	**Review:** Periodically review logs to ensure proper categorization and storage
+
+## Log Centralisation
+
+Software such as Elastic Stack or Splunk are often used to consolidate all different types of logs in one place, this ensures quick access to the data and response to incidents.
+
+Live monitoring and integration with incident management are also vital for real time monitoring and the sending out of alerts as well as making sure the incident response team is within protocols.
+
+## Practical Activity: Log Collection with rsyslog
+
+The centralisation and management of logs is important for swift incident response. In this example we will configure **rsyslog** to log all sshd messages to a specific file.
+
+
+---
+
+## 1. After configuring rsyslog for sshd, what username repeatedly appears in the sshd logs at /var/log/websrv-02/rsyslog_sshd.log, indicating failed login attempts or brute forcing?
+
+
+
+<p align="center">
+<img src=screenshots/intro-to-logs-q5.png width="700">
+</p>
+
+**Answer:**
+
+---
+
+## 2. What is the IP address of SIEM-02 based on the rsyslog configuration file /etc/rsyslog.d/99-websrv-02-cron.conf, which is used to monitor cron messages?
+
+
+
+<p align="center">
+<img src=screenshots/intro-to-logs-q6.png width="700">
+</p>
+
+**Answer:**
+
+---
+
+## 3. Based on the generated logs in /var/log/websrv-02/rsyslog_cron.log, what command is being executed by the root user?
+
+
+
+<p align="center">
+<img src=screenshots/intro-to-logs-q7.png width="700">
+</p>
+
+**Answer:**
+
+---
+
+# TASK 5 - Storage, Retention, and Deletion
+
+## Log Storage
+
+
+
+## Log Retention
+
+
+
+## Log Deletion
+
+
+
+## Best Practices: Log Storage, Retention and Deletion
+
+
+
+## Practical Activity: Log Management with logrotate
+
+
+
+---
+
+## 1. Based on the logrotate configuration /etc/logrotate.d/99-websrv-02_cron.conf, how many versions of old compressed log file copies will be kept?
+
+
+
+<p align="center">
+<img src=screenshots/intro-to-logs-q8.png width="700">
+</p>
+
+**Answer:**
+
+---
+
+## 2. Based on the logrotate configuration /etc/logrotate.d/99-websrv-02_cron.conf, what is the log rotation frequency?
+
+
+
+<p align="center">
+<img src=screenshots/intro-to-logs-q9.png width="700">
+</p>
+
+**Answer:**
+
+---
+
+# TASK 6 - Hands-on Exercise: Log analysis process, tools, and techniques
+
+## Log Analysis Process
+
+
+
+## Log Analysis Tools
+
+
+
+## Log Analysis Techniques
+
+
+
+## Working with Logs: Practical Application
+
+
+
+## Unparsed Raw Log Files
+
+
+
+## Parsed and Consolidated Log File
+
+
+
+---
+
+## 1. Upon accessing the log viewer URL for unparsed raw log files, what error does "/var/log/websrv-02/rsyslog_cron.log" show when selecting the different filters?
+
+
+
+<p align="center">
+<img src=screenshots/intro-to-logs-q10.png width="700">
+</p>
+
+**Answer:**
+
+---
+
+## 2. What is the process of standardising parsed data into a more easily readable and query-able format?
+
+
+
+<p align="center">
+<img src=screenshots/intro-to-logs-q11.png width="700">
+</p>
+
+**Answer:**
+
+---
+
+## 3. What is the process of consolidating normalised logs to enhance the analysis of activities related to a specific IP address?
+
+
+
+<p align="center">
+<img src=screenshots/intro-to-logs-q12.png width="700">
+</p>
+
+**Answer:**
+
+---
+
+# TASK 7 - Conclusion
+
+- Logs turned scattered events on WEBSRV-02 into a timeline of what the adversary did
+- Configured rsyslog to split sshd and cron messages into their own files, then used logrotate to rotate, compress, and hash them for integrity
+- Worked raw logs in the Log Viewer, then parsed, normalised, sorted, and deduplicated them into one consolidated file with awk, sed, sort, and uniq
+- Next room in the module: Log Operations
+
+---
+
+## IOC Summary
+
+| Type | Indicator | Context |
+|---|---|---|
+| IP | | |
+| Domain | | |
+| Account | | |
+| Process | | |
+| File | | |
