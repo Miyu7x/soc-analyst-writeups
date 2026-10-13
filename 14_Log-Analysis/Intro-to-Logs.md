@@ -514,19 +514,18 @@ http://MACHINE_IP:8111/log?path=%2Ftmp%2Funiq_sort_parsed_consolidated.log
 <img src=screenshots/intro-to-logs-q10.png width="700">
 </p>
 
-**Answer:**
+**Answer: No date field**
 
 ---
 
 ## 2. What is the process of standardising parsed data into a more easily readable and query-able format?
 
 
-
 <p align="center">
 <img src=screenshots/intro-to-logs-q11.png width="700">
 </p>
 
-**Answer:**
+**Answer: Normalisation**
 
 ---
 
@@ -538,7 +537,7 @@ http://MACHINE_IP:8111/log?path=%2Ftmp%2Funiq_sort_parsed_consolidated.log
 <img src=screenshots/intro-to-logs-q12.png width="700">
 </p>
 
-**Answer:**
+**Answer: Enrichment**
 
 ---
 
