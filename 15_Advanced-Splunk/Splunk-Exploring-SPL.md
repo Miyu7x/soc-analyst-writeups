@@ -22,12 +22,15 @@ date_completed:
 - This room builds SPL up in layers: search operators, filtering, structuring, transforming, then anomaly detection
 - Most of the work happens in the `windowslogs` index, the anomaly hunting uses `vpnlogs`
 - Prereqs are Introduction to SIEM and Splunk: Basics
-- Splunk needs about five minutes to boot after starting the lab machine
 - Time range goes to **All time** before every search, or the results come back thin
 
 ---
 
 # TASK 2 - Search & Reporting
+
+<p align="center">
+<img src=screenshots/splunke-t2.png width="700">
+</p>
 
 - Search & Reporting is the default app on the Splunk home page, it is where every search lives
 - Four parts to know:
@@ -68,27 +71,36 @@ index=windowslogs
 <img src=screenshots/splunk-exploring-spl-q1.png width="700">
 </p>
 
-**Answer:**
+**Answer: 12256**
 
 ---
 
 ## 2. After you submit your first query, look in the Fields sidebar. Which SourceIP has recorded the most amount of events?
 
+If we search interesting fields we can see that we are missing two key components of an investigation: SourceIP and DestinationIP. At the bottom of the Interesting Fields there is an option to add more fields. 
+
 <p align="center">
 <img src=screenshots/splunk-exploring-spl-q2.png width="700">
 </p>
 
-**Answer:**
+<p align="center">
+<img src=screenshots/splunk-exploring-spl-q21.png width="700">
+</p>
+
+
+**Answer: 172.90.12.11**
 
 ---
 
 ## 3. How many events appear on 04/15/2022 from 08:05 AM to 08:06 AM?
 
+We had previously set the time param,eters for all time, but for this question we can adjust the date and time to before 04/15/2022 08:06:000
+
 <p align="center">
 <img src=screenshots/splunk-exploring-spl-q3.png width="700">
 </p>
 
-**Answer:**
+**Answer: 134**
 
 ---
 
@@ -204,41 +216,50 @@ index=windowslogs AccountName!=SYSTEM AccountName=James
 
 ## 1. How many events in the windowslogs index have an EventID field value equal to 4624?
 
+For our search this is a simple EventID=4624.
+
 <p align="center">
 <img src=screenshots/splunk-exploring-spl-q4.png width="700">
 </p>
 
-**Answer:**
+**Answer: 26**
 
 ---
 
 ## 2. How many events are observed with the DestinationIp = 172.18.39.6 and DestinationPort = 135?
 
+To search for a specific IP and Port we can use AND.
+index="windowslogs" DestinationIp="172.18.39.6" AND DestinationPort="135"
+
 <p align="center">
 <img src=screenshots/splunk-exploring-spl-q5.png width="700">
 </p>
 
-**Answer:**
+**Answer: 4**
 
 ---
 
 ## 3. Use the query `index=windowslogs Hostname=Salena.Adam DestinationIp=172.18.38.5` Which SourceIp returns the highest count?
 
+The source IP that returned the highest count was 172.90.12.11, with 17 hits and made up about 89% of the traffic.
 <p align="center">
 <img src=screenshots/splunk-exploring-spl-q6.png width="700">
 </p>
 
-**Answer:**
+**Answer: 172.90.12.11**
 
 ---
 
 ## 4. How many events are returned when you search the term cyber*?
 
+For this one, Splunk lets us just search for the term as is.
+index="windowslogs" cyber*
+
 <p align="center">
 <img src=screenshots/splunk-exploring-spl-q7.png width="700">
 </p>
 
-**Answer:**
+**Answer: 12256**
 
 ---
 
@@ -248,7 +269,7 @@ index=windowslogs AccountName!=SYSTEM AccountName=James
 <img src=screenshots/splunk-exploring-spl-q8.png width="700">
 </p>
 
-**Answer:**
+**Answer: AND**
 
 ---
 
@@ -328,21 +349,33 @@ index = windowslogs | regex Image = "\.exe$"
 
 ## 1. Use the fields command to highlight Domain, SourceProcessId, and TargetProcessId. Which SourceProcessId has the highest value?
 
+```
+index="windowslogs" 
+| fields Domain SourceProcessId TargetProcessId
+```
+
 <p align="center">
 <img src=screenshots/splunk-exploring-spl-q9.png width="700">
 </p>
 
-**Answer:**
+**Answer: 9496**
 
 ---
 
 ## 2. Try out this query `index=windowslogs | regex TargetObject="Manager$"`. Which TargetObject field value contains the highest number of results?
 
+- Ran regex query, clicked on TargetObjects and found the top value = HKLM\\SOFTWARE\\Microsoft\\SecurityManager.
+- This jumps out right away, any security related registry being touched raises red flags.
+- Did some further digging and everything seemed normal.
+- Image: C:\windows\system32\svchost.exe is normal path.
+- EventType: CreateKey, this is important nothing seems deleted or out of place.
+- Conclusion: Normal Windows service activity.
+
 <p align="center">
 <img src=screenshots/splunk-exploring-spl-q10.png width="700">
 </p>
 
-**Answer:**
+**Answer: HKLM\SOFTWARE\Microsoft\SecurityManager**
 
 ---
 
@@ -696,4 +729,5 @@ index=vpnlogs
 
 # TASK 8 - Conclusion
 
--
+- 
+
