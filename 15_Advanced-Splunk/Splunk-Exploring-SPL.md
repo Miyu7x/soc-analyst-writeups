@@ -444,21 +444,25 @@ index=windowslogs EventID=1
 
 ## 1. Build a table that highlights the EventID, AccountName, and AccountType fields. Which AccountName appears first in your results?
 
+We want to use table to eliminate the mess of thousands of events and turn them into neat columns we can look at first. SYSTEM is the most powerful built-in Windows account, we will encounter many SYSTEM events in our investigations, so learning what is the baseline is how we find what can be an anomaly.
+
 <p align="center">
 <img src=screenshots/splunk-exploring-spl-q11.png width="700">
 </p>
 
-**Answer:**
+**Answer: SYSTEM**
 
 ---
 
 ## 2. Append the above query to include the reverse command. Which EventID appears first?
 
+The oldest event is where an SOC should begin their investigation, thats what reverse does. The EventID=800 is a PowerShell ran a command, the red flag is at 08:05:46 Start-Sleep. It is used by attackers to slow down the system and avoid detection.
+
 <p align="center">
 <img src=screenshots/splunk-exploring-spl-q12.png width="700">
 </p>
 
-**Answer:**
+**Answer: 800**
 
 ---
 
@@ -470,11 +474,17 @@ index=windowslogs EventID=1
 | reverse
 ```
 
+```
+"C:\windows\System32\Wbem\WMIC.exe" /node:WORKSTATION6 process call create "net user /add A1berto paw0rd1"
+```
+
+By running this exact query we can see that the attacker used a built-in Windows admin tool to run this command on another computer, start the program there and create the user A1berto with password paw0rd1.
+
 <p align="center">
 <img src=screenshots/splunk-exploring-spl-q13.png width="700">
 </p>
 
-**Answer:**
+**Answer: paw0rd1**
 
 ---
 
@@ -597,7 +607,7 @@ index=windowslogs
 <img src=screenshots/splunk-exploring-spl-q14.png width="700">
 </p>
 
-**Answer:**
+**Answer: C:\windows\system32\svchost.exe**
 
 ---
 
@@ -607,7 +617,7 @@ index=windowslogs
 <img src=screenshots/splunk-exploring-spl-q15.png width="700">
 </p>
 
-**Answer:**
+**Answer: California**
 
 ---
 
@@ -624,7 +634,7 @@ index=windowslogs
 <img src=screenshots/splunk-exploring-spl-q16.png width="700">
 </p>
 
-**Answer:**
+**Answer: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe**
 
 ---
 
@@ -703,7 +713,7 @@ index=vpnlogs
 <img src=screenshots/splunk-exploring-spl-q17.png width="700">
 </p>
 
-**Answer:**
+**Answer: jsmith**
 
 ---
 
@@ -713,7 +723,7 @@ index=vpnlogs
 <img src=screenshots/splunk-exploring-spl-q18.png width="700">
 </p>
 
-**Answer:**
+**Answer: JP**
 
 ---
 
@@ -723,11 +733,10 @@ index=vpnlogs
 <img src=screenshots/splunk-exploring-spl-q19.png width="700">
 </p>
 
-**Answer:**
+**Answer: njackson**
 
 ---
 
 # TASK 8 - Conclusion
 
 - 
-
