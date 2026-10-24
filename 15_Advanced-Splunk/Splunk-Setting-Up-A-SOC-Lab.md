@@ -26,7 +26,7 @@ date_completed: 2026-10-23
 # TASK 1 - Introduction
 
 <p align="center">
-<img src=screenshots/coffely.png width="700">
+<img src=screenshots/coffely.png width="400">
 </p>
 
 - Coffely got hit by an insider breach. Someone in IT stole Jasmine's secret recipe.
